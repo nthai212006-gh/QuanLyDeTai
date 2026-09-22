@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:replace="~{layout/main :: html(content=~{::#main-content}, pageTitle='Chi Tiết Hội Đồng')}">
+<body>
+<div id="main-content">
+
+    <!-- Alert Messages -->
+    <div th:if="${param.graded}" class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="fa-solid fa-circle-check me-2"></i> <strong>Thành công!</strong> Điểm số đánh giá đã được lưu vào cơ sở dữ liệu và tự động cập nhật điểm trung bình hội đồng.
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    <div th:if="${param.published}" class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="fa-solid fa-bullhorn me-2"></i> <strong>Đã công bố!</strong> Kết quả điểm bảo vệ đã được công bố chính thức cho sinh viên tra cứu.
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    <div th:if="${param.memberAdded}" class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="fa-solid fa-user-plus me-2"></i> Thành viên đã được thêm vào hội đồng thành công.
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    <div th:if="${param.topicAssigned}" class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="fa-solid fa-check-double me-2"></i> Phân công đề tài vào hội đồng thành công.
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    <div th:if="${param.error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="fa-solid fa-triangle-exclamation me-2"></i> <strong>Lỗi:</strong> <span th:text="${param.error}">Đã xảy ra lỗi</span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <div>
+            <span class="badge-fit-tag text-primary fw-bold mb-1" th:text="${council.period.periodName}">Đợt KLTN</span>
+            <h3 class="fw-bold text-dark mb-1">
+                <i class="fa-solid fa-gavel me-2 text-primary"></i><span th:text="${council.councilName}">Hội đồng KLTN 01</span>
+                <span class="badge-fit-tag fs-6 ms-2" th:text="${council.councilCode}">HD_01</span>
+            </h3>
+            <p class="text-muted small mb-0">
+                <i class="fa-solid fa-clock me-1"></i> Báo cáo: <strong th:text="${council.defenseDate != null ? #temporals.format(council.defenseDate, 'dd/MM/yyyy HH:mm') : 'Chưa xếp'}">05/12/2026</strong> | 
+                <i class="fa-solid fa-door-open me-1"></i> Phòng: <strong th:text="${council.location}">P.B204</strong>
+            </p>
+        </div>
+        <div class="d-flex gap-2">
+            <!-- Export Excel Button -->
+            <a th:href="@{/excel/export-council/{id}(id=${council.id})}" class="btn btn-outline-success shadow-sm">
+                <i class="fa-solid fa-file-excel me-1"></i> Xuất Bảng Điểm Excel (POI)
+            </a>
+            <button sec:authorize="hasAnyRole('DEAN', 'ADMIN')" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#addMemberModal">
+                <i class="fa-solid fa-user-plus me-1"></i> Thêm Thành Viên
+            </button>
+            <button sec:authorize="hasAnyRole('DEAN', 'ADMIN')" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#assignTopicModal">
+                <i class="fa-solid fa-plus me-1"></i> Phân Công Đề Tài
+            </button>
+        </div>
+    </div>
+
+    <!-- Members of the Council (03 to 05 Lecturers) -->
+    <div class="card p-3 mb-4 border-0 shadow-sm bg-white">
+        <h6 class="fw-bold text-secondary mb-2">
+            <i class="fa-solid fa-users me-1 text-primary"></i> Thành Viên Hội Đồng (<span th:text="${council.members.size()}">0</span>/5 GV):
+        </h6>
+        <div class="d-flex flex-wrap gap-2">
+            <div th:each="m : ${council.members}" class="border rounded-pill px-3 py-1 bg-light d-flex align-items-center small">
+                <strong th:text="${m.lecturer.fullName}" class="me-2">TS. Nguyễn Văn A</strong>
+                <span class="badge-role" th:if="${m.position.name() == 'CHAIR'}"><i class="fa-solid fa-gavel"></i> CHỦ TỊCH</span>
+                <span class="badge-role" th:if="${m.position.name() == 'SECRETARY'}"><i class="fa-solid fa-pen-nib"></i> THƯ KÝ</span>
+                <span class="badge-role badge-role-secondary" th:if="${m.position.name() == 'MEMBER'}"><i class="fa-solid fa-user"></i> ỦY VIÊN</span>
+                <span class="badge-role" th:if="${m.position.name() == 'REVIEWER'}"><i class="fa-solid fa-clipboard-check"></i> GVPB</span>
+            </div>
+            <div th:if="${council.members.isEmpty()}" class="text-danger small fw-semibold">
+                <i class="fa-solid fa-circle-exclamation me-1"></i> Chưa có thành viên. Cần bổ nhiệm đủ từ 03 đến 05 giảng viên theo quy định để kích hoạt chức năng chấm điểm!
+            </div>
+            <div th:if="${!council.members.isEmpty() and council.members.size() < 3}" class="text-warning text-dark small fw-semibold">
+                <i class="fa-solid fa-triangle-exclamation me-1"></i> Hội đồng hiện có <span th:text="${council.members.size()}">0</span>/3 GV tối thiểu. Cần thêm ít nhất <span th:text="${3 - council.members.size()}">0</span> GV nữa để đủ điều kiện chấm điểm.
+            </div>
+        </div>
+    </div>
+
+    <!-- Topics Assigned & Grading Table -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
+            <h5 class="fw-bold mb-0 text-dark">
+                <i class="fa-solid fa-clipboard-check text-success me-2"></i>Danh Sách Đề Tài & Điểm Đánh Giá
+            </h5>
+            <span class="badge bg-light text-secondary">
+                Quy tắc: Điểm cuối cùng = Trung bình cộng điểm thành phần
+            </span>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th class="ps-4">STT</th>
+                        <th>Nhóm & Đề Tài</th>
+                        <th>GV Hướng Dẫn</th>
+                        <th>GV Phản Biện (GVPB)</th>
+                        <th>Điểm Cuối Cùng</th>
+                        <th>Trạng Thái</th>
+                        <th class="text-end pe-4">Thao Tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="ct : ${council.assignedTopics}">
+                        <td class="ps-4" th:text="${ct.defenseOrder != null ? ct.defenseOrder : '-'}">1</td>
+                        <td>
+                            <strong class="text-primary" th:text="${ct.group.groupName}">Nhóm 1</strong>
+                            <div class="small fw-semibold text-dark" th:text="${ct.group.topic != null ? ct.group.topic.title : 'Chưa có đề tài'}">Tên đề tài</div>
+                        </td>
+                        <td class="small">
+                            <span th:if="${ct.group.topic != null}" th:text="${ct.group.topic.createdByLecturer.fullName}">TS. Lê Hướng Dẫn</span>
+                        </td>
+                        <td class="small">
+                            <span th:text="${ct.reviewerLecturer != null ? ct.reviewerLecturer.fullName : 'Chưa phân công'}">ThS. Phạm Phản Biện</span>
+                        </td>
+                        <td>
+                            <div th:if="${ct.finalCouncilScore != null}">
+                                <span class="fs-5 fw-bold text-success" th:text="${ct.finalCouncilScore}">8.5</span> / 10
+                                <div class="small text-muted">(<span th:text="${ct.evaluations.size()}">0</span> GV đã chấm)</div>
+                            </div>
+                            <div th:if="${ct.finalCouncilScore == null}" class="text-muted small">Đang chấm</div>
+                        </td>
+                        <td>
+                            <span th:if="${ct.isPublished}" class="badge-status badge-status-success">ĐÃ CÔNG BỐ</span>
+                            <span th:if="${!ct.isPublished}" class="badge-status badge-status-neutral">CHƯA CÔNG BỐ</span>
+                        </td>
+                        <td class="text-end pe-4">
+                            <!-- Nút Chấm Điểm: Bắt buộc hội đồng phải có đủ ít nhất 3 GV -->
+                            <span sec:authorize="hasAnyRole('LECTURER', 'HEAD_OF_DEPT', 'DEAN', 'ADMIN')">
+                                <button th:if="${council.members.size() >= 3}"
+                                        class="btn btn-sm btn-primary me-1 shadow-sm" 
+                                        type="button"
+                                        onclick="openGradingModal(this)"
+                                        th:data-council-topic-id="${ct.id}"
+                                        th:data-council-id="${council.id}"
+                                        th:data-topic-title="${ct.group.topic != null ? ct.group.topic.title : 'Chưa có đề tài'}"
+                                        th:data-group-name="${ct.group.groupName}">
+                                    <i class="fa-solid fa-pen-to-square me-1"></i> Chấm Điểm
+                                </button>
+                                <button th:if="${council.members.size() < 3}"
+                                        class="btn btn-sm btn-outline-secondary me-1" 
+                                        type="button"
+                                        disabled
+                                        th:title="'Cần tối thiểu 3 giảng viên trong hội đồng mới được chấm (hiện có ' + ${council.members.size()} + ' GV)'">
+                                    <i class="fa-solid fa-lock me-1"></i> Chưa Đủ 3 GV
+                                </button>
+                            </span>
+
+                            <!-- Publish Result Button (Only Dean or Chair) -->
+                            <form sec:authorize="hasAnyRole('DEAN', 'HEAD_OF_DEPT', 'ADMIN')" 
+                                  th:if="${!ct.isPublished and ct.finalCouncilScore != null}"
+                                  th:action="@{/councils/publish/{id}(id=${ct.id})}" method="post" class="d-inline">
+                                <input type="hidden" name="councilId" th:value="${council.id}">
+                                <button type="submit" class="btn btn-sm btn-success shadow-sm">
+                                    <i class="fa-solid fa-bullhorn me-1"></i> Công Bố
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(council.assignedTopics)}">
+                        <td colspan="7" class="text-center py-4 text-muted">Chưa có đề tài nào được phân công vào hội đồng này.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Unified Modal Grade Topic -->
+    <div class="modal fade" id="gradeTopicModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <form th:action="@{/councils/grade}" method="post" class="modal-content shadow border-0">
+                <input type="hidden" name="councilTopicId" id="modalCouncilTopicId">
+                <input type="hidden" name="councilId" id="modalCouncilId">
+
+                <div class="modal-header bg-primary text-white">
+                    <h6 class="modal-title fw-bold">
+                        <i class="fa-solid fa-file-signature me-2"></i>Phiếu Đánh Giá & Chấm Điểm Đề Tài
+                    </h6>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body text-start">
+                    <div class="bg-light p-3 rounded-3 mb-3 border">
+                        <div class="small text-muted mb-1">Nhóm thực hiện: <strong id="modalGroupName" class="text-primary"></strong></div>
+                        <div class="small text-muted">Đề tài: <strong id="modalTopicTitle" class="text-dark"></strong></div>
+                    </div>
+
+                    <div class="alert alert-warning py-2 small mb-3">
+                        <i class="fa-solid fa-triangle-exclamation me-1"></i> <strong>Ràng buộc quy chế:</strong> Giảng viên không được phép chấm đề tài do chính mình hướng dẫn!
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Vai Trò Đánh Giá Trong Buổi Báo Cáo <span class="text-danger">*</span></label>
+                        <select name="evalType" class="form-select form-select-sm" required>
+                            <option value="COUNCIL_CHAIR">Chủ tịch hội đồng (CHAIR)</option>
+                            <option value="COUNCIL_MEMBER">Ủy viên hội đồng (MEMBER / SECRETARY)</option>
+                            <option value="REVIEWER">Giảng viên phản biện (GVPB)</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between">
+                            <label class="form-label small fw-semibold">1. Báo Cáo & Tài Liệu (Hệ số 30%) <span class="text-danger">*</span></label>
+                            <span class="text-muted small">Thang điểm 0 - 10</span>
+                        </div>
+                        <input type="number" step="0.1" min="0" max="10" name="c1" id="gradeC1" 
+                               class="form-control form-control-sm" placeholder="Nhập điểm từ 0 đến 10" 
+                               oninput="calculateLiveGrade()" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between">
+                            <label class="form-label small fw-semibold">2. Sản Phẩm & Demo Công Nghệ (Hệ số 40%) <span class="text-danger">*</span></label>
+                            <span class="text-muted small">Thang điểm 0 - 10</span>
+                        </div>
+                        <input type="number" step="0.1" min="0" max="10" name="c2" id="gradeC2" 
+                               class="form-control form-control-sm" placeholder="Nhập điểm từ 0 đến 10" 
+                               oninput="calculateLiveGrade()" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between">
+                            <label class="form-label small fw-semibold">3. Thuyết Trình & Trả Lời Phản Biện (Hệ số 30%) <span class="text-danger">*</span></label>
+                            <span class="text-muted small">Thang điểm 0 - 10</span>
+                        </div>
+                        <input type="number" step="0.1" min="0" max="10" name="c3" id="gradeC3" 
+                               class="form-control form-control-sm" placeholder="Nhập điểm từ 0 đến 10" 
+                               oninput="calculateLiveGrade()" required>
+                    </div>
+
+                    <!-- Live Grade Summary Box -->
+                    <div class="p-2 mb-3 bg-primary bg-opacity-10 rounded-2 text-center">
+                        <span class="small fw-semibold text-primary">Điểm tổng kết thành phần tạm tính: </span>
+                        <span id="liveScore" class="fs-5 fw-bold text-primary">0.00</span> / 10
+                    </div>
+
+                    <div class="mb-2">
+                        <label class="form-label small fw-semibold">Nhận Xét & Góp Ý Của Giảng Viên</label>
+                        <textarea name="comments" id="gradeComments" class="form-control form-control-sm" rows="3" 
+                                  placeholder="Đánh giá ưu nhược điểm, độ hoàn thiện của đề tài..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-secondary btn-sm px-3" data-bs-dismiss="modal">Hủy Bỏ</button>
+                    <button type="submit" class="btn btn-primary btn-sm px-4 fw-semibold">
+                        <i class="fa-solid fa-floppy-disk me-1"></i> Lưu Điểm Vào Hệ Thống
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Add Member -->
+    <div class="modal fade" id="addMemberModal" tabindex="-1">
+        <div class="modal-dialog">
+            <form th:action="@{/councils/{id}/add-member(id=${council.id})}" method="post" class="modal-content">
+                <div class="modal-header">
+                    <h6 class="modal-title fw-bold text-primary">Thêm Giảng Viên Vào Hội Đồng (3 - 5 GV)</h6>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Chọn Giảng Viên</label>
+                        <select name="lecturerId" class="form-select form-select-sm" required>
+                            <option th:each="l : ${lecturers}" th:value="${l.id}" th:text="${l.fullName}">TS. A</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Vị Trí Trong Hội Đồng</label>
+                        <select name="position" class="form-select form-select-sm" required>
+                            <option th:each="pos : ${positions}" th:value="${pos}" th:text="${pos}">CHAIR</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-primary btn-sm">Thêm vào HĐ</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Assign Topic -->
+    <div class="modal fade" id="assignTopicModal" tabindex="-1">
+        <div class="modal-dialog">
+            <form th:action="@{/councils/{id}/assign-topic(id=${council.id})}" method="post" class="modal-content">
+                <div class="modal-header">
+                    <h6 class="modal-title fw-bold text-primary">Phân Công Đề Tài / Nhóm Vào Hội Đồng</h6>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Chọn Nhóm Sinh Viên Đủ Điều Kiện Báo Cáo</label>
+                        <select th:if="${!#lists.isEmpty(availableGroups)}" name="groupId" class="form-select form-select-sm" required>
+                            <option th:each="g : ${availableGroups}" th:value="${g.id}" 
+                                    th:text="${g.groupName} + ' (Đề tài: ' + ${g.topic.title} + ')'">Nhóm 1</option>
+                        </select>
+                        <div th:if="${#lists.isEmpty(availableGroups)}" class="alert alert-warning py-2 px-3 small mb-0">
+                            <i class="fa-solid fa-triangle-exclamation me-1"></i> Hiện không có nhóm sinh viên nào đủ điều kiện (Yêu cầu: Đã đăng ký đề tài APPROVED và chưa xếp vào hội đồng khác).
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Chỉ Định Giảng Viên Phản Biện (GVPB)</label>
+                        <select name="reviewerId" class="form-select form-select-sm">
+                            <option value="">-- Chọn GVPB --</option>
+                            <option th:each="l : ${lecturers}" th:value="${l.id}" th:text="${l.fullName}">ThS. B</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Thứ Tự Báo Cáo Trong Buổi</label>
+                        <input type="number" name="order" class="form-control form-control-sm" value="1" min="1" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-primary btn-sm">Xác nhận phân công</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+</div>
+</body>
+</html>

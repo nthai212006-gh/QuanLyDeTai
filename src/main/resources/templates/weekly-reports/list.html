@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:replace="~{layout/main :: html(content=~{::#main-content}, pageTitle='Nhật Ký Tiến Độ Tuần')}">
+<body>
+<div id="main-content">
+
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <div>
+            <span class="badge-fit-tag text-primary fw-bold mb-1" th:text="${group.period.periodName}">Đợt KLTN</span>
+            <h3 class="fw-bold text-dark mb-1">
+                <i class="fa-solid fa-calendar-check me-2 text-primary"></i>Nhật Ký Tiến Độ Tuần: <span th:text="${group.groupName}">Nhóm 1</span>
+            </h3>
+            <p class="text-muted small mb-0">
+                Đề tài: <strong th:text="${group.topic != null ? group.topic.title : 'Chưa có đề tài'}">Tên đề tài</strong> | 
+                GVHD: <strong th:text="${group.topic != null ? group.topic.createdByLecturer.fullName : 'N/A'}">TS. A</strong>
+            </p>
+        </div>
+        <div th:if="${currentUser.id == group.leader.id}">
+            <button class="btn btn-primary shadow-sm" data-bs-toggle="modal" data-bs-target="#submitReportModal">
+                <i class="fa-solid fa-plus me-1"></i> Báo Cáo Tuần Mới
+            </button>
+        </div>
+    </div>
+
+    <!-- Weekly Reports Timeline -->
+    <div class="row g-4">
+        <div th:each="r : ${reports}" class="col-12">
+            <div class="card p-4 border-0 shadow-sm">
+                <div class="d-flex justify-content-between align-items-start mb-3 border-bottom pb-2">
+                    <div>
+                        <h5 class="fw-bold text-primary mb-0">
+                            <i class="fa-solid fa-bookmark me-2"></i>Báo Cáo Tiến Độ Tuần <span th:text="${r.weekNumber}">1</span>
+                        </h5>
+                        <small class="text-muted">
+                            Thời gian: <span th:text="${#temporals.format(r.startDate, 'dd/MM/yyyy')}">01/09</span> đến <span th:text="${#temporals.format(r.endDate, 'dd/MM/yyyy')}">07/09</span>
+                            | Nộp bởi: <span th:text="${r.submittedBy.fullName}">SV A</span> vào lúc <span th:text="${#temporals.format(r.submittedAt, 'dd/MM/yyyy HH:mm')}">08/09</span>
+                        </small>
+                    </div>
+                    <div>
+                        <span th:if="${r.status.name() == 'PENDING'}" class="badge-status badge-status-pending">CHỜ GVHD NHẬN XÉT</span>
+                        <span th:if="${r.status.name() == 'APPROVED'}" class="badge-status badge-status-success">GVHD ĐÁNH GIÁ: ĐẠT</span>
+                        <span th:if="${r.status.name() == 'REVISION_REQUIRED'}" class="badge-status badge-status-danger">CẦN CHỈNH SỬA LẠI</span>
+                    </div>
+                </div>
+
+                <div class="row g-3 mb-3">
+                    <div class="col-md-4">
+                        <strong class="text-dark small d-block mb-1"><i class="fa-solid fa-circle-check text-success me-1"></i> Việc đã hoàn thành:</strong>
+                        <p class="text-secondary small bg-light p-3 rounded-3" th:text="${r.tasksCompleted}">Nội dung công việc hoàn thành...</p>
+                    </div>
+                    <div class="col-md-4">
+                        <strong class="text-dark small d-block mb-1"><i class="fa-solid fa-circle-exclamation text-warning me-1"></i> Khó khăn gặp phải:</strong>
+                        <p class="text-secondary small bg-light p-3 rounded-3" th:text="${r.difficulties != null ? r.difficulties : 'Không có'}">Khó khăn...</p>
+                    </div>
+                    <div class="col-md-4">
+                        <strong class="text-dark small d-block mb-1"><i class="fa-solid fa-calendar-plus text-primary me-1"></i> Kế hoạch tuần tới:</strong>
+                        <p class="text-secondary small bg-light p-3 rounded-3" th:text="${r.nextWeekPlan}">Kế hoạch...</p>
+                    </div>
+                </div>
+
+                <!-- Lecturer Feedback Block -->
+                <div class="bg-light p-3 rounded-3 border-start border-4 border-primary">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <strong class="text-primary small"><i class="fa-solid fa-comment-dots me-1"></i> Nhận xét từ GVHD:</strong>
+                        <button sec:authorize="hasAnyRole('LECTURER', 'HEAD_OF_DEPT', 'DEAN', 'ADMIN')" 
+                                class="btn btn-sm btn-outline-primary py-0" data-bs-toggle="modal" th:data-bs-target="'#reviewModal' + ${r.id}">
+                            <i class="fa-solid fa-pen me-1"></i> Nhận xét & Đánh giá
+                        </button>
+                    </div>
+                    <p class="mb-0 text-dark small" th:text="${r.lecturerFeedback != null ? r.lecturerFeedback : 'Chưa có nhận xét từ giảng viên.'}">Ý kiến nhận xét...</p>
+                    <small th:if="${r.reviewedBy != null}" class="text-muted d-block mt-1">
+                        Đánh giá bởi: <span th:text="${r.reviewedBy.fullName}">TS. Lê Hướng Dẫn</span> vào lúc <span th:text="${#temporals.format(r.reviewedAt, 'dd/MM/yyyy HH:mm')}">09/09</span>
+                    </small>
+                </div>
+
+                <!-- Review Modal for Lecturer -->
+                <div class="modal fade" th:id="'reviewModal' + ${r.id}" tabindex="-1">
+                    <div class="modal-dialog">
+                        <form th:action="@{/weekly-reports/review}" method="post" class="modal-content">
+                            <input type="hidden" name="reportId" th:value="${r.id}">
+                            <input type="hidden" name="groupId" th:value="${group.id}">
+
+                            <div class="modal-header">
+                                <h6 class="modal-title fw-bold text-primary">Nhận Xét Tiến Độ Tuần <span th:text="${r.weekNumber}">1</span></h6>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="mb-3">
+                                    <label class="form-label small fw-semibold">Đánh Giá Tiến Độ</label>
+                                    <select name="status" class="form-select form-select-sm" required>
+                                        <option value="APPROVED">ĐẠT (Tiến độ tốt)</option>
+                                        <option value="REVISION_REQUIRED">CẦN CHỈNH SỬA (Chưa đạt)</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label small fw-semibold">Nội Dung Nhận Xét, Hướng Dẫn</label>
+                                    <textarea name="feedback" class="form-control form-control-sm" rows="3" required></textarea>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Hủy</button>
+                                <button type="submit" class="btn btn-primary btn-sm">Lưu Đánh Giá</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div th:if="${reports.isEmpty()}" class="col-12 text-center py-5 text-muted">
+            <i class="fa-solid fa-calendar-xmark fs-1 mb-2"></i>
+            <p>Nhóm chưa nộp báo cáo tiến độ tuần nào.</p>
+        </div>
+    </div>
+
+    <!-- Modal Submit Weekly Report -->
+    <div class="modal fade" id="submitReportModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <form th:action="@{/weekly-reports/submit}" method="post" class="modal-content">
+                <input type="hidden" name="groupId" th:value="${group.id}">
+
+                <div class="modal-header">
+                    <h6 class="modal-title fw-bold text-primary">Nộp Báo Cáo Tiến Độ Tuần Mới</h6>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-4">
+                            <label class="form-label small fw-semibold">Tuần Thứ Mấy</label>
+                            <input type="number" name="weekNumber" class="form-control form-control-sm" min="1" max="20" th:value="${reports.size() + 1}" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-semibold">Ngày Bắt Đầu Tuần</label>
+                            <input type="date" name="startDate" class="form-control form-control-sm" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-semibold">Ngày Kết Thúc Tuần</label>
+                            <input type="date" name="endDate" class="form-control form-control-sm" required>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Các Công Việc Đã Hoàn Thành Trong Tuần</label>
+                        <textarea name="tasksCompleted" class="form-control form-control-sm" rows="3" placeholder="Liệt kê công việc chi tiết..." required></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Khó Khăn Gặp Phải (Nếu có)</label>
+                        <textarea name="difficulties" class="form-control form-control-sm" rows="2" placeholder="Ghi nhận vấn đề cần GVHD giải đáp..."></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Kế Hoạch Cho Tuần Tiếp Theo</label>
+                        <textarea name="nextWeekPlan" class="form-control form-control-sm" rows="2" placeholder="Dự kiến công việc tiếp theo..." required></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Link File Đính Kèm / Minh Chứng Kết Quả (Tùy chọn)</label>
+                        <input type="url" name="attachmentUrl" class="form-control form-control-sm" placeholder="https://...">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-primary btn-sm">Gửi Báo Cáo Cho GVHD</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:replace="~{layout/main :: html(content=~{::#main-content}, pageTitle='Đề Xuất Đề Tài')}">
+<body>
+<div id="main-content">
+
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
+                    <h5 class="fw-bold mb-0 text-success">
+                        <i class="fa-solid fa-file-circle-plus me-2"></i>Đề Xuất Đề Tài Mới (Dành Cho Giảng Viên)
+                    </h5>
+                    <button type="button" class="btn btn-sm btn-outline-warning text-dark fw-semibold" onclick="checkSimilarityWithAI()">
+                        <i class="fa-solid fa-robot me-1 text-primary"></i> AI Check Trùng Lặp
+                    </button>
+                </div>
+                <div class="card-body p-4">
+                    <form th:action="@{/topics/create}" th:object="${topic}" method="post">
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Đợt Đăng Ký <span class="text-danger">*</span></label>
+                                <select name="periodId" id="periodSelect" class="form-select" required>
+                                    <option th:each="p : ${periods}" th:value="${p.id}" th:text="${p.periodName}">Đợt KLTN HK1</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Bộ Môn Quản Lý <span class="text-danger">*</span></label>
+                                <select name="departmentId" class="form-select" required>
+                                    <option th:each="d : ${departments}" th:value="${d.id}" th:text="${d.deptName} + ' (' + ${d.deptCode} + ')'">Công nghệ phần mềm</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold">Mã Đề Tài <span class="text-danger">*</span></label>
+                                <input type="text" th:field="*{topicCode}" class="form-control" placeholder="VD: DT_KLTN_2026_03" required>
+                            </div>
+                            <div class="col-md-8">
+                                <label class="form-label fw-semibold">Tên Đề Tài <span class="text-danger">*</span></label>
+                                <input type="text" th:field="*{title}" id="topicTitle" class="form-control" placeholder="Nhập tên đề tài nghiên cứu" required>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Nội Dung & Mục Tiêu Đề Tài <span class="text-danger">*</span></label>
+                            <textarea th:field="*{description}" id="topicDesc" class="form-control" rows="4" 
+                                      placeholder="Mô tả mục tiêu, bài toán và phạm vi nghiên cứu..." required></textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Yêu Cầu Kiến Thức & Kết Quả Bàn Giao</label>
+                            <textarea th:field="*{requirements}" class="form-control" rows="3" 
+                                      placeholder="Công nghệ (Spring Boot, MySQL,...), tài liệu kiến trúc, mã nguồn..."></textarea>
+                        </div>
+
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">GV Hướng Dẫn Chính (Primary)</label>
+                                <input type="text" class="form-control bg-light" th:value="${currentUser.fullName}" readonly>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">GV Hướng Dẫn Phụ (Tối đa 2 GVHD - Tùy chọn)</label>
+                                <select name="coSupervisorId" class="form-select">
+                                    <option value="">-- Không có GVHD phụ --</option>
+                                    <option th:each="gv : ${lecturers}" th:value="${gv.id}" th:text="${gv.fullName}">ThS. Nguyễn B</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Alert AI Check Result -->
+                        <div id="aiResultDiv" class="alert alert-info d-none mb-3"></div>
+
+                        <div class="d-flex justify-content-between">
+                            <a th:href="@{/topics}" class="btn btn-outline-secondary">Hủy bỏ</a>
+                            <button type="submit" class="btn btn-success px-4 fw-semibold shadow-sm">
+                                <i class="fa-solid fa-paper-plane me-1"></i> Gửi Phê Duyệt Đề Tài
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script th:src="@{/js/ai-assistant.js}"></script>
+</div>
+</body>
+</html>

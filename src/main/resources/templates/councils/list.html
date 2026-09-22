@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:replace="~{layout/main :: html(content=~{::#main-content}, pageTitle='Hội Đồng Phản Biện')}">
+<body>
+<div id="main-content">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h4 class="fw-bold text-dark mb-1">Hội Đồng Phản Biện & Chấm Điểm</h4>
+            <p class="text-muted small mb-0">Quản lý hội đồng 03 - 05 giảng viên, phân công đề tài và tổng hợp điểm số</p>
+        </div>
+        <button sec:authorize="hasAnyRole('DEAN', 'ADMIN')" class="btn btn-primary shadow-sm" data-bs-toggle="modal" data-bs-target="#createCouncilModal">
+            <i class="fa-solid fa-plus me-1"></i> Thành Lập Hội Đồng Mới
+        </button>
+    </div>
+
+    <!-- Filter by Period -->
+    <div class="card p-3 mb-4 bg-white border-0 shadow-sm">
+        <form th:action="@{/councils}" method="get" class="row g-2 align-items-center">
+            <div class="col-auto">
+                <label class="form-label mb-0 fw-semibold text-secondary">Lọc theo đợt:</label>
+            </div>
+            <div class="col-md-5">
+                <select name="periodId" class="form-select" onchange="this.form.submit()">
+                    <option th:each="p : ${periods}" th:value="${p.id}" th:text="${p.periodName}"
+                            th:selected="${p.id == selectedPeriodId}">Đợt KLTN</option>
+                </select>
+            </div>
+        </form>
+    </div>
+
+    <!-- Councils Grid -->
+    <div class="row g-3">
+        <div th:each="c : ${councils}" class="col-lg-6">
+            <div class="card h-100 p-4 border-0 shadow-sm">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <div>
+                        <span class="badge-fit-tag text-primary fw-bold" th:text="${c.period.periodName}">Đợt KLTN</span>
+                        <span class="badge-fit-tag ms-1" th:text="${c.councilCode}">HD_01</span>
+                    </div>
+                    <div>
+                        <span th:if="${c.status.name() == 'CREATED'}" class="badge-status badge-status-neutral">Mới thành lập</span>
+                        <span th:if="${c.status.name() == 'IN_PROGRESS' or c.status.name() == 'IN_SESSION'}" class="badge-status badge-status-info">Đang chấm điểm</span>
+                        <span th:if="${c.status.name() == 'COMPLETED'}" class="badge-status badge-status-success">Đã hoàn tất</span>
+                    </div>
+                </div>
+
+                <h5 class="fw-bold text-dark mb-2" th:text="${c.councilName}">Hội Đồng Bảo Vệ Khóa Luận Tốt Nghiệp</h5>
+
+                <div class="small text-muted mb-3">
+                    <div><i class="fa-solid fa-calendar-day text-danger me-2"></i><strong>Ngày báo cáo:</strong> <span th:text="${c.defenseDate != null ? #temporals.format(c.defenseDate, 'dd/MM/yyyy HH:mm') : 'Chưa xếp lịch'}">05/12/2026</span></div>
+                    <div><i class="fa-solid fa-location-dot text-primary me-2"></i><strong>Địa điểm:</strong> <span th:text="${c.location != null ? c.location : 'Chưa xếp phòng'}">Phòng B204</span></div>
+                </div>
+
+                <!-- Members List -->
+                <div class="bg-light p-3 rounded-3 mb-3 small">
+                    <div class="fw-bold text-secondary mb-1">Thành Viên Hội Đồng (<span th:text="${c.members.size()}">0</span>/5 GV):</div>
+                    <div th:each="m : ${c.members}" class="d-flex justify-content-between align-items-center py-1 border-bottom border-light">
+                        <span th:text="${m.lecturer.fullName}">TS. Trần Văn A</span>
+                        <span class="badge-role" th:if="${m.position.name() == 'CHAIR'}"><i class="fa-solid fa-gavel"></i> CHỦ TỊCH</span>
+                        <span class="badge-role" th:if="${m.position.name() == 'SECRETARY'}"><i class="fa-solid fa-pen-nib"></i> THƯ KÝ</span>
+                        <span class="badge-role badge-role-secondary" th:if="${m.position.name() == 'MEMBER'}"><i class="fa-solid fa-user"></i> ỦY VIÊN</span>
+                    </div>
+                    <div th:if="${c.members.isEmpty()}" class="text-muted">Chưa gán giảng viên vào hội đồng.</div>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center mt-auto pt-2 border-top">
+                    <span class="small text-muted">Đề tài phân công: <strong th:text="${c.assignedTopics.size()}">0</strong></span>
+                    <a th:href="@{/councils/{id}(id=${c.id})}" class="btn btn-sm btn-primary">
+                        <i class="fa-solid fa-arrow-right me-1"></i> Vào Hội Đồng & Chấm Điểm
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div th:if="${#lists.isEmpty(councils)}" class="col-12 text-center py-5 text-muted">
+            <i class="fa-solid fa-gavel fs-1 mb-2"></i>
+            <p>Chưa có hội đồng nào được thành lập trong đợt này.</p>
+        </div>
+    </div>
+
+    <!-- Create Council Modal -->
+    <div class="modal fade" id="createCouncilModal" tabindex="-1">
+        <div class="modal-dialog">
+            <form th:action="@{/councils/create}" method="post" class="modal-content">
+                <div class="modal-header">
+                    <h6 class="modal-title fw-bold text-primary">Thành Lập Hội Đồng Phản Biện Mới</h6>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Thuộc Đợt Đăng Ký</label>
+                        <select name="periodId" class="form-select form-select-sm" required>
+                            <option th:each="p : ${periods}" th:value="${p.id}" th:text="${p.periodName}">Đợt KLTN</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Mã Hội Đồng</label>
+                        <input type="text" name="councilCode" class="form-control form-control-sm" placeholder="VD: HD_KLTN_CNPM_01" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Tên Hội Đồng</label>
+                        <input type="text" name="councilName" class="form-control form-control-sm" placeholder="VD: Hội đồng Chuyên đề Phần mềm 01" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Ngày & Giờ Báo Cáo Phản Biện</label>
+                        <input type="datetime-local" name="defenseDate" class="form-control form-control-sm" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Phòng Họp / Địa Điểm</label>
+                        <input type="text" name="location" class="form-control form-control-sm" placeholder="VD: P.B204 - Giảng đường B" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-primary btn-sm">Tạo hội đồng</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+</div>
+</body>
+</html>

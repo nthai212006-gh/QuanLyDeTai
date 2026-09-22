@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:replace="~{layout/main :: html(content=~{::#main-content}, pageTitle='AI Assistant')}">
+<body>
+<div id="main-content">
+
+    <div class="mb-4">
+        <h4 class="fw-bold text-dark mb-1">
+            <i class="fa-solid fa-robot text-primary me-2"></i>Trợ Lý Trí Tuệ Nhân Tạo (AI Assistant)
+        </h4>
+        <p class="text-muted small mb-0">Hỗ trợ thông minh cho Khoa CNTT: Gợi ý đề tài, kiểm tra tính mới, tóm tắt báo cáo nhanh</p>
+    </div>
+
+    <!-- AI Feature Tabs -->
+    <ul class="nav nav-pills mb-4 bg-white p-2 rounded-3 shadow-sm border" id="aiTab" role="tablist">
+        <li class="nav-item flex-fill" role="presentation">
+            <button class="nav-link active w-100 fw-semibold" id="recommend-tab" data-bs-toggle="tab" data-bs-target="#recommend-pane">
+                <i class="fa-solid fa-lightbulb me-2 text-warning"></i> 1. Gợi Ý Đề Tài Thông Minh
+            </button>
+        </li>
+        <li class="nav-item flex-fill" role="presentation">
+            <button class="nav-link w-100 fw-semibold" id="similarity-tab" data-bs-toggle="tab" data-bs-target="#similarity-pane">
+                <i class="fa-solid fa-shield-halved me-2 text-danger"></i> 2. Kiểm Tra Trùng Lặp Ý Tưởng
+            </button>
+        </li>
+        <li class="nav-item flex-fill" role="presentation">
+            <button class="nav-link w-100 fw-semibold" id="summary-tab" data-bs-toggle="tab" data-bs-target="#summary-pane">
+                <i class="fa-solid fa-file-waveform me-2 text-info"></i> 3. Tóm Tắt Nhanh Báo Cáo Đồ Án
+            </button>
+        </li>
+    </ul>
+
+    <div class="tab-content" id="aiTabContent">
+        <!-- 1. Topic Recommendation Pane -->
+        <div class="tab-pane fade show active" id="recommend-pane">
+            <div class="row g-4">
+                <div class="col-lg-5">
+                    <div class="card p-4 border-0 shadow-sm">
+                        <h5 class="fw-bold text-dark mb-3">Tư Vấn Chọn Đề Tài Phù Hợp</h5>
+                        <div class="mb-3">
+                            <label class="form-label small fw-semibold">Đợt Đăng Ký</label>
+                            <select id="recPeriodId" class="form-select">
+                                <option th:each="p : ${periods}" th:value="${p.id}" th:text="${p.periodName}">Đợt KLTN HK1</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-semibold">Sở Thích & Kỹ Năng Của Bạn</label>
+                            <textarea id="recInterest" class="form-control" rows="4" 
+                                      placeholder="VD: Em định hướng Java Spring Boot, MySQL, muốn làm hệ thống quản lý web, quan tâm đến kiến trúc Clean Architecture..."></textarea>
+                        </div>
+                        <button class="btn btn-primary w-100 py-2 fw-semibold" onclick="askAiRecommend()">
+                            <i class="fa-solid fa-wand-magic-sparkles me-1"></i> Nhờ AI Phân Tích & Gợi Ý
+                        </button>
+                    </div>
+                </div>
+                <div class="col-lg-7">
+                    <div class="card p-4 border-0 shadow-sm h-100 bg-white">
+                        <h6 class="fw-bold text-secondary mb-3"><i class="fa-solid fa-comments me-2 text-primary"></i>Phản Hồi Từ AI:</h6>
+                        <div id="recOutput" class="text-secondary small bg-light p-4 rounded-3 h-100" style="white-space: pre-line;">
+                            Kết quả tư vấn và các đề tài gợi ý sẽ hiển thị ở đây sau khi bạn nhấn nút.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. Similarity Check Pane -->
+        <div class="tab-pane fade" id="similarity-pane">
+            <div class="row g-4">
+                <div class="col-lg-5">
+                    <div class="card p-4 border-0 shadow-sm">
+                        <h5 class="fw-bold text-dark mb-3">Kiểm Tra Tính Mới Của Đề Tài</h5>
+                        <div class="mb-3">
+                            <label class="form-label small fw-semibold">Đợt Đăng Ký Đối Soát</label>
+                            <select id="simPeriodId" class="form-select">
+                                <option th:each="p : ${periods}" th:value="${p.id}" th:text="${p.periodName}">Đợt KLTN HK1</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-semibold">Tên Đề Tài Mới</label>
+                            <input type="text" id="simTitle" class="form-control" placeholder="Nhập tên đề tài dự kiến...">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-semibold">Mô Tả Mục Tiêu & Giải Pháp</label>
+                            <textarea id="simDesc" class="form-control" rows="3" placeholder="Nhập nội dung tóm tắt..."></textarea>
+                        </div>
+                        <button class="btn btn-danger w-100 py-2 fw-semibold" onclick="askAiSimilarity()">
+                            <i class="fa-solid fa-magnifying-glass-chart me-1"></i> Đối Soát Trùng Lặp Bằng AI
+                        </button>
+                    </div>
+                </div>
+                <div class="col-lg-7">
+                    <div class="card p-4 border-0 shadow-sm h-100 bg-white">
+                        <h6 class="fw-bold text-secondary mb-3"><i class="fa-solid fa-chart-pie me-2 text-danger"></i>Đánh Giá Tính Độc Bản:</h6>
+                        <div id="simOutput" class="text-secondary small bg-light p-4 rounded-3 h-100" style="white-space: pre-line;">
+                            Kết quả kiểm tra tỷ lệ tương đồng ngữ nghĩa sẽ hiển thị tại đây.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. Report Summarization Pane -->
+        <div class="tab-pane fade" id="summary-pane">
+            <div class="row g-4">
+                <div class="col-lg-5">
+                    <div class="card p-4 border-0 shadow-sm">
+                        <h5 class="fw-bold text-dark mb-3">Tóm Tắt Nhanh Báo Cáo Đồ Án</h5>
+                        <div class="mb-3">
+                            <label class="form-label small fw-semibold">Tên Đề Tài</label>
+                            <input type="text" id="sumTitle" class="form-control" placeholder="Tên đề tài đồ án...">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-semibold">Trích Đoạn Nội Dung Báo Cáo</label>
+                            <textarea id="sumContent" class="form-control" rows="5" placeholder="Dán nội dung phần mở đầu, kiến trúc hệ thống hoặc kết quả thực nghiệm..."></textarea>
+                        </div>
+                        <button class="btn btn-info text-white w-100 py-2 fw-semibold" onclick="askAiSummary()">
+                            <i class="fa-solid fa-compress me-1"></i> Trích Xuất Tóm Tắt (Executive Summary)
+                        </button>
+                    </div>
+                </div>
+                <div class="col-lg-7">
+                    <div class="card p-4 border-0 shadow-sm h-100 bg-white">
+                        <h6 class="fw-bold text-secondary mb-3"><i class="fa-solid fa-file-lines me-2 text-info"></i>Bản Tóm Tắt Cho Hội Đồng:</h6>
+                        <div id="sumOutput" class="text-secondary small bg-light p-4 rounded-3 h-100" style="white-space: pre-line;">
+                            Bản tóm tắt súc tích giúp Hội đồng đọc nhanh sẽ hiển thị ở đây.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script th:src="@{/js/ai-assistant.js}"></script>
+</div>
+</body>
+</html>

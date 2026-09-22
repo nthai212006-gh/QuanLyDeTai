@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:replace="~{layout/main :: html(content=~{::#main-content}, pageTitle='Nhóm Của Tôi')}">
+<body>
+<div id="main-content">
+
+    <!-- Case 1: Student does not have a group yet -->
+    <div th:if="${group == null}" class="row justify-content-center">
+        <div class="col-md-7 text-center py-5">
+            <div class="card p-5 border-0 shadow-sm">
+                <i class="fa-solid fa-users-slash fs-1 text-muted mb-3"></i>
+                <h4 class="fw-bold text-dark">Bạn Chưa Tham Gia Nhóm Nào</h4>
+                <p class="text-secondary small mb-4">
+                    Theo quy định, sinh viên làm đề tài theo hình thức nhóm (tối đa 03 thành viên, 1 nhóm trưởng). 
+                    Hãy chọn đợt và tạo nhóm của riêng bạn.
+                </p>
+
+                <form th:action="@{/groups/create}" method="post" class="text-start border-top pt-4">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Chọn Đợt Đăng Ký</label>
+                        <select name="periodId" class="form-select" required>
+                            <option th:each="p : ${periods}" th:value="${p.id}" th:text="${p.periodName}">Đợt KLTN</option>
+                        </select>
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold">Tên Nhóm Của Bạn</label>
+                        <input type="text" name="groupName" class="form-control" placeholder="VD: Nhóm Sáng Tạo - CNTT" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100 py-2 fw-semibold">
+                        <i class="fa-solid fa-plus-circle me-1"></i> Khởi Tạo Nhóm (Bạn Là Nhóm Trưởng)
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Case 2: Student already in a group -->
+    <div th:if="${group != null}">
+        <!-- Group Header Card -->
+        <div class="card p-4 mb-4 border-0 shadow-sm">
+            <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+                <div>
+                    <span class="badge-fit-tag text-primary fw-bold mb-1" th:text="${group.period.periodName}">Đợt KLTN HK1</span>
+                    <h3 class="fw-bold text-dark mb-1">
+                        <i class="fa-solid fa-people-group me-2 text-primary"></i><span th:text="${group.groupName}">Tên Nhóm</span>
+                        <span class="badge-fit-tag fs-6 ms-2" th:text="${group.groupCode}">GRP_01</span>
+                    </h3>
+                    <p class="text-muted small mb-0">
+                        Nhóm trưởng: <strong class="text-dark" th:text="${group.leader.fullName}">Nguyễn Văn A</strong> (Mã: <span class="badge-fit-tag" th:text="${group.leader.userCode}">SV001</span>)
+                    </p>
+                </div>
+                <div class="text-md-end">
+                    <div class="mb-1">
+                        <span th:if="${group.status.name() == 'FORMING'}" class="badge-status badge-status-neutral">ĐANG THÀNH LẬP</span>
+                        <span th:if="${group.status.name() == 'REGISTERED'}" class="badge-status badge-status-pending">ĐÃ ĐĂNG KÝ ĐỀ TÀI</span>
+                        <span th:if="${group.status.name() == 'DOING'}" class="badge-status badge-status-info">ĐANG THỰC HIỆN</span>
+                        <span th:if="${group.status.name() == 'SUBMITTED'}" class="badge-status badge-status-info">ĐÃ NỘP BÁO CÁO</span>
+                        <span th:if="${group.status.name() == 'DEFENDING'}" class="badge-status badge-status-info">ĐANG PHẢN BIỆN</span>
+                        <span th:if="${group.status.name() == 'COMPLETED'}" class="badge-status badge-status-success">HOÀN TẤT BẢO VỆ</span>
+                    </div>
+                    <!-- Final Score Badge -->
+                    <div th:if="${group.finalScore != null}" class="p-2 bg-success bg-opacity-10 text-success rounded-3 fw-bold border border-success">
+                        <i class="fa-solid fa-trophy me-1"></i> Điểm Tổng Kết: <span class="fs-5" th:text="${group.finalScore}">8.5</span> / 10
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            <!-- Left: Members & Topic -->
+            <div class="col-lg-7">
+                <!-- Members Card -->
+                <div class="card p-4 mb-4 border-0 shadow-sm">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="fw-bold text-dark mb-0">
+                            <i class="fa-solid fa-users me-2 text-primary"></i>Thành Viên (<span th:text="${group.members.size()}">1</span>/3)
+                        </h5>
+                        <!-- Add Member Button (Only Leader, and if < 3) -->
+                        <button th:if="${currentUser.id == group.leader.id and group.members.size() < 3}" 
+                                class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#addMemberModal">
+                            <i class="fa-solid fa-user-plus me-1"></i> Thêm Thành Viên
+                        </button>
+                    </div>
+
+                    <div class="list-group list-group-flush">
+                        <div th:each="m : ${group.members}" class="list-group-item d-flex justify-content-between align-items-center px-0 py-2">
+                            <div>
+                                <strong th:text="${m.student.fullName}">Họ Tên</strong> 
+                                <span class="badge-fit-tag ms-1" th:text="${m.student.userCode}">SV001</span>
+                                <div class="small text-muted" th:text="${m.student.email}">email@student.edu.vn</div>
+                            </div>
+                            <span th:if="${m.roleInGroup.name() == 'LEADER'}" class="badge-role"><i class="fa-solid fa-crown text-warning"></i> NHÓM TRƯỞNG</span>
+                            <span th:if="${m.roleInGroup.name() == 'MEMBER'}" class="badge-role badge-role-secondary"><i class="fa-solid fa-user"></i> THÀNH VIÊN</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Topic Card -->
+                <div class="card p-4 border-0 shadow-sm">
+                    <h5 class="fw-bold text-dark mb-3">
+                        <i class="fa-solid fa-book-bookmark me-2 text-primary"></i>Đề Tài Thực Hiện
+                    </h5>
+
+                    <!-- Case: Topic Registered -->
+                    <div th:if="${group.topic != null}">
+                        <h6 class="fw-bold text-primary mb-1" th:text="${group.topic.title}">Tên Đề Tài</h6>
+                        <div class="text-muted small mb-2">Mã đề tài: <span class="badge-fit-tag" th:text="${group.topic.topicCode}">DT01</span> | Bộ môn: <span class="badge-fit-tag text-primary" th:text="${group.topic.department.deptName}">CNPM</span></div>
+                        <p class="text-secondary small mb-3" th:text="${group.topic.description}">Nội dung đề tài...</p>
+                        
+                        <div class="bg-light p-3 rounded-3 small">
+                            <div><strong>GV Hướng Dẫn:</strong> <span th:text="${group.topic.createdByLecturer.fullName}">TS. Lê Hướng Dẫn</span></div>
+                            <div class="mt-2 d-flex align-items-center gap-2">
+                                <strong>Trạng thái đăng ký: </strong>
+                                <span th:if="${group.registrationStatus.name() == 'PENDING'}" class="badge-status badge-status-pending">CHỜ DUYỆT</span>
+                                <span th:if="${group.registrationStatus.name() == 'APPROVED'}" class="badge-status badge-status-success">CHÍNH THỨC NHẬN ĐỀ TÀI</span>
+                                <span th:if="${group.registrationStatus.name() == 'REJECTED'}" class="badge-status badge-status-danger">TỪ CHỐI</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Case: Topic Not Registered Yet -->
+                    <div th:if="${group.topic == null}">
+                        <p class="text-muted small mb-3">Nhóm chưa đăng ký đề tài nào. Mỗi nhóm chỉ được nhận duy nhất 1 đề tài từ danh sách đã công bố.</p>
+                        
+                        <div th:if="${currentUser.id == group.leader.id}">
+                            <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#registerTopicModal">
+                                <i class="fa-solid fa-hand-pointer me-1"></i> Chọn & Đăng Ký Đề Tài
+                            </button>
+                        </div>
+                        <div th:if="${currentUser.id != group.leader.id}" class="text-muted small">
+                            <em>(Chỉ Nhóm trưởng mới có quyền đăng ký đề tài)</em>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: Submission & Weekly Reports Action -->
+            <div class="col-lg-5">
+                <!-- Weekly Report Link -->
+                <div class="card p-4 mb-4 border-0 shadow-sm bg-primary bg-opacity-10 border border-primary">
+                    <h5 class="fw-bold text-primary mb-2"><i class="fa-solid fa-list-check me-2"></i>Nhật Ký Tiến Độ Tuần</h5>
+                    <p class="small text-secondary mb-3">Ghi nhận tiến độ công việc hàng tuần và nhận góp ý trực tiếp từ GVHD.</p>
+                    <a th:href="@{/weekly-reports/group/{id}(id=${group.id})}" class="btn btn-primary btn-sm fw-semibold">
+                        <i class="fa-solid fa-calendar-week me-1"></i> Xem & Nộp Báo Cáo Tuần
+                    </a>
+                </div>
+
+                <!-- Final Thesis Submission (LEADER ONLY) -->
+                <div class="card p-4 border-0 shadow-sm">
+                    <h5 class="fw-bold text-dark mb-3"><i class="fa-solid fa-cloud-arrow-up me-2 text-success"></i>Nộp Báo Cáo Đề Tài</h5>
+                    
+                    <div th:if="${currentUser.id == group.leader.id}">
+                        <p class="small text-muted mb-3">
+                            <i class="fa-solid fa-circle-info text-info me-1"></i> 
+                            <strong>Quy định:</strong> Việc nộp báo cáo đề tài chỉ được thực hiện bởi nhóm trưởng.
+                        </p>
+                        <form th:action="@{/groups/{id}/submit-report(id=${group.id})}" method="post">
+                            <div class="mb-2">
+                                <label class="form-label small fw-semibold">Tiêu Đề Báo Cáo</label>
+                                <input type="text" name="title" class="form-control form-control-sm" placeholder="VD: Báo cáo nghiệm thu khóa luận" required>
+                            </div>
+                            <div class="mb-2">
+                                <label class="form-label small fw-semibold">Link File Báo Cáo (Google Drive/PDF URL)</label>
+                                <input type="url" name="fileUrl" class="form-control form-control-sm" placeholder="https://..." required>
+                            </div>
+                            <div class="mb-2">
+                                <label class="form-label small fw-semibold">Link Source Code (GitHub / GitLab)</label>
+                                <input type="url" name="sourceCodeUrl" class="form-control form-control-sm" placeholder="https://github.com/...">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label small fw-semibold">Ghi Chú</label>
+                                <textarea name="note" class="form-control form-control-sm" rows="2"></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-success btn-sm w-100 fw-semibold">
+                                <i class="fa-solid fa-paper-plane me-1"></i> Nộp Báo Cáo Nghiệm Thu
+                            </button>
+                        </form>
+                    </div>
+
+                    <div th:if="${currentUser.id != group.leader.id}" class="text-center py-3 text-muted small">
+                        <i class="fa-solid fa-lock fs-3 mb-2 text-secondary"></i>
+                        <p class="mb-0">Bạn là thành viên nhóm. Theo quy định, <strong>chỉ Nhóm trưởng mới được nộp báo cáo</strong>.</p>
+                    </div>
+
+                    <!-- Submission History -->
+                    <div th:if="${submissions != null and !submissions.isEmpty()}" class="mt-4 border-top pt-3">
+                        <h6 class="fw-bold small text-secondary mb-2">Lịch Sử Nộp Bài:</h6>
+                        <div th:each="sub : ${submissions}" class="small bg-light p-2 rounded mb-2">
+                            <div class="fw-bold text-dark" th:text="${sub.title}">Tiêu đề</div>
+                            <div class="text-muted small">
+                                <i class="fa-regular fa-clock me-1"></i><span th:text="${#temporals.format(sub.submittedAt, 'dd/MM/yyyy HH:mm')}">01/01</span>
+                                | <a th:href="${sub.fileUrl}" target="_blank" class="text-primary"><i class="fa-solid fa-file-lines me-1"></i> Xem file</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal Add Member -->
+        <div class="modal fade" id="addMemberModal" tabindex="-1">
+            <div class="modal-dialog">
+                <form th:action="@{/groups/{id}/add-member(id=${group.id})}" method="post" class="modal-content">
+                    <div class="modal-header">
+                        <h6 class="modal-title fw-bold text-primary">Thêm Thành Viên Vào Nhóm (Tối đa 3 SV)</h6>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <label class="form-label small fw-semibold">Mã Sinh Viên (MSSV)</label>
+                        <input type="text" name="studentCode" class="form-control" placeholder="Nhập MSSV (VD: SV002, SV003)" required>
+                        <small class="text-muted d-block mt-2">Lưu ý: Mỗi sinh viên chỉ được tham gia duy nhất một nhóm trong suốt đợt.</small>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Hủy</button>
+                        <button type="submit" class="btn btn-primary btn-sm">Thêm vào nhóm</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Modal Register Topic -->
+        <div class="modal fade" id="registerTopicModal" tabindex="-1">
+            <div class="modal-dialog modal-lg">
+                <form th:action="@{/groups/{id}/register-topic(id=${group.id})}" method="post" class="modal-content">
+                    <div class="modal-header">
+                        <h6 class="modal-title fw-bold text-primary">Đăng Ký Đề Tài Từ Danh Sách Đã Công Bố</h6>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p class="small text-muted mb-3">Mỗi nhóm chỉ được đăng ký duy nhất 1 đề tài. Sau khi đăng ký cần được xét duyệt chấp thuận.</p>
+                        <div class="list-group">
+                            <label th:each="t : ${availableTopics}" class="list-group-item d-flex gap-3 align-items-start p-3">
+                                <input class="form-check-input flex-shrink-0 mt-1" type="radio" name="topicId" th:value="${t.id}" required>
+                                <div>
+                                    <strong class="d-block text-dark" th:text="${t.title}">Tên đề tài</strong>
+                                    <small class="text-muted d-block mb-1">
+                                        Mã: <span th:text="${t.topicCode}">DT01</span> | 
+                                        Bộ môn: <span th:text="${t.department.deptName}">CNPM</span> | 
+                                        GVHD: <span th:text="${t.createdByLecturer.fullName}">TS. A</span>
+                                    </small>
+                                    <small class="text-secondary" th:text="${t.description}">Mô tả tóm tắt</small>
+                                </div>
+                            </label>
+                            <div th:if="${availableTopics.isEmpty()}" class="text-center py-4 text-muted small">
+                                Hiện không có đề tài nào khả dụng để đăng ký trong đợt này.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Hủy</button>
+                        <button type="submit" class="btn btn-primary btn-sm" th:disabled="${availableTopics.isEmpty()}">Xác nhận đăng ký</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- KET QUA BAO VE HOI DONG (chi hien khi da cong bo) -->
+        <div th:if="${councilTopic != null}" class="card border-0 shadow-sm mt-4" style="border-left: 4px solid #198754 !important;">
+            <div class="card-header bg-success bg-opacity-10 py-3 border-0">
+                <h5 class="fw-bold text-success mb-0">
+                    <i class="fa-solid fa-trophy me-2"></i>Ket Qua Bao Ve Hoi Dong
+                    <span class="badge bg-success ms-2">DA CONG BO</span>
+                </h5>
+            </div>
+            <div class="card-body p-4">
+                <div class="text-center py-3 mb-4 bg-success bg-opacity-10 rounded-3">
+                    <div class="text-muted small mb-1">DIEM BAO VE HOI DONG</div>
+                    <div class="display-4 fw-bold text-success" th:text="${councilTopic.finalCouncilScore}">8.50</div>
+                    <div class="text-muted small">/ 10.0</div>
+                </div>
+                <div th:if="${councilTopic.evaluations != null and !councilTopic.evaluations.isEmpty()}">
+                    <h6 class="fw-bold text-secondary border-bottom pb-2 mb-3">Chi Tiet Danh Gia Tung Giang Vien</h6>
+                    <div th:each="ev : ${councilTopic.evaluations}" class="card border-0 bg-light mb-3 p-3">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <div>
+                                <strong class="text-dark" th:text="${ev.evaluatorLecturer.fullName}">GV Ho Ten</strong>
+                                <span class="badge bg-secondary ms-1 small" th:text="${ev.evaluationType}">COUNCIL</span>
+                            </div>
+                            <span class="fw-bold fs-5 text-success" th:text="${ev.totalScore}">8.5</span>
+                        </div>
+                        <div class="row g-2 small text-muted mb-2">
+                            <div class="col-4">Bao cao (30%): <strong th:text="${ev.criteria1Score}">8</strong></div>
+                            <div class="col-4">San pham (40%): <strong th:text="${ev.criteria2Score}">9</strong></div>
+                            <div class="col-4">Thuyet trinh (30%): <strong th:text="${ev.criteria3Score}">8</strong></div>
+                        </div>
+                        <div th:if="${ev.comments != null and !#strings.isEmpty(ev.comments)}" class="small text-secondary border-top pt-2 mt-1">
+                            <i class="fa-solid fa-comment me-1"></i><span th:text="${ev.comments}">Nhan xet</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="small text-muted text-end mt-2">
+                    Ngay cong bo: <span th:text="${#temporals.format(councilTopic.publishedAt, 'dd/MM/yyyy HH:mm')}">01/01/2026</span>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+</body>
+</html>

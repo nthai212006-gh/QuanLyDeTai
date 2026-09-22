@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:replace="~{layout/main :: html(content=~{::#main-content}, pageTitle='Tạo Đợt Đăng Ký')}">
+<body>
+<div id="main-content">
+
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white py-3 border-bottom">
+                    <h5 class="fw-bold mb-0 text-primary">
+                        <i class="fa-solid fa-calendar-plus me-2"></i>Tạo Đợt Đăng Ký Đề Tài Mới (Dành Cho Trưởng Khoa)
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                    <form th:action="@{/periods/create}" th:object="${period}" method="post">
+                        
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Tên Đợt Đăng Ký <span class="text-danger">*</span></label>
+                            <input type="text" th:field="*{periodName}" class="form-control" 
+                                   placeholder="VD: Đợt Khóa Luận Tốt Nghiệp Học Kỳ 1 2026-2027" required>
+                        </div>
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold">Loại Đợt <span class="text-danger">*</span></label>
+                                <select th:field="*{periodType}" id="periodTypeSelect" class="form-select" onchange="toggleConditionalFields()" required>
+                                    <option value="COURSE_PROJECT">Môn học</option>
+                                    <option value="RESEARCH">Nghiên cứu khoa học (NCKH)</option>
+                                    <option value="INTERNSHIP">Tiểu luận chuyên ngành (TLCN)</option>
+                                    <option value="GRADUATION_THESIS">Khóa luận tốt nghiệp (KLTN)</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold">Năm Học <span class="text-danger">*</span></label>
+                                <input type="text" th:field="*{academicYear}" class="form-control" placeholder="2026-2027" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold">Học Kỳ <span class="text-danger">*</span></label>
+                                <select th:field="*{semester}" class="form-select" required>
+                                    <option value="1">Học kỳ 1</option>
+                                    <option value="2">Học kỳ 2</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <h6 class="fw-bold text-secondary border-bottom pb-2 mt-4">1. Giai Đoạn Giảng Viên Đề Xuất Đề Tài</h6>
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label small fw-semibold">Thời Gian Bắt Đầu Cho GV</label>
+                                <input type="datetime-local" th:field="*{gvStartDate}" class="form-control" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-semibold">Thời Gian Kết Thúc Cho GV</label>
+                                <input type="datetime-local" th:field="*{gvEndDate}" class="form-control" required>
+                            </div>
+                        </div>
+
+                        <h6 class="fw-bold text-secondary border-bottom pb-2 mt-4">2. Giai Đoạn Sinh Viên Đăng Ký Đề Tài</h6>
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label small fw-semibold">Thời Gian Bắt Đầu Cho SV</label>
+                                <input type="datetime-local" th:field="*{svStartDate}" class="form-control" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-semibold">Thời Gian Kết Thúc Cho SV</label>
+                                <input type="datetime-local" th:field="*{svEndDate}" class="form-control" required>
+                            </div>
+                        </div>
+
+                        <h6 class="fw-bold text-secondary border-bottom pb-2 mt-4">3. Mốc Thời Gian Phản Biện & Hội Đồng (Theo Quy Định)</h6>
+                        <div class="row g-3 mb-4">
+                            <!-- Chỉ thiết lập khi TLCN hoặc KLTN -->
+                            <div class="col-md-6" id="gvpbField">
+                                <label class="form-label small fw-semibold text-primary">
+                                    Hạn Chót GVPB Nộp Điểm Về Khoa (Áp dụng TLCN & KLTN)
+                                </label>
+                                <input type="datetime-local" th:field="*{gvpbDeadline}" class="form-control">
+                            </div>
+                            <!-- Chỉ thiết lập khi KLTN -->
+                            <div class="col-md-6" id="councilDateField">
+                                <label class="form-label small fw-semibold text-danger">
+                                    Ngày Báo Cáo Hội Đồng (Chỉ áp dụng KLTN)
+                                </label>
+                                <input type="datetime-local" th:field="*{councilDate}" class="form-control">
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <a th:href="@{/periods}" class="btn btn-outline-secondary">Hủy bỏ</a>
+                            <button type="submit" class="btn btn-primary px-4 fw-semibold shadow-sm">
+                                <i class="fa-solid fa-save me-1"></i> Lưu & Khởi Tạo Đợt
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+</body>
+</html>
