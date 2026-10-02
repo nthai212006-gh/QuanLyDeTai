@@ -32,4 +32,14 @@ public interface GroupMemberRepository extends JpaRepository<GroupMember, Long> 
      * Đếm tổng số lượng thành viên hiện tại của một nhóm (dùng để chặn quy tắc tối đa 3 sinh viên / nhóm).
      */
     long countByGroupId(Long groupId);
+
+    Optional<GroupMember> findByGroupIdAndStudentId(Long groupId, Long studentId);
+
+    Optional<GroupMember> findFirstByGroupIdOrderByJoinedAtAsc(Long groupId);
+
+    @org.springframework.data.jpa.repository.Query("SELECT DISTINCT gm.period.id FROM GroupMember gm WHERE gm.student.id = :studentId")
+    java.util.Set<Long> findJoinedPeriodIdsByStudentId(@org.springframework.data.repository.query.Param("studentId") Long studentId);
+
+    @org.springframework.data.jpa.repository.Query("SELECT gm FROM GroupMember gm JOIN FETCH gm.period WHERE gm.student.id = :studentId ORDER BY gm.id DESC")
+    List<GroupMember> findMembersWithPeriodByStudentId(@org.springframework.data.repository.query.Param("studentId") Long studentId);
 }

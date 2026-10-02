@@ -29,6 +29,7 @@ public class CouncilService {
     private final EvaluationRepository evaluationRepository;
     private final TopicSupervisorRepository supervisorRepository;
     private final StudentGroupRepository groupRepository;
+    private final TopicRepository topicRepository;
     private final RegistrationPeriodRepository periodRepository;
     private final UserRepository userRepository;
 
@@ -230,15 +231,24 @@ public class CouncilService {
     @Transactional
     @AuditAction(action = "PUBLISH_RESULTS", entityName = "CouncilTopic")
     public void publishResults(Long councilTopicId) {
+        CouncilTopic councilTopic = getCouncilTopicById(councilTopicId);
+        Council council = councilTopic.getCouncil();
+        long memberCount = memberRepository.countByCouncilId(council.getId());
+        long evalCount = evaluationRepository.countByCouncilTopicId(councilTopicId);
+
+        if (councilTopic.getFinalCouncilScore() == null || evalCount < memberCount) {
+            throw new IllegalStateException("Chưa thể công bố: Đề tài chưa hoàn tất chấm điểm bởi TẤT CẢ thành viên hội đồng, không thể công bố!");
+        }
+
         try {
             StoredProcedureQuery query = entityManager.createStoredProcedureQuery("sp_publish_council_results");
             query.registerStoredProcedureParameter("p_council_topic_id", Long.class, ParameterMode.IN);
             query.setParameter("p_council_topic_id", councilTopicId);
             query.execute();
-        } catch (Exception ignored) {
+        } catch (Exception e) {
+            throw new IllegalStateException(e.getMessage(), e);
         }
 
-        CouncilTopic councilTopic = getCouncilTopicById(councilTopicId);
         councilTopic.setIsPublished(true);
         councilTopic.setPublishedAt(LocalDateTime.now());
         councilTopicRepository.save(councilTopic);
@@ -247,6 +257,10 @@ public class CouncilService {
         if (group != null) {
             group.setStatus(StudentGroup.GroupStatus.COMPLETED);
             groupRepository.save(group);
+            if (group.getTopic() != null) {
+                group.getTopic().setStatus(Topic.TopicStatus.COMPLETED);
+                topicRepository.save(group.getTopic());
+            }
         }
     }
 }

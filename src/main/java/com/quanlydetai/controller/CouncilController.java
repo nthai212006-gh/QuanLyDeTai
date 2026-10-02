@@ -78,12 +78,15 @@ public class CouncilController {
     @PreAuthorize("hasAnyRole('DEAN', 'ADMIN')")
     public String addMember(@PathVariable("id") Long councilId,
                             @RequestParam("lecturerId") Long lecturerId,
-                            @RequestParam("position") CouncilMember.CouncilPosition position) {
+                            @RequestParam("position") CouncilMember.CouncilPosition position,
+                            org.springframework.web.servlet.mvc.support.RedirectAttributes redirectAttributes) {
         try {
             councilService.addCouncilMember(councilId, lecturerId, position);
+            redirectAttributes.addFlashAttribute("successMessage", "Thành viên đã được thêm vào hội đồng thành công.");
             return "redirect:/councils/" + councilId + "?memberAdded=true";
         } catch (Exception e) {
-            return "redirect:/councils/" + councilId + "?error=" + e.getMessage();
+            redirectAttributes.addFlashAttribute("errorMessage", com.quanlydetai.util.SqlErrorUtils.extractFriendlyMessage(e));
+            return "redirect:/councils/" + councilId;
         }
     }
 
@@ -92,12 +95,15 @@ public class CouncilController {
     public String assignTopic(@PathVariable("id") Long councilId,
                              @RequestParam("groupId") Long groupId,
                              @RequestParam(value = "reviewerId", required = false) Long reviewerId,
-                             @RequestParam(value = "order", defaultValue = "1") Integer order) {
+                             @RequestParam(value = "order", defaultValue = "1") Integer order,
+                             org.springframework.web.servlet.mvc.support.RedirectAttributes redirectAttributes) {
         try {
             councilService.assignTopicToCouncil(councilId, groupId, reviewerId, order);
+            redirectAttributes.addFlashAttribute("successMessage", "Phân công đề tài vào hội đồng thành công.");
             return "redirect:/councils/" + councilId + "?topicAssigned=true";
         } catch (Exception e) {
-            return "redirect:/councils/" + councilId + "?error=" + e.getMessage();
+            redirectAttributes.addFlashAttribute("errorMessage", com.quanlydetai.util.SqlErrorUtils.extractFriendlyMessage(e));
+            return "redirect:/councils/" + councilId;
         }
     }
 
@@ -127,8 +133,15 @@ public class CouncilController {
     @PostMapping("/publish/{councilTopicId}")
     @PreAuthorize("hasAnyRole('DEAN', 'HEAD_OF_DEPT', 'ADMIN')")
     public String publishResult(@PathVariable("councilTopicId") Long councilTopicId,
-                                @RequestParam("councilId") Long councilId) {
-        councilService.publishResults(councilTopicId);
-        return "redirect:/councils/" + councilId + "?published=true";
+                                @RequestParam("councilId") Long councilId,
+                                org.springframework.web.servlet.mvc.support.RedirectAttributes redirectAttributes) {
+        try {
+            councilService.publishResults(councilTopicId);
+            redirectAttributes.addFlashAttribute("successMessage", "Kết quả điểm bảo vệ đã được công bố chính thức cho sinh viên tra cứu.");
+            return "redirect:/councils/" + councilId + "?published=true";
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", com.quanlydetai.util.SqlErrorUtils.extractFriendlyMessage(e));
+            return "redirect:/councils/" + councilId;
+        }
     }
 }

@@ -70,6 +70,7 @@ public class TopicService {
                     "Giai đoạn GV đề xuất đề tài chưa mở hoặc đã kết thúc. Vui lòng kiểm tra lịch đợt đăng ký.");
         }
 
+        validateSupervisorsForCreation(lecturer != null ? lecturer.getId() : null, coSupervisorId);
 
         topic.setDepartment(dept);
         topic.setPeriod(period);
@@ -120,5 +121,14 @@ public class TopicService {
         topic.setApprovedBy(approver);
         topic.setRejectReason(reason);
         topicRepository.save(topic);
+    }
+
+    public void validateSupervisorsForCreation(Long primaryLecturerId, Long coSupervisorId) {
+        if (primaryLecturerId == null) {
+            throw new IllegalArgumentException("Quy chế: Đề tài bắt buộc phải có Giảng viên hướng dẫn chính!");
+        }
+        if (coSupervisorId != null && coSupervisorId.equals(primaryLecturerId)) {
+            throw new IllegalArgumentException("Quy chế: Giảng viên đồng hướng dẫn không được trùng với Giảng viên hướng dẫn chính!");
+        }
     }
 }

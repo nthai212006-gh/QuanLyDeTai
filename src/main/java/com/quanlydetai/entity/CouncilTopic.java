@@ -45,7 +45,7 @@ public class CouncilTopic {
     @Builder.Default
     private Boolean isPublished = false;
 
-    @Transient
+    @Column(name = "published_at")
     private LocalDateTime publishedAt;
 
     @OneToMany(mappedBy = "councilTopic", cascade = CascadeType.ALL, orphanRemoval = true)

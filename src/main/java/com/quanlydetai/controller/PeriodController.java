@@ -35,8 +35,16 @@ public class PeriodController {
     @PostMapping("/create")
     @PreAuthorize("hasAnyRole('DEAN', 'ADMIN')")
     public String createPeriod(@ModelAttribute("period") RegistrationPeriod period,
-                               @AuthenticationPrincipal CustomUserDetails userDetails) {
-        periodService.createPeriod(period, userDetails.getUser());
-        return "redirect:/periods?success=true";
+                               @AuthenticationPrincipal CustomUserDetails userDetails,
+                               Model model) {
+        try {
+            periodService.createPeriod(period, userDetails.getUser());
+            return "redirect:/periods?success=true";
+        } catch (IllegalArgumentException e) {
+            model.addAttribute("period", period);
+            model.addAttribute("periodTypes", RegistrationPeriod.PeriodType.values());
+            model.addAttribute("errorMessage", e.getMessage());
+            return "periods/create";
+        }
     }
 }

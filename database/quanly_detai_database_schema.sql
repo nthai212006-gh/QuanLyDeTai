@@ -7,6 +7,7 @@
 -- ====================================================================
 -- FIT THESIS PORTAL - DATABASE INITIALIZATION SCRIPT
 -- ====================================================================
+DROP DATABASE IF EXISTS `quanly_detai_db`;
 CREATE DATABASE IF NOT EXISTS `quanly_detai_db`
 CHARACTER SET utf8mb4
 COLLATE utf8mb4_unicode_ci;
@@ -220,6 +221,7 @@ CREATE TABLE `council_topics` (
     `defense_order` INT NOT NULL DEFAULT 1,
     `final_council_score` DECIMAL(4,2) NULL,
     `is_published` BOOLEAN NOT NULL DEFAULT FALSE,
+    `published_at` DATETIME NULL,
     PRIMARY KEY (`id`),
     CONSTRAINT `fk_ct_council` FOREIGN KEY (`council_id`) 
         REFERENCES `councils` (`id`) ON DELETE CASCADE,
@@ -408,14 +410,71 @@ DELIMITER ;
 
 
 DELIMITER $$
+DROP FUNCTION IF EXISTS `fn_is_grading_started`$$
+CREATE FUNCTION `fn_is_grading_started`(p_council_id BIGINT)
+RETURNS BOOLEAN
+NOT DETERMINISTIC
+READS SQL DATA
+BEGIN
+    DECLARE v_count INT DEFAULT 0;
+    SELECT COUNT(*) INTO v_count
+    FROM `evaluations` e
+    JOIN `council_topics` ct ON e.council_topic_id = ct.id
+    WHERE ct.council_id = p_council_id;
+    RETURN v_count > 0;
+END$$
+DELIMITER ;
+
+
+DELIMITER $$
 DROP PROCEDURE IF EXISTS `sp_publish_council_results`$$
 CREATE PROCEDURE `sp_publish_council_results`(
     IN p_council_topic_id BIGINT
 )
 BEGIN
+    DECLARE v_final_score DECIMAL(4,2);
+    DECLARE v_eval_count INT;
+    DECLARE v_member_count INT;
+    DECLARE v_council_id BIGINT;
+
+    -- 1. Lấy thông tin hội đồng và số lượng thành viên thực tế
+    SELECT council_id, final_council_score 
+    INTO v_council_id, v_final_score 
+    FROM `council_topics` 
+    WHERE id = p_council_topic_id;
+
+    SELECT COUNT(*) INTO v_member_count 
+    FROM `council_members` 
+    WHERE council_id = v_council_id;
+
+    -- 2. Đếm số thành viên đã nộp điểm đánh giá
+    SELECT COUNT(*) INTO v_eval_count 
+    FROM `evaluations` 
+    WHERE council_topic_id = p_council_topic_id;
+
+    -- 3. Bắt buộc TẤT CẢ thành viên của hội đồng phải chấm điểm xong
+    IF v_final_score IS NULL OR v_eval_count < v_member_count THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Đề tài chưa hoàn tất chấm điểm bởi TẤT CẢ thành viên hội đồng, không thể công bố!';
+    END IF;
+
+    -- 4. Đánh dấu đã công bố và thời điểm
     UPDATE `council_topics`
-    SET `is_published` = TRUE
+    SET `is_published` = TRUE, `published_at` = NOW()
     WHERE `id` = p_council_topic_id;
+
+    -- 5. Đồng bộ trạng thái Nhóm sang COMPLETED
+    UPDATE `student_groups` sg
+    JOIN `council_topics` ct ON ct.group_id = sg.id
+    SET sg.status = 'COMPLETED'
+    WHERE ct.id = p_council_topic_id;
+
+    -- 6. Đồng bộ trạng thái Đề tài sang COMPLETED (Đúng RTM)
+    UPDATE `topics` t
+    JOIN `student_groups` sg ON sg.topic_id = t.id
+    JOIN `council_topics` ct ON ct.group_id = sg.id
+    SET t.status = 'COMPLETED'
+    WHERE ct.id = p_council_topic_id;
 END$$
 DELIMITER ;
 
@@ -536,6 +595,58 @@ DELIMITER ;
 
 
 DELIMITER $$
+DROP TRIGGER IF EXISTS `trg_check_topic_supervisors_rules_insert`$$
+CREATE TRIGGER `trg_check_topic_supervisors_rules_insert`
+BEFORE INSERT ON `topic_supervisors`
+FOR EACH ROW
+BEGIN
+    DECLARE v_count INT;
+    DECLARE v_primary_count INT;
+
+    SELECT COUNT(*) INTO v_count FROM `topic_supervisors` WHERE topic_id = NEW.topic_id;
+    IF v_count >= 2 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Quy chế: Mỗi đề tài chỉ được hướng dẫn bởi tối đa 2 giảng viên!';
+    END IF;
+
+    IF NEW.is_primary = TRUE THEN
+        SELECT COUNT(*) INTO v_primary_count FROM `topic_supervisors` WHERE topic_id = NEW.topic_id AND is_primary = TRUE;
+        IF v_primary_count >= 1 THEN
+            SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Quy chế: Mỗi đề tài chỉ được có duy nhất 1 giảng viên hướng dẫn chính!';
+        END IF;
+    END IF;
+END$$
+
+DROP TRIGGER IF EXISTS `trg_check_topic_supervisors_rules_update`$$
+CREATE TRIGGER `trg_check_topic_supervisors_rules_update`
+BEFORE UPDATE ON `topic_supervisors`
+FOR EACH ROW
+BEGIN
+    DECLARE v_other_primary INT;
+
+    IF NEW.is_primary = TRUE AND OLD.is_primary = FALSE THEN
+        SELECT COUNT(*) INTO v_other_primary FROM `topic_supervisors` 
+        WHERE topic_id = NEW.topic_id AND lecturer_id <> NEW.lecturer_id AND is_primary = TRUE;
+        IF v_other_primary >= 1 THEN
+            SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Quy chế: Mỗi đề tài chỉ được có duy nhất 1 giảng viên hướng dẫn chính!';
+        END IF;
+    END IF;
+
+    IF OLD.is_primary = TRUE AND NEW.is_primary = FALSE THEN
+        SELECT COUNT(*) INTO v_other_primary FROM `topic_supervisors` 
+        WHERE topic_id = NEW.topic_id AND lecturer_id <> NEW.lecturer_id AND is_primary = TRUE;
+        IF v_other_primary = 0 THEN
+            SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Quy chế: Đề tài phải có ít nhất 1 giảng viên hướng dẫn chính!';
+        END IF;
+    END IF;
+END$$
+DELIMITER ;
+
+
+DELIMITER $$
 DROP TRIGGER IF EXISTS `trg_audit_topic_status_change`$$
 CREATE TRIGGER `trg_audit_topic_status_change`
 AFTER UPDATE ON `topics`
@@ -551,6 +662,334 @@ BEGIN
             CONCAT('Trạng thái đề tài đổi từ [', OLD.status, '] sang [', NEW.status, ']'),
             NOW()
         );
+    END IF;
+END$$
+DELIMITER ;
+
+
+DELIMITER $$
+DROP TRIGGER IF EXISTS `trg_check_period_date_rules`$$
+CREATE TRIGGER `trg_check_period_date_rules`
+BEFORE INSERT ON `registration_periods`
+FOR EACH ROW
+BEGIN
+    -- 1. Thứ tự nội bộ từng giai đoạn
+    IF NEW.topic_submission_end <= NEW.topic_submission_start THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Lỗi: Thời gian kết thúc nộp đề tài phải sau thời gian bắt đầu!';
+    END IF;
+
+    IF NEW.student_registration_end <= NEW.student_registration_start THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Lỗi: Thời gian kết thúc đăng ký của SV phải sau thời gian bắt đầu!';
+    END IF;
+
+    -- 2. ĐẶC TẢ HAI GIAI ĐOẠN RIÊNG BIỆT: SV đăng ký chỉ mở khi GV nộp đề tài đã kết thúc
+    IF NEW.student_registration_start < NEW.topic_submission_end THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Quy chế: Giai đoạn SV đăng ký đề tài chỉ được mở sau khi Giai đoạn 1 (GV nộp đề tài) đã hoàn thành!';
+    END IF;
+
+    -- 3. Môn học/NCKH: Không có review_deadline và defense_date
+    IF NEW.period_type IN ('COURSE_PROJECT', 'RESEARCH') THEN
+        IF NEW.review_deadline IS NOT NULL OR NEW.defense_date IS NOT NULL THEN
+            SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Đợt Môn học/NCKH không được thiết lập Hạn GVPB hoặc Ngày hội đồng!';
+        END IF;
+    END IF;
+
+    -- 4. TLCN: Bắt buộc review_deadline, không có defense_date
+    IF NEW.period_type = 'INTERNSHIP' THEN
+        IF NEW.review_deadline IS NULL THEN
+            SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Đợt TLCN bắt buộc phải có Hạn chót GVPB nộp điểm!';
+        END IF;
+        IF NEW.defense_date IS NOT NULL THEN
+            SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Đợt TLCN không có Ngày báo cáo hội đồng!';
+        END IF;
+    END IF;
+
+    -- 5. KLTN: Bắt buộc cả hai mốc ngày
+    IF NEW.period_type = 'GRADUATION_THESIS' THEN
+        IF NEW.review_deadline IS NULL OR NEW.defense_date IS NULL THEN
+            SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Đợt KLTN bắt buộc phải có cả Hạn GVPB và Ngày báo cáo hội đồng!';
+        END IF;
+    END IF;
+END$$
+DELIMITER ;
+
+
+DELIMITER $$
+DROP TRIGGER IF EXISTS `trg_check_period_date_rules_update`$$
+CREATE TRIGGER `trg_check_period_date_rules_update`
+BEFORE UPDATE ON `registration_periods`
+FOR EACH ROW
+BEGIN
+    IF NEW.topic_submission_end <= NEW.topic_submission_start THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Lỗi: Thời gian kết thúc nộp đề tài phải sau thời gian bắt đầu!';
+    END IF;
+
+    IF NEW.student_registration_end <= NEW.student_registration_start THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Lỗi: Thời gian kết thúc đăng ký của SV phải sau thời gian bắt đầu!';
+    END IF;
+
+    IF NEW.student_registration_start < NEW.topic_submission_end THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Quy chế: Giai đoạn SV đăng ký đề tài chỉ được mở sau khi Giai đoạn 1 (GV nộp đề tài) đã hoàn thành!';
+    END IF;
+
+    IF NEW.period_type IN ('COURSE_PROJECT', 'RESEARCH') THEN
+        IF NEW.review_deadline IS NOT NULL OR NEW.defense_date IS NOT NULL THEN
+            SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Đợt Môn học/NCKH không được thiết lập Hạn GVPB hoặc Ngày hội đồng!';
+        END IF;
+    END IF;
+
+    IF NEW.period_type = 'INTERNSHIP' THEN
+        IF NEW.review_deadline IS NULL THEN
+            SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Đợt TLCN bắt buộc phải có Hạn chót GVPB nộp điểm!';
+        END IF;
+        IF NEW.defense_date IS NOT NULL THEN
+            SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Đợt TLCN không có Ngày báo cáo hội đồng!';
+        END IF;
+    END IF;
+
+    IF NEW.period_type = 'GRADUATION_THESIS' THEN
+        IF NEW.review_deadline IS NULL OR NEW.defense_date IS NULL THEN
+            SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Đợt KLTN bắt buộc phải có cả Hạn GVPB và Ngày báo cáo hội đồng!';
+        END IF;
+    END IF;
+END$$
+DELIMITER ;
+
+
+DELIMITER $$
+DROP TRIGGER IF EXISTS `trg_check_council_member_rules`$$
+CREATE TRIGGER `trg_check_council_member_rules`
+BEFORE INSERT ON `council_members`
+FOR EACH ROW
+BEGIN
+    DECLARE v_count INT;
+    DECLARE v_pos_count INT;
+    DECLARE v_dummy BIGINT;
+
+    -- PESSIMISTIC ROW-LOCK: Khóa dòng cha councils để tuần tự hóa với luồng chấm điểm (chặn TOCTOU race)
+    IF NEW.council_id IS NOT NULL THEN
+        SELECT id INTO v_dummy FROM `councils` WHERE id = NEW.council_id FOR UPDATE;
+    END IF;
+
+    -- 1. KHÓA CỨNG: Gọi function tái dùng để chặn thêm thành viên khi đã chấm
+    IF fn_is_grading_started(NEW.council_id) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Hội đồng đã bắt đầu chấm điểm, không được phép thêm thành viên mới!';
+    END IF;
+
+    -- 2. Giới hạn tối đa 5 giảng viên
+    SELECT COUNT(*) INTO v_count FROM `council_members` WHERE council_id = NEW.council_id;
+    IF v_count >= 5 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Quy chế: Mỗi hội đồng chỉ gồm từ 03 đến tối đa 05 giảng viên!';
+    END IF;
+
+    -- 3. Duy nhất 1 Chủ tịch và 1 Thư ký
+    IF NEW.position IN ('CHAIR', 'SECRETARY') THEN
+        SELECT COUNT(*) INTO v_pos_count 
+        FROM `council_members` 
+        WHERE council_id = NEW.council_id AND position = NEW.position;
+        IF v_pos_count > 0 THEN
+            SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Mỗi hội đồng chỉ được có duy nhất 1 Chủ tịch và 1 Thư ký!';
+        END IF;
+    END IF;
+END$$
+DELIMITER ;
+
+
+DELIMITER $$
+DROP TRIGGER IF EXISTS `trg_prevent_council_member_update_after_grading`$$
+CREATE TRIGGER `trg_prevent_council_member_update_after_grading`
+BEFORE UPDATE ON `council_members`
+FOR EACH ROW
+BEGIN
+    DECLARE v_dummy BIGINT;
+
+    -- PESSIMISTIC ROW-LOCK
+    IF NEW.council_id IS NOT NULL THEN
+        SELECT id INTO v_dummy FROM `councils` WHERE id = NEW.council_id FOR UPDATE;
+    END IF;
+
+    IF fn_is_grading_started(NEW.council_id) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Hội đồng đã bắt đầu chấm điểm, không được phép chỉnh sửa thông tin thành viên!';
+    END IF;
+END$$
+DELIMITER ;
+
+
+DELIMITER $$
+DROP TRIGGER IF EXISTS `trg_prevent_council_member_delete_after_grading`$$
+CREATE TRIGGER `trg_prevent_council_member_delete_after_grading`
+BEFORE DELETE ON `council_members`
+FOR EACH ROW
+BEGIN
+    DECLARE v_dummy BIGINT;
+
+    -- PESSIMISTIC ROW-LOCK
+    IF OLD.council_id IS NOT NULL THEN
+        SELECT id INTO v_dummy FROM `councils` WHERE id = OLD.council_id FOR UPDATE;
+    END IF;
+
+    IF fn_is_grading_started(OLD.council_id) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Hội đồng đã bắt đầu chấm điểm, không được phép xóa thành viên hội đồng!';
+    END IF;
+END$$
+DELIMITER ;
+
+
+DELIMITER $$
+DROP TRIGGER IF EXISTS `trg_check_min_council_before_grading`$$
+CREATE TRIGGER `trg_check_min_council_before_grading`
+BEFORE INSERT ON `evaluations`
+FOR EACH ROW
+BEGIN
+    DECLARE v_council_id BIGINT;
+    DECLARE v_member_count INT;
+    DECLARE v_has_chair INT;
+    DECLARE v_has_secretary INT;
+    DECLARE v_dummy BIGINT;
+
+    SELECT ct.council_id INTO v_council_id FROM `council_topics` ct WHERE ct.id = NEW.council_topic_id;
+
+    -- PESSIMISTIC ROW-LOCK: Khóa độc quyền dòng cha councils để tuần tự hóa với các luồng sửa thành viên
+    IF v_council_id IS NOT NULL THEN
+        SELECT id INTO v_dummy FROM `councils` WHERE id = v_council_id FOR UPDATE;
+    END IF;
+
+    SELECT COUNT(*) INTO v_member_count FROM `council_members` WHERE council_id = v_council_id;
+    SELECT COUNT(*) INTO v_has_chair FROM `council_members` WHERE council_id = v_council_id AND position = 'CHAIR';
+    SELECT COUNT(*) INTO v_has_secretary FROM `council_members` WHERE council_id = v_council_id AND position = 'SECRETARY';
+
+    -- ĐÚNG SPEC GỐC: 3-5 GV, gồm 1 Chủ tịch và 1 Thư ký
+    IF v_member_count < 3 OR v_has_chair = 0 OR v_has_secretary = 0 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Hội đồng chưa đủ điều kiện chấm điểm (Cần từ 3 đến 5 GV, bao gồm 1 Chủ tịch và 1 Thư ký)!';
+    END IF;
+END$$
+DELIMITER ;
+
+
+DELIMITER $$
+DROP TRIGGER IF EXISTS `trg_after_eval_insert_recalc`$$
+CREATE TRIGGER `trg_after_eval_insert_recalc`
+AFTER INSERT ON `evaluations`
+FOR EACH ROW
+BEGIN
+    DECLARE v_avg DECIMAL(4,2);
+    SELECT ROUND(AVG(total_score), 2) INTO v_avg 
+    FROM `evaluations` WHERE `council_topic_id` = NEW.council_topic_id;
+    
+    UPDATE `council_topics` SET `final_council_score` = v_avg WHERE `id` = NEW.council_topic_id;
+    UPDATE `student_groups` sg JOIN `council_topics` ct ON ct.group_id = sg.id 
+    SET sg.final_score = v_avg WHERE ct.id = NEW.council_topic_id;
+END$$
+
+DROP TRIGGER IF EXISTS `trg_after_eval_update_recalc`$$
+CREATE TRIGGER `trg_after_eval_update_recalc`
+AFTER UPDATE ON `evaluations`
+FOR EACH ROW
+BEGIN
+    DECLARE v_avg DECIMAL(4,2);
+    SELECT ROUND(AVG(total_score), 2) INTO v_avg 
+    FROM `evaluations` WHERE `council_topic_id` = NEW.council_topic_id;
+    
+    UPDATE `council_topics` SET `final_council_score` = v_avg WHERE `id` = NEW.council_topic_id;
+    UPDATE `student_groups` sg JOIN `council_topics` ct ON ct.group_id = sg.id 
+    SET sg.final_score = v_avg WHERE ct.id = NEW.council_topic_id;
+END$$
+
+DROP TRIGGER IF EXISTS `trg_after_eval_delete_recalc`$$
+CREATE TRIGGER `trg_after_eval_delete_recalc`
+AFTER DELETE ON `evaluations`
+FOR EACH ROW
+BEGIN
+    DECLARE v_avg DECIMAL(4,2);
+    DECLARE v_count INT;
+    
+    SELECT COUNT(*), ROUND(AVG(total_score), 2) INTO v_count, v_avg 
+    FROM `evaluations` WHERE `council_topic_id` = OLD.council_topic_id;
+    
+    -- Nếu xóa hết điểm, điểm tổng kết trở về NULL (tránh treo dữ liệu mồ côi)
+    IF v_count = 0 THEN
+        SET v_avg = NULL;
+    END IF;
+    
+    UPDATE `council_topics` SET `final_council_score` = v_avg WHERE `id` = OLD.council_topic_id;
+    UPDATE `student_groups` sg JOIN `council_topics` ct ON ct.group_id = sg.id 
+    SET sg.final_score = v_avg WHERE ct.id = OLD.council_topic_id;
+END$$
+DELIMITER ;
+
+
+DELIMITER $$
+DROP TRIGGER IF EXISTS `trg_check_group_topic_rules`$$
+CREATE TRIGGER `trg_check_group_topic_rules`
+BEFORE INSERT ON `student_groups`
+FOR EACH ROW
+BEGIN
+    DECLARE v_max INT;
+    DECLARE v_current INT;
+    DECLARE v_status VARCHAR(50);
+
+    IF NEW.topic_id IS NOT NULL THEN
+        SELECT `status`, `max_groups` INTO v_status, v_max FROM `topics` WHERE `id` = NEW.topic_id;
+
+        IF v_status <> 'APPROVED' THEN
+            SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Sinh viên chỉ được đăng ký đề tài đã được phê duyệt (APPROVED)!';
+        END IF;
+
+        SELECT COUNT(*) INTO v_current FROM `student_groups` WHERE `topic_id` = NEW.topic_id;
+        IF v_current >= v_max THEN
+            SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Đề tài này đã đạt số lượng nhóm đăng ký tối đa cho phép!';
+        END IF;
+    END IF;
+END$$
+DELIMITER ;
+
+
+DELIMITER $$
+DROP TRIGGER IF EXISTS `trg_check_group_topic_rules_update`$$
+CREATE TRIGGER `trg_check_group_topic_rules_update`
+BEFORE UPDATE ON `student_groups`
+FOR EACH ROW
+BEGIN
+    DECLARE v_max INT;
+    DECLARE v_current INT;
+    DECLARE v_status VARCHAR(50);
+
+    -- FIX CHUẨN: CHỈ validate khi topic_id THỰC SỰ thay đổi!
+    IF NEW.topic_id IS NOT NULL AND (OLD.topic_id IS NULL OR OLD.topic_id <> NEW.topic_id) THEN
+        SELECT `status`, `max_groups` INTO v_status, v_max FROM `topics` WHERE `id` = NEW.topic_id;
+
+        IF v_status <> 'APPROVED' THEN
+            SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Sinh viên chỉ được đăng ký đề tài đã được phê duyệt (APPROVED)!';
+        END IF;
+
+        SELECT COUNT(*) INTO v_current FROM `student_groups` WHERE `topic_id` = NEW.topic_id;
+        IF v_current >= v_max THEN
+            SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Đề tài này đã đạt số lượng nhóm đăng ký tối đa cho phép!';
+        END IF;
     END IF;
 END$$
 DELIMITER ;
@@ -607,29 +1046,49 @@ INSERT INTO `topics` (`id`, `topic_code`, `title`, `description`, `requirements`
 
 -- 7. Nạp phân công GVHD
 INSERT INTO `topic_supervisors` (`topic_id`, `lecturer_id`, `is_primary`) VALUES
-(1, 3, TRUE),  -- GV001 là GVHD chính
-(1, 4, FALSE); -- GV002 là GVHD phụ
+(1, 3, TRUE),  -- GV001 là GVHD chính cho Topic 1
+(1, 4, FALSE), -- GV002 là GVHD phụ cho Topic 1
+(2, 4, TRUE);  -- GV002 là GVHD chính cho Topic 2
 
 -- 8. Nạp nhóm sinh viên & thành viên nhóm
+INSERT INTO `users` (`id`, `user_code`, `password`, `full_name`, `email`, `phone`, `academic_rank`, `class_name`, `department_id`) VALUES
+(11, 'SV004', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iKTVKIUi', 'Phạm Minh Đức', 'sv004@student.edu.vn', '0912345681', NULL, 'DHCNTT17B', 4);
+
+INSERT INTO `user_roles` (`user_id`, `role_id`) VALUES
+(11, 4);
+
 INSERT INTO `student_groups` (`id`, `group_name`, `period_id`, `topic_id`, `leader_id`, `status`) VALUES
-(1, 'Nhóm Nghiên Cứu Phần Mềm', 1, 1, 6, 'DEFENDING');
+(1, 'Nhóm Nghiên Cứu Phần Mềm', 1, 1, 6, 'DEFENDING'),
+(2, 'Nhóm Trí Tuệ Nhân Tạo & NLP', 1, 2, 10, 'DEFENDING');
 
 INSERT INTO `group_members` (`id`, `group_id`, `student_id`, `period_id`, `role_in_group`) VALUES
 (1, 1, 6, 1, 'LEADER'),
 (2, 1, 7, 1, 'MEMBER'),
-(3, 1, 8, 1, 'MEMBER');
+(3, 1, 8, 1, 'MEMBER'),
+(4, 2, 10, 1, 'LEADER'),
+(5, 2, 11, 1, 'MEMBER');
 
 -- 9. Nạp Hội đồng bảo vệ & phân công
+-- HỘI ĐỒNG 01: Test case tiêu cực (GV002 là thành viên HĐ nhưng là GVHD nên bị chặn chấm)
 INSERT INTO `councils` (`id`, `council_code`, `council_name`, `period_id`, `defense_date`, `location`, `status`) VALUES
-(1, 'HD_KLTN_CNPM_01', 'Hội đồng Bảo vệ Khóa Luận Tốt Nghiệp - Bộ Môn CNPM 01', 1, '2026-12-05 08:30:00', 'Phòng B204 - Giảng đường B', 'CREATED');
+(1, 'HD_KLTN_CNPM_01', 'Hội đồng Bảo vệ Khóa Luận Tốt Nghiệp - Bộ Môn CNPM 01', 1, '2026-12-05 08:30:00', 'Phòng B204 - Giảng đường B', 'CREATED'),
+(2, 'HD_KLTN_CNPM_02', 'Hội đồng Bảo vệ Khóa Luận Tốt Nghiệp - Hội Đồng 02', 1, '2026-12-05 14:00:00', 'Phòng B205 - Giảng đường B', 'CREATED');
 
+-- Thành viên Hội đồng 01
 INSERT INTO `council_members` (`id`, `council_id`, `lecturer_id`, `position`) VALUES
 (1, 1, 2, 'CHAIR'),     -- TBM001: Chủ tịch
 (2, 1, 5, 'SECRETARY'), -- GV003: Thư ký
 (3, 1, 4, 'MEMBER');    -- GV002: Ủy viên
 
+-- Thành viên Hội đồng 02: Test case tích cực (TBM001, GV001, GV003 không ai hướng dẫn Đề tài 2 -> Chấm điểm thành công 100%)
+INSERT INTO `council_members` (`id`, `council_id`, `lecturer_id`, `position`) VALUES
+(4, 2, 2, 'CHAIR'),     -- TBM001: Chủ tịch
+(5, 2, 3, 'SECRETARY'), -- GV001: Thư ký (TS. Lê Anh Tuấn)
+(6, 2, 5, 'MEMBER');    -- GV003: Ủy viên (TS. Vũ Đức Thắng)
+
 INSERT INTO `council_topics` (`id`, `council_id`, `group_id`, `reviewer_lecturer_id`, `defense_order`, `is_published`) VALUES
-(1, 1, 1, 4, 1, FALSE);
+(1, 1, 1, 4, 1, FALSE),
+(2, 2, 2, 5, 1, FALSE);
 
 -- 10. Nạp thông báo mẫu của Khoa
 INSERT INTO `announcements` (`id`, `title`, `content`, `author_id`, `is_pinned`) VALUES

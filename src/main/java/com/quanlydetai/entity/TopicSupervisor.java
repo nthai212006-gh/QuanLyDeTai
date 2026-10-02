@@ -19,7 +19,7 @@ public class TopicSupervisor {
     private Topic topic;
 
     @Id
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "lecturer_id", nullable = false)
     private User lecturer;
 

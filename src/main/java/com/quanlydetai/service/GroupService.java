@@ -35,6 +35,32 @@ public class GroupService {
         return groupRepository.findGroupByStudentAndPeriod(studentId, periodId);
     }
 
+    public Optional<Long> findActivePeriodIdByStudent(Long studentId) {
+        List<GroupMember> members = memberRepository.findMembersWithPeriodByStudentId(studentId);
+        return members.stream()
+                .map(GroupMember::getPeriod)
+                .filter(p -> p != null && (p.getStatus() == RegistrationPeriod.PeriodStatus.SV_REGISTRATION || p.getStatus() == RegistrationPeriod.PeriodStatus.IN_PROGRESS))
+                .map(RegistrationPeriod::getId)
+                .findFirst();
+    }
+
+    public Optional<Long> findLatestPeriodIdByStudent(Long studentId) {
+        List<GroupMember> members = memberRepository.findMembersWithPeriodByStudentId(studentId);
+        return members.stream()
+                .map(GroupMember::getPeriod)
+                .filter(java.util.Objects::nonNull)
+                .map(RegistrationPeriod::getId)
+                .findFirst();
+    }
+
+    public java.util.Set<Long> getJoinedPeriodIdsByStudent(Long studentId) {
+        return memberRepository.findJoinedPeriodIdsByStudentId(studentId);
+    }
+
+    public Long getPeriodIdByGroupId(Long groupId) {
+        return getGroupById(groupId).getPeriod().getId();
+    }
+
     @Transactional
     @AuditAction(action = "CREATE_GROUP", entityName = "StudentGroup")
     public StudentGroup createGroup(String groupName, Long periodId, User leader) {
@@ -77,7 +103,7 @@ public class GroupService {
         StudentGroup group = getGroupById(groupId);
         long currentMembersCount = memberRepository.countByGroupId(groupId);
         if (currentMembersCount >= 3) {
-            throw new IllegalStateException("Nhóm đã đạt số lượng tối đa 03 thành viên!");
+            throw new IllegalStateException("Quy định đề án: Nhóm sinh viên không được vượt quá tối đa 3 thành viên!");
         }
 
         User student = userRepository.findByUserCode(studentCode)
@@ -177,5 +203,37 @@ public class GroupService {
 
     public List<TopicSubmission> getSubmissionsByGroup(Long groupId) {
         return submissionRepository.findByGroupIdOrderBySubmittedAtDesc(groupId);
+    }
+
+    @Transactional
+    @AuditAction(action = "REMOVE_MEMBER", entityName = "StudentGroup")
+    public void removeMember(Long groupId, Long studentId) {
+        StudentGroup group = getGroupById(groupId);
+        GroupMember memberToRemove = memberRepository.findByGroupIdAndStudentId(groupId, studentId)
+                .orElseThrow(() -> new IllegalArgumentException("Sinh viên không thuộc nhóm này"));
+
+        memberRepository.delete(memberToRemove);
+        long remainingCount = memberRepository.countByGroupId(groupId);
+
+        if (remainingCount == 0) {
+            // CASE 1: Nhóm giải thể hoàn toàn -> Giải phóng đề tài trước, set topic_id = null sau
+            if (group.getTopic() != null) {
+                Topic topic = group.getTopic();
+                topic.setStatus(Topic.TopicStatus.APPROVED);
+                topicRepository.save(topic);
+                group.setTopic(null);
+            }
+            group.setStatus(StudentGroup.GroupStatus.DISQUALIFIED);
+            groupRepository.save(group);
+        } else if (group.getLeader().getId().equals(studentId)) {
+            // CASE 2: Leader rút nhưng nhóm còn người -> Chuyển quyền cho người tham gia sớm nhất
+            GroupMember newLeader = memberRepository.findFirstByGroupIdOrderByJoinedAtAsc(groupId)
+                    .orElseThrow();
+            newLeader.setRoleInGroup(GroupMember.RoleInGroup.LEADER);
+            memberRepository.save(newLeader);
+
+            group.setLeader(newLeader.getStudent());
+            groupRepository.save(group);
+        }
     }
 }

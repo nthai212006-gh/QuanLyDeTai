@@ -101,16 +101,29 @@ public class PeriodService {
             throw new IllegalArgumentException(
                     "Ngày kết thúc giai đoạn SV phải sau ngày bắt đầu SV (studentRegistrationEnd > studentRegistrationStart)");
         }
-        // 3. Xóa ngày theo loại đợt
+        // 3. Ràng buộc hai giai đoạn riêng biệt: SV bắt đầu sau khi GV kết thúc
+        if (period.getSvStartDate() != null && period.getGvEndDate() != null
+                && period.getSvStartDate().isBefore(period.getGvEndDate())) {
+            throw new IllegalArgumentException(
+                    "Giai đoạn SV đăng ký đề tài chỉ được mở sau khi Giai đoạn 1 (GV nộp đề tài) đã hoàn thành!");
+        }
+
+        // 4. Xóa ngày hoặc kiểm tra ngày bắt buộc theo loại đợt
         RegistrationPeriod.PeriodType type = period.getPeriodType();
         if (type == RegistrationPeriod.PeriodType.COURSE_PROJECT
                 || type == RegistrationPeriod.PeriodType.RESEARCH) {
             period.setReviewDeadline(null);
             period.setDefenseDate(null);
         } else if (type == RegistrationPeriod.PeriodType.INTERNSHIP) {
+            if (period.getReviewDeadline() == null) {
+                throw new IllegalArgumentException("Đợt TLCN bắt buộc phải có Hạn chót GVPB nộp điểm!");
+            }
             period.setDefenseDate(null);
+        } else if (type == RegistrationPeriod.PeriodType.GRADUATION_THESIS) {
+            if (period.getReviewDeadline() == null || period.getDefenseDate() == null) {
+                throw new IllegalArgumentException("Đợt KLTN bắt buộc phải có cả Hạn GVPB và Ngày báo cáo hội đồng!");
+            }
         }
-        // GRADUATION_THESIS giữ nguyên cả hai
 
         // 4. Kiểm tra học kỳ: chỉ chấp nhận Học kỳ 1 hoặc Học kỳ 2, loại bỏ kỳ Hè
         if (period.getSemester() == null || (period.getSemester() != 1 && period.getSemester() != 2)) {

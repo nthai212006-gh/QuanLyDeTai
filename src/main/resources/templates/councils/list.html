@@ -96,19 +96,24 @@
                     </div>
                     <div class="mb-3">
                         <label class="form-label small fw-semibold">Mã Hội Đồng</label>
-                        <input type="text" name="councilCode" class="form-control form-control-sm" placeholder="VD: HD_KLTN_CNPM_01" required>
+                        <input type="text" name="councilCode" class="form-control form-control-sm" placeholder="VD: HD_KLTN_CNPM_01" 
+                               data-v-msg="Vui lòng nhập mã hội đồng" required>
                     </div>
                     <div class="mb-3">
                         <label class="form-label small fw-semibold">Tên Hội Đồng</label>
-                        <input type="text" name="councilName" class="form-control form-control-sm" placeholder="VD: Hội đồng Chuyên đề Phần mềm 01" required>
+                        <input type="text" name="councilName" class="form-control form-control-sm" placeholder="VD: Hội đồng Chuyên đề Phần mềm 01" 
+                               data-v-msg="Vui lòng nhập tên hội đồng" required>
                     </div>
                     <div class="mb-3">
                         <label class="form-label small fw-semibold">Ngày & Giờ Báo Cáo Phản Biện</label>
-                        <input type="datetime-local" name="defenseDate" class="form-control form-control-sm" required>
+                        <input type="text" name="defenseDate" class="form-control form-control-sm datetime-picker" 
+                               placeholder="dd/mm/yyyy --:--" data-required="true"
+                               data-v-msg="Vui lòng chọn ngày & giờ báo cáo phản biện" required>
                     </div>
                     <div class="mb-3">
                         <label class="form-label small fw-semibold">Phòng Họp / Địa Điểm</label>
-                        <input type="text" name="location" class="form-control form-control-sm" placeholder="VD: P.B204 - Giảng đường B" required>
+                        <input type="text" name="location" class="form-control form-control-sm" placeholder="VD: P.B204 - Giảng đường B" 
+                               data-v-msg="Vui lòng nhập phòng họp hoặc địa điểm" required>
                     </div>
                 </div>
                 <div class="modal-footer">

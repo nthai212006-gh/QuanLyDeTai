@@ -2,6 +2,7 @@ package com.quanlydetai.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.format.annotation.DateTimeFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -31,21 +32,27 @@ public class RegistrationPeriod {
     @Column(nullable = false)
     private Integer semester;
 
+    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
     @Column(name = "topic_submission_start", nullable = false)
     private LocalDateTime topicSubmissionStart;
 
+    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
     @Column(name = "topic_submission_end", nullable = false)
     private LocalDateTime topicSubmissionEnd;
 
+    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
     @Column(name = "student_registration_start", nullable = false)
     private LocalDateTime studentRegistrationStart;
 
+    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
     @Column(name = "student_registration_end", nullable = false)
     private LocalDateTime studentRegistrationEnd;
 
+    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
     @Column(name = "review_deadline")
     private LocalDateTime reviewDeadline;
 
+    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
     @Column(name = "defense_date")
     private LocalDate defenseDate;
 
@@ -74,6 +81,7 @@ public class RegistrationPeriod {
         return topicSubmissionStart;
     }
 
+    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
     public void setGvStartDate(LocalDateTime dt) {
         this.topicSubmissionStart = dt;
     }
@@ -83,6 +91,7 @@ public class RegistrationPeriod {
         return topicSubmissionEnd;
     }
 
+    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
     public void setGvEndDate(LocalDateTime dt) {
         this.topicSubmissionEnd = dt;
     }
@@ -92,6 +101,7 @@ public class RegistrationPeriod {
         return studentRegistrationStart;
     }
 
+    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
     public void setSvStartDate(LocalDateTime dt) {
         this.studentRegistrationStart = dt;
     }
@@ -101,6 +111,7 @@ public class RegistrationPeriod {
         return studentRegistrationEnd;
     }
 
+    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
     public void setSvEndDate(LocalDateTime dt) {
         this.studentRegistrationEnd = dt;
     }
@@ -110,6 +121,7 @@ public class RegistrationPeriod {
         return reviewDeadline;
     }
 
+    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
     public void setGvpbDeadline(LocalDateTime dt) {
         this.reviewDeadline = dt;
     }
@@ -119,6 +131,7 @@ public class RegistrationPeriod {
         return defenseDate != null ? defenseDate.atStartOfDay() : null;
     }
 
+    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
     public void setCouncilDate(LocalDateTime dt) {
         this.defenseDate = dt != null ? dt.toLocalDate() : null;
     }

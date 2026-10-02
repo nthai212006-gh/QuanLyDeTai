@@ -12,7 +12,7 @@
             </h3>
             <p class="text-muted small mb-0">
                 Đề tài: <strong th:text="${group.topic != null ? group.topic.title : 'Chưa có đề tài'}">Tên đề tài</strong> | 
-                GVHD: <strong th:text="${group.topic != null ? group.topic.createdByLecturer.fullName : 'N/A'}">TS. A</strong>
+                GVHD: <strong th:text="${group.topic != null ? group.topic.supervisorsDisplayString : 'N/A'}">TS. A</strong>
             </p>
         </div>
         <div th:if="${currentUser.id == group.leader.id}">
@@ -132,11 +132,15 @@
                         </div>
                         <div class="col-md-4">
                             <label class="form-label small fw-semibold">Ngày Bắt Đầu Tuần</label>
-                            <input type="date" name="startDate" class="form-control form-control-sm" required>
+                            <input type="text" name="startDate" class="form-control form-control-sm date-picker" 
+                                   placeholder="dd/mm/yyyy" data-required="true"
+                                   data-v-msg="Vui lòng chọn ngày bắt đầu tuần" required>
                         </div>
                         <div class="col-md-4">
                             <label class="form-label small fw-semibold">Ngày Kết Thúc Tuần</label>
-                            <input type="date" name="endDate" class="form-control form-control-sm" required>
+                            <input type="text" name="endDate" class="form-control form-control-sm date-picker" 
+                                   placeholder="dd/mm/yyyy" data-required="true"
+                                   data-v-msg="Vui lòng chọn ngày kết thúc tuần" required>
                         </div>
                     </div>
 

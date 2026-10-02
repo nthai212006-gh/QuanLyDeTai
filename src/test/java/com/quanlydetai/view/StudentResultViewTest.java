@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.*;
 
@@ -33,11 +34,14 @@ class StudentResultViewTest {
     @Autowired private CouncilRepository councilRepository;
     @Autowired private CouncilTopicRepository councilTopicRepository;
     @Autowired private DepartmentRepository departmentRepository;
+    @Autowired private CouncilMemberRepository councilMemberRepository;
     @Autowired private EvaluationRepository evaluationRepository;
 
     private User student;
+    private User lecturer;
     private StudentGroup group;
     private CouncilTopic councilTopic;
+    private List<User> councilLecturers;
     private RegistrationPeriod period;
 
     @BeforeEach
@@ -47,7 +51,7 @@ class StudentResultViewTest {
                 .findFirst()
                 .orElseThrow(() -> new IllegalStateException("No STUDENT in DB"));
 
-        User lecturer = userRepository.findAll().stream()
+        this.lecturer = userRepository.findAll().stream()
                 .filter(u -> u.hasRole("ROLE_LECTURER"))
                 .findFirst()
                 .orElseThrow(() -> new IllegalStateException("No LECTURER in DB"));
@@ -64,6 +68,8 @@ class StudentResultViewTest {
                 .topicSubmissionEnd(LocalDateTime.now().minusDays(20))
                 .studentRegistrationStart(LocalDateTime.now().minusDays(19))
                 .studentRegistrationEnd(LocalDateTime.now().minusDays(10))
+                .reviewDeadline(LocalDateTime.now().minusDays(5))
+                .defenseDate(LocalDateTime.now().minusDays(1).toLocalDate())
                 .createdBy(lecturer)
                 .build();
         periodRepository.save(period);
@@ -75,7 +81,7 @@ class StudentResultViewTest {
                 .department(dept)
                 .period(period)
                 .createdByLecturer(lecturer)
-                .status(Topic.TopicStatus.ASSIGNED)
+                .status(Topic.TopicStatus.APPROVED)
                 .build();
         topicRepository.save(topic);
 
@@ -108,6 +114,27 @@ class StudentResultViewTest {
                 .status(Council.CouncilStatus.COMPLETED)
                 .build();
         councilRepository.save(council);
+
+        councilLecturers = userRepository.findAll().stream()
+                .filter(u -> u.hasRole("ROLE_LECTURER") && !u.getId().equals(this.lecturer.getId()))
+                .limit(3)
+                .toList();
+
+        councilMemberRepository.save(CouncilMember.builder()
+                .council(council)
+                .lecturer(councilLecturers.get(0))
+                .position(CouncilMember.CouncilPosition.CHAIR)
+                .build());
+        councilMemberRepository.save(CouncilMember.builder()
+                .council(council)
+                .lecturer(councilLecturers.get(1))
+                .position(CouncilMember.CouncilPosition.SECRETARY)
+                .build());
+        councilMemberRepository.save(CouncilMember.builder()
+                .council(council)
+                .lecturer(councilLecturers.get(2))
+                .position(CouncilMember.CouncilPosition.MEMBER)
+                .build());
 
         councilTopic = CouncilTopic.builder()
                 .council(council)
@@ -159,9 +186,7 @@ class StudentResultViewTest {
     // SEAM 5: evaluations co the query duoc tu councilTopic
     @Test
     void councilTopic_WithEvaluation_EvaluationStoredCorrectly() {
-        User evaluator = userRepository.findAll().stream()
-                .filter(u -> u.hasRole("ROLE_LECTURER"))
-                .findFirst().orElseThrow();
+        User evaluator = councilLecturers.get(0);
 
         Evaluation eval = Evaluation.builder()
                 .councilTopic(councilTopic)

@@ -4,24 +4,28 @@
 <body>
 <div id="main-content">
 
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <!-- Page Header (Thoáng đãng, Trang trọng) -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4 pt-1">
         <div>
-            <h4 class="fw-bold text-dark mb-1">Danh Sách Đợt Đăng Ký Đề Tài</h4>
-            <p class="text-muted small mb-0">Quản lý các đợt Môn học, NCKH, Tiểu luận chuyên ngành, Khóa luận tốt nghiệp</p>
+            <h4 class="fw-bold text-dark mb-1" style="letter-spacing: -0.02em;">Danh Sách Đợt Đăng Ký Đề Tài</h4>
+            <p class="text-secondary small mb-0">Quản lý các đợt Môn học, NCKH, Tiểu luận chuyên ngành, Khóa luận tốt nghiệp</p>
         </div>
-        <a sec:authorize="hasAnyRole('DEAN', 'ADMIN')" th:href="@{/periods/create}" class="btn btn-primary shadow-sm">
-            <i class="fa-solid fa-plus me-1"></i> Tạo Đợt Đăng Ký Mới
+        <a sec:authorize="hasAnyRole('DEAN', 'ADMIN')" th:href="@{/periods/create}" 
+           class="btn btn-primary px-3 py-2 shadow-xs d-inline-flex align-items-center gap-1.5"
+           style="background: linear-gradient(135deg, #1E3A5F 0%, #0F172A 100%) !important; border-color: #0F172A !important;">
+            <i class="fa-solid fa-plus me-1" style="font-size: 0.8rem;"></i> Tạo Đợt Đăng Ký Mới
         </a>
     </div>
 
-    <div class="card border-0 shadow-sm">
+    <!-- Main Table Card (Giữ nguyên cấu trúc cốt lõi, tinh chỉnh độ nét & màu sắc) -->
+    <div class="card border-0 shadow-sm" style="border: 1px solid var(--color-border) !important; border-radius: var(--radius-lg); overflow: hidden;">
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0 table-academic">
-                <thead class="table-light">
+                <thead>
                     <tr>
                         <th class="ps-4">Tên Đợt</th>
                         <th>Loại Đợt</th>
-                        <th>Năm Học & HK</th>
+                        <th>Năm Học &amp; HK</th>
                         <th>Thời Gian GV Nộp</th>
                         <th>Thời Gian SV ĐK</th>
                         <th>Hạn GVPB / Báo Cáo HĐ</th>
@@ -31,22 +35,24 @@
                 </thead>
                 <tbody>
                     <tr th:each="p : ${periods}">
-                        <td class="ps-4">
-                            <span class="fw-bold text-primary" th:text="${p.periodName}">Đợt KLTN HK1</span>
-                            <div class="small text-muted">Tạo bởi: <span th:text="${p.createdBy.fullName}">Trưởng khoa</span></div>
+                        <td class="ps-4 py-3">
+                            <div class="fw-bold text-dark" style="letter-spacing: -0.01em; font-size: 0.92rem;" th:text="${p.periodName}">Đợt KLTN HK1</div>
+                            <div class="small text-secondary" style="font-size: 0.78rem;">
+                                Tạo bởi: <span class="text-dark fw-medium" th:text="${p.createdBy.fullName}">Trưởng khoa</span>
+                            </div>
                         </td>
                         <td>
                             <span th:if="${p.periodType.name() == 'MON_HOC' or p.periodType.name() == 'COURSE_PROJECT'}" class="badge-period-type badge-period-monhoc">
-                                <i class="fa-solid fa-book-open me-1.5 text-secondary"></i>Môn học
+                                Môn học
                             </span>
                             <span th:if="${p.periodType.name() == 'NCKH' or p.periodType.name() == 'RESEARCH'}" class="badge-period-type badge-period-nckh">
-                                <i class="fa-solid fa-flask me-1.5 text-success"></i>NCKH
+                                Nghiên cứu khoa học
                             </span>
                             <span th:if="${p.periodType.name() == 'TLCN' or p.periodType.name() == 'INTERNSHIP'}" class="badge-period-type badge-period-tlcn">
-                                <i class="fa-solid fa-file-pen me-1.5" style="color: #6D28D9;"></i>Tiểu luận chuyên ngành
+                                Tiểu luận chuyên ngành
                             </span>
                             <span th:if="${p.periodType.name() == 'KLTN' or p.periodType.name() == 'GRADUATION_THESIS'}" class="badge-period-type badge-period-kltn">
-                                <i class="fa-solid fa-graduation-cap me-1.5 text-primary"></i>Khóa luận tốt nghiệp
+                                Khóa luận tốt nghiệp
                             </span>
                         </td>
                         <td>
@@ -55,37 +61,44 @@
                                 <span class="badge-semester ms-2" th:text="'HK' + ${p.semester}">HK1</span>
                             </div>
                         </td>
-                        <td class="small">
-                            <span th:text="${#temporals.format(p.gvStartDate, 'dd/MM/yyyy')} + ' - ' + ${#temporals.format(p.gvEndDate, 'dd/MM/yyyy')}">01/09 - 15/09</span>
+                        <td class="small text-secondary" style="font-variant-numeric: tabular-nums;">
+                            <span th:text="${#temporals.format(p.gvStartDate, 'dd/MM/yyyy')} + ' – ' + ${#temporals.format(p.gvEndDate, 'dd/MM/yyyy')}">01/09/2026 – 20/09/2026</span>
                         </td>
-                        <td class="small">
-                            <span th:text="${#temporals.format(p.svStartDate, 'dd/MM/yyyy')} + ' - ' + ${#temporals.format(p.svEndDate, 'dd/MM/yyyy')}">16/09 - 30/09</span>
+                        <td class="small text-secondary" style="font-variant-numeric: tabular-nums;">
+                            <span th:text="${#temporals.format(p.svStartDate, 'dd/MM/yyyy')} + ' – ' + ${#temporals.format(p.svEndDate, 'dd/MM/yyyy')}">21/09/2026 – 05/10/2026</span>
                         </td>
-                        <td class="small">
-                            <div th:if="${p.gvpbDeadline != null}">GVPB: <strong th:text="${#temporals.format(p.gvpbDeadline, 'dd/MM/yyyy')}">20/11</strong></div>
-                            <div th:if="${p.councilDate != null}">Hội đồng: <strong class="text-danger" th:text="${#temporals.format(p.councilDate, 'dd/MM/yyyy')}">05/12</strong></div>
-                            <div th:if="${p.gvpbDeadline == null and p.councilDate == null}" class="text-muted">Không áp dụng</div>
+                        <td class="small" style="font-variant-numeric: tabular-nums;">
+                            <div th:if="${p.gvpbDeadline != null}">
+                                <span class="text-secondary">GVPB:</span> <strong class="text-dark" th:text="${#temporals.format(p.gvpbDeadline, 'dd/MM/yyyy')}">20/11/2026</strong>
+                            </div>
+                            <div th:if="${p.councilDate != null}">
+                                <span class="text-secondary">Hội đồng:</span> <strong style="color: var(--color-destructive);" th:text="${#temporals.format(p.councilDate, 'dd/MM/yyyy')}">05/12/2026</strong>
+                            </div>
+                            <div th:if="${p.gvpbDeadline == null and p.councilDate == null}" class="text-muted">—</div>
                         </td>
                         <td>
                             <span th:if="${p.status.name() == 'UPCOMING'}" class="badge-status badge-status-neutral">SẮP MỞ</span>
                             <span th:if="${p.status.name() == 'GV_REGISTRATION'}" class="badge-status badge-status-pending">GV NỘP ĐỀ TÀI</span>
                             <span th:if="${p.status.name() == 'SV_REGISTRATION'}" class="badge-status badge-status-pending">SV ĐĂNG KÝ</span>
                             <span th:if="${p.status.name() == 'IN_PROGRESS'}" class="badge-status badge-status-info">ĐANG THỰC HIỆN</span>
-                            <span th:if="${p.status.name() == 'DEFENSE'}" class="badge-status badge-status-info">PHẢN BIỆN & HĐ</span>
+                            <span th:if="${p.status.name() == 'DEFENSE'}" class="badge-status badge-status-info">PHẢN BIỆN &amp; HĐ</span>
                             <span th:if="${p.status.name() == 'COMPLETED'}" class="badge-status badge-status-success">HOÀN TẤT</span>
                             <span th:if="${p.status.name() == 'CLOSED'}" class="badge-status badge-status-danger">ĐÃ ĐÓNG</span>
                         </td>
-                        <td class="text-end pe-4">
-                            <a th:href="@{/topics(periodId=${p.id})}" class="btn btn-sm btn-outline-primary me-1" title="Xem đề tài">
+                        <td class="text-end pe-4 text-nowrap">
+                            <a th:href="@{/topics(periodId=${p.id})}" class="btn-action-icon me-1.5" title="Xem danh sách đề tài">
                                 <i class="fa-solid fa-book"></i>
                             </a>
-                            <a th:href="@{/councils(periodId=${p.id})}" class="btn btn-sm btn-outline-secondary" title="Xem hội đồng">
+                            <a th:href="@{/councils(periodId=${p.id})}" class="btn-action-icon" title="Xem danh sách hội đồng">
                                 <i class="fa-solid fa-gavel"></i>
                             </a>
                         </td>
                     </tr>
                     <tr th:if="${#lists.isEmpty(periods)}">
-                        <td colspan="8" class="text-center py-4 text-muted">Chưa có đợt đăng ký nào được khởi tạo.</td>
+                        <td colspan="8" class="text-center py-5 text-muted">
+                            <div class="fw-semibold">Chưa có đợt đăng ký nào được khởi tạo</div>
+                            <div class="small text-secondary mt-1">Các đợt khóa luận, tiểu luận hoặc NCKH sau khi tạo sẽ hiển thị tại đây.</div>
+                        </td>
                     </tr>
                 </tbody>
             </table>

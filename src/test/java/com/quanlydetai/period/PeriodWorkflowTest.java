@@ -183,4 +183,25 @@ class PeriodWorkflowTest {
         RegistrationPeriod saved2 = periodService.createPeriod(p2, creator);
         assertThat(saved2.getSemester()).isEqualTo(2);
     }
+
+    // SLICE 11: SV start truoc GV end phai throw (Hai giai doan rieng biet)
+    @Test
+    void testInvalidDateSequence_SvStartBeforeGvEnd_ThrowsException() {
+        User creator = anyUser();
+        LocalDateTime now = LocalDateTime.now();
+        RegistrationPeriod p = RegistrationPeriod.builder()
+                .periodName("Bad Dates SV Before GV End")
+                .periodType(PeriodType.COURSE_PROJECT)
+                .academicYear("2026-2027")
+                .semester(1)
+                .topicSubmissionStart(now.plusDays(1))
+                .topicSubmissionEnd(now.plusDays(8))
+                .studentRegistrationStart(now.plusDays(5)) // Trước khi GV kết thúc nộp (ngày 8)
+                .studentRegistrationEnd(now.plusDays(12))
+                .build();
+
+        assertThatThrownBy(() -> periodService.createPeriod(p, creator))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Giai đoạn 1 (GV nộp đề tài) đã hoàn thành");
+    }
 }

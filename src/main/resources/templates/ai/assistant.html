@@ -4,28 +4,41 @@
 <body>
 <div id="main-content">
 
-    <div class="mb-4">
-        <h4 class="fw-bold text-dark mb-1">
-            <i class="fa-solid fa-robot text-primary me-2"></i>Trợ Lý Trí Tuệ Nhân Tạo (AI Assistant)
-        </h4>
-        <p class="text-muted small mb-0">Hỗ trợ thông minh cho Khoa CNTT: Gợi ý đề tài, kiểm tra tính mới, tóm tắt báo cáo nhanh</p>
+    <!-- Minimalist Academic Header (Không icon trang trí thừa) -->
+    <div class="mb-4 pt-1">
+        <div class="d-flex align-items-center gap-2 mb-1.5">
+            <span class="badge-fit-tag text-dark fw-semibold" style="border-radius: 9999px; padding: 4px 12px; background: #F1F5F9; border-color: #E2E8F0;">
+                AI COPILOT • KHOA CNTT
+            </span>
+            <span class="text-muted small">• Trợ Lý Học Thuật</span>
+        </div>
+        <h3 class="fw-bold mb-1 text-dark" style="letter-spacing: -0.02em;">
+            Trợ Lý Trí Tuệ Nhân Tạo
+        </h3>
+        <p class="text-secondary small mb-0">Hệ thống hỗ trợ thông minh cho Khoa CNTT: Gợi ý đề tài theo năng lực, kiểm tra tính mới và tóm tắt báo cáo nhanh cho Hội đồng.</p>
     </div>
 
-    <!-- AI Feature Tabs -->
-    <ul class="nav nav-pills mb-4 bg-white p-2 rounded-3 shadow-sm border" id="aiTab" role="tablist">
+    <!-- AI Feature Segmented Tabs (Typography-First, Zero Clutter) -->
+    <ul class="nav ai-segmented-tabs mb-4 p-1.5" id="aiTab" role="tablist">
         <li class="nav-item flex-fill" role="presentation">
-            <button class="nav-link active w-100 fw-semibold" id="recommend-tab" data-bs-toggle="tab" data-bs-target="#recommend-pane">
-                <i class="fa-solid fa-lightbulb me-2 text-warning"></i> 1. Gợi Ý Đề Tài Thông Minh
+            <button class="nav-link ai-segmented-tab active w-100" id="recommend-tab" data-bs-toggle="tab" data-bs-target="#recommend-pane">
+                <span class="tab-number">01</span>
+                <span class="tab-title">Gợi ý đề tài</span>
+                <span class="tab-subtitle">Định hướng cá nhân</span>
             </button>
         </li>
         <li class="nav-item flex-fill" role="presentation">
-            <button class="nav-link w-100 fw-semibold" id="similarity-tab" data-bs-toggle="tab" data-bs-target="#similarity-pane">
-                <i class="fa-solid fa-shield-halved me-2 text-danger"></i> 2. Kiểm Tra Trùng Lặp Ý Tưởng
+            <button class="nav-link ai-segmented-tab w-100" id="similarity-tab" data-bs-toggle="tab" data-bs-target="#similarity-pane">
+                <span class="tab-number">02</span>
+                <span class="tab-title">Kiểm tra trùng lặp</span>
+                <span class="tab-subtitle">Đối soát tính mới</span>
             </button>
         </li>
         <li class="nav-item flex-fill" role="presentation">
-            <button class="nav-link w-100 fw-semibold" id="summary-tab" data-bs-toggle="tab" data-bs-target="#summary-pane">
-                <i class="fa-solid fa-file-waveform me-2 text-info"></i> 3. Tóm Tắt Nhanh Báo Cáo Đồ Án
+            <button class="nav-link ai-segmented-tab w-100" id="summary-tab" data-bs-toggle="tab" data-bs-target="#summary-pane">
+                <span class="tab-number">03</span>
+                <span class="tab-title">Tóm tắt báo cáo</span>
+                <span class="tab-subtitle">Bản tóm tắt Hội đồng</span>
             </button>
         </li>
     </ul>
@@ -35,29 +48,58 @@
         <div class="tab-pane fade show active" id="recommend-pane">
             <div class="row g-4">
                 <div class="col-lg-5">
-                    <div class="card p-4 border-0 shadow-sm">
+                    <div class="card p-4 border-0 shadow-sm" style="border: 1px solid var(--color-border) !important;">
                         <h5 class="fw-bold text-dark mb-3">Tư Vấn Chọn Đề Tài Phù Hợp</h5>
                         <div class="mb-3">
-                            <label class="form-label small fw-semibold">Đợt Đăng Ký</label>
+                            <label class="form-label small fw-semibold text-secondary">ĐỢT ĐĂNG KÝ</label>
                             <select id="recPeriodId" class="form-select">
                                 <option th:each="p : ${periods}" th:value="${p.id}" th:text="${p.periodName}">Đợt KLTN HK1</option>
                             </select>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label small fw-semibold">Sở Thích & Kỹ Năng Của Bạn</label>
+                            <label class="form-label small fw-semibold text-secondary">SỞ THÍCH & KỸ NĂNG CỦA BẠN</label>
                             <textarea id="recInterest" class="form-control" rows="4" 
-                                      placeholder="VD: Em định hướng Java Spring Boot, MySQL, muốn làm hệ thống quản lý web, quan tâm đến kiến trúc Clean Architecture..."></textarea>
+                                      placeholder="Nhập định hướng công nghệ, ngôn ngữ lập trình hoặc bài toán bạn quan tâm..."></textarea>
                         </div>
-                        <button class="btn btn-primary w-100 py-2 fw-semibold" onclick="askAiRecommend()">
-                            <i class="fa-solid fa-wand-magic-sparkles me-1"></i> Nhờ AI Phân Tích & Gợi Ý
+                        <div class="mb-4">
+                            <div class="small fw-semibold text-secondary mb-2">Gợi ý mẫu nhanh (Bấm để điền):</div>
+                            <div class="d-flex flex-wrap gap-1.5">
+                                <button type="button" class="btn btn-sm ai-prompt-chip" 
+                                        onclick="fillAiPrompt('recInterest', 'Em định hướng Java Spring Boot, MySQL, muốn làm hệ thống quản lý web quy mô lớn, quan tâm đến kiến trúc Clean Architecture.')">
+                                    Web Fullstack Spring Boot
+                                </button>
+                                <button type="button" class="btn btn-sm ai-prompt-chip" 
+                                        onclick="fillAiPrompt('recInterest', 'Em quan tâm đến Trí tuệ nhân tạo, Thị giác máy tính (Computer Vision), xử lý ảnh và nhận diện hành vi.')">
+                                    Thị giác máy tính AI
+                                </button>
+                                <button type="button" class="btn btn-sm ai-prompt-chip" 
+                                        onclick="fillAiPrompt('recInterest', 'Em định hướng phát triển ứng dụng di động đa nền tảng Flutter, kết hợp Firebase và RESTful API backend.')">
+                                    Ứng dụng di động Flutter
+                                </button>
+                                <button type="button" class="btn btn-sm ai-prompt-chip" 
+                                        onclick="fillAiPrompt('recInterest', 'Em muốn nghiên cứu kiến trúc Microservices, hệ thống phân tán, xử lý hàng đợi message queue với Kafka và Docker.')">
+                                    Hệ thống phân tán & Cloud
+                                </button>
+                            </div>
+                        </div>
+                        <button class="btn btn-primary w-100 py-2.5 fw-semibold rounded-3 shadow-xs" onclick="askAiRecommend()">
+                            Phân Tích & Gợi Ý
                         </button>
                     </div>
                 </div>
                 <div class="col-lg-7">
-                    <div class="card p-4 border-0 shadow-sm h-100 bg-white">
-                        <h6 class="fw-bold text-secondary mb-3"><i class="fa-solid fa-comments me-2 text-primary"></i>Phản Hồi Từ AI:</h6>
-                        <div id="recOutput" class="text-secondary small bg-light p-4 rounded-3 h-100" style="white-space: pre-line;">
-                            Kết quả tư vấn và các đề tài gợi ý sẽ hiển thị ở đây sau khi bạn nhấn nút.
+                    <div class="card p-4 border-0 shadow-sm h-100 bg-white d-flex flex-column" style="border: 1px solid var(--color-border) !important;">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="fw-bold text-dark mb-0">Kết Quả Phân Tích</h6>
+                            <button type="button" class="btn btn-sm btn-outline-secondary px-3 py-1" id="btnCopyRec" onclick="copyAiResult('recOutput', this)" style="display: none;">
+                                Sao chép
+                            </button>
+                        </div>
+                        <div id="recOutput" class="ai-result-box flex-grow-1">
+                            <div class="ai-empty-state text-center p-4">
+                                <div class="fw-semibold text-dark mb-1">Chưa có dữ liệu phân tích</div>
+                                <div class="small text-secondary">Vui lòng chọn đợt đăng ký, nhập định hướng của bạn ở bên trái và bấm <strong>"Phân Tích & Gợi Ý"</strong>.</div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -68,32 +110,53 @@
         <div class="tab-pane fade" id="similarity-pane">
             <div class="row g-4">
                 <div class="col-lg-5">
-                    <div class="card p-4 border-0 shadow-sm">
+                    <div class="card p-4 border-0 shadow-sm" style="border: 1px solid var(--color-border) !important;">
                         <h5 class="fw-bold text-dark mb-3">Kiểm Tra Tính Mới Của Đề Tài</h5>
                         <div class="mb-3">
-                            <label class="form-label small fw-semibold">Đợt Đăng Ký Đối Soát</label>
+                            <label class="form-label small fw-semibold text-secondary">ĐỢT ĐĂNG KÝ ĐỐI SOÁT</label>
                             <select id="simPeriodId" class="form-select">
                                 <option th:each="p : ${periods}" th:value="${p.id}" th:text="${p.periodName}">Đợt KLTN HK1</option>
                             </select>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label small fw-semibold">Tên Đề Tài Mới</label>
+                            <label class="form-label small fw-semibold text-secondary">TÊN ĐỀ TÀI DỰ KIẾN</label>
                             <input type="text" id="simTitle" class="form-control" placeholder="Nhập tên đề tài dự kiến...">
                         </div>
                         <div class="mb-3">
-                            <label class="form-label small fw-semibold">Mô Tả Mục Tiêu & Giải Pháp</label>
-                            <textarea id="simDesc" class="form-control" rows="3" placeholder="Nhập nội dung tóm tắt..."></textarea>
+                            <label class="form-label small fw-semibold text-secondary">MÔ TẢ MỤC TIÊU & GIẢI PHÁP</label>
+                            <textarea id="simDesc" class="form-control" rows="3" placeholder="Nhập nội dung tóm tắt giải pháp thực hiện..."></textarea>
                         </div>
-                        <button class="btn btn-danger w-100 py-2 fw-semibold" onclick="askAiSimilarity()">
-                            <i class="fa-solid fa-magnifying-glass-chart me-1"></i> Đối Soát Trùng Lặp Bằng AI
+                        <div class="mb-4">
+                            <div class="small fw-semibold text-secondary mb-2">Mẫu đề tài thử nghiệm:</div>
+                            <div class="d-flex flex-wrap gap-1.5">
+                                <button type="button" class="btn btn-sm ai-prompt-chip" 
+                                        onclick="fillAiSimilaritySample('Xây dựng hệ thống quản lý đề tài tốt nghiệp cho sinh viên khoa CNTT', 'Ứng dụng kiến trúc Spring Boot và Thymeleaf để số hóa luồng đề tài từ nộp đề cương đến bảo vệ hội đồng.')">
+                                    Mẫu: Quản lý đề tài tốt nghiệp
+                                </button>
+                                <button type="button" class="btn btn-sm ai-prompt-chip" 
+                                        onclick="fillAiSimilaritySample('Nghiên cứu điểm danh sinh viên tự động bằng nhận diện khuôn mặt', 'Sử dụng mô hình YOLO và OpenCV nhận diện khuôn mặt sinh viên trong lớp học.')">
+                                    Mẫu: Điểm danh khuôn mặt
+                                </button>
+                            </div>
+                        </div>
+                        <button class="btn btn-primary w-100 py-2.5 fw-semibold rounded-3 shadow-xs" onclick="askAiSimilarity()">
+                            Đối Soát Trùng Lặp
                         </button>
                     </div>
                 </div>
                 <div class="col-lg-7">
-                    <div class="card p-4 border-0 shadow-sm h-100 bg-white">
-                        <h6 class="fw-bold text-secondary mb-3"><i class="fa-solid fa-chart-pie me-2 text-danger"></i>Đánh Giá Tính Độc Bản:</h6>
-                        <div id="simOutput" class="text-secondary small bg-light p-4 rounded-3 h-100" style="white-space: pre-line;">
-                            Kết quả kiểm tra tỷ lệ tương đồng ngữ nghĩa sẽ hiển thị tại đây.
+                    <div class="card p-4 border-0 shadow-sm h-100 bg-white d-flex flex-column" style="border: 1px solid var(--color-border) !important;">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="fw-bold text-dark mb-0">Đánh Giá Tính Độc Bản</h6>
+                            <button type="button" class="btn btn-sm btn-outline-secondary px-3 py-1" id="btnCopySim" onclick="copyAiResult('simOutput', this)" style="display: none;">
+                                Sao chép
+                            </button>
+                        </div>
+                        <div id="simOutput" class="ai-result-box flex-grow-1">
+                            <div class="ai-empty-state text-center p-4">
+                                <div class="fw-semibold text-dark mb-1">Chưa có kết quả đối soát</div>
+                                <div class="small text-secondary">Nhập tên đề tài và tóm tắt mục tiêu ở cột bên trái để kiểm tra tỷ lệ trùng lặp với kho đề tài các năm trước.</div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -104,26 +167,41 @@
         <div class="tab-pane fade" id="summary-pane">
             <div class="row g-4">
                 <div class="col-lg-5">
-                    <div class="card p-4 border-0 shadow-sm">
+                    <div class="card p-4 border-0 shadow-sm" style="border: 1px solid var(--color-border) !important;">
                         <h5 class="fw-bold text-dark mb-3">Tóm Tắt Nhanh Báo Cáo Đồ Án</h5>
                         <div class="mb-3">
-                            <label class="form-label small fw-semibold">Tên Đề Tài</label>
+                            <label class="form-label small fw-semibold text-secondary">TÊN ĐỀ TÀI</label>
                             <input type="text" id="sumTitle" class="form-control" placeholder="Tên đề tài đồ án...">
                         </div>
                         <div class="mb-3">
-                            <label class="form-label small fw-semibold">Trích Đoạn Nội Dung Báo Cáo</label>
+                            <label class="form-label small fw-semibold text-secondary">TRÍCH ĐOẠN NỘI DUNG BÁO CÁO</label>
                             <textarea id="sumContent" class="form-control" rows="5" placeholder="Dán nội dung phần mở đầu, kiến trúc hệ thống hoặc kết quả thực nghiệm..."></textarea>
                         </div>
-                        <button class="btn btn-info text-white w-100 py-2 fw-semibold" onclick="askAiSummary()">
-                            <i class="fa-solid fa-compress me-1"></i> Trích Xuất Tóm Tắt (Executive Summary)
+                        <div class="mb-4">
+                            <div class="small fw-semibold text-secondary mb-2">Mẫu báo cáo thử nghiệm:</div>
+                            <button type="button" class="btn btn-sm ai-prompt-chip" 
+                                    onclick="fillAiSummarySample('Hệ Thống Phân Tích Dữ Liệu Học Vụ', 'Đồ án tập trung nghiên cứu mô hình lưu trữ dữ liệu lớn kết hợp thuật toán phân cụm K-Means để phân tích kết quả học tập của 5000 sinh viên. Hệ thống được xây dựng trên nền tảng Spring Boot microservices, Kafka message broker, cơ sở dữ liệu PostgreSQL. Kết quả thử nghiệm đạt độ chính xác 92% trong dự báo sinh viên có nguy cơ cảnh báo học vụ.')">
+                                Mẫu: Trích đoạn báo cáo dữ liệu học vụ
+                            </button>
+                        </div>
+                        <button class="btn btn-primary w-100 py-2.5 fw-semibold rounded-3 shadow-xs" onclick="askAiSummary()">
+                            Trích Xuất Tóm Tắt
                         </button>
                     </div>
                 </div>
                 <div class="col-lg-7">
-                    <div class="card p-4 border-0 shadow-sm h-100 bg-white">
-                        <h6 class="fw-bold text-secondary mb-3"><i class="fa-solid fa-file-lines me-2 text-info"></i>Bản Tóm Tắt Cho Hội Đồng:</h6>
-                        <div id="sumOutput" class="text-secondary small bg-light p-4 rounded-3 h-100" style="white-space: pre-line;">
-                            Bản tóm tắt súc tích giúp Hội đồng đọc nhanh sẽ hiển thị ở đây.
+                    <div class="card p-4 border-0 shadow-sm h-100 bg-white d-flex flex-column" style="border: 1px solid var(--color-border) !important;">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="fw-bold text-dark mb-0">Bản Tóm Tắt Cho Hội Đồng</h6>
+                            <button type="button" class="btn btn-sm btn-outline-secondary px-3 py-1" id="btnCopySum" onclick="copyAiResult('sumOutput', this)" style="display: none;">
+                                Sao chép
+                            </button>
+                        </div>
+                        <div id="sumOutput" class="ai-result-box flex-grow-1">
+                            <div class="ai-empty-state text-center p-4">
+                                <div class="fw-semibold text-dark mb-1">Chưa có bản tóm tắt</div>
+                                <div class="small text-secondary">Dán nội dung phần mở đầu hoặc kết quả đồ án ở bên trái để AI trích xuất bản tóm tắt nhanh cho Hội đồng đánh giá.</div>
+                            </div>
                         </div>
                     </div>
                 </div>

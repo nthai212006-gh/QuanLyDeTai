@@ -89,4 +89,36 @@ public class User {
     public void setStatus(UserStatus status) {
         this.isActive = (status == UserStatus.ACTIVE);
     }
+
+    private static final java.util.Locale VI_LOCALE = java.util.Locale.forLanguageTag("vi-VN");
+
+    /**
+     * Trích xuất 2 chữ cái viết hoa đại diện cho người dùng (Monogram Avatar)
+     * Quy tắc: Chữ cái đầu của Họ + Chữ cái đầu của Tên (VD: "Nguyễn Trung Hải" -> "NH")
+     */
+    @Transient
+    public String getInitials() {
+        if (fullName != null && !fullName.trim().isEmpty()) {
+            String[] parts = fullName.trim().split("\\s+");
+            if (parts.length >= 2) {
+                String firstWord = parts[0];
+                String lastWord = parts[parts.length - 1];
+                if (!firstWord.isEmpty() && !lastWord.isEmpty()) {
+                    return (firstWord.substring(0, 1) + lastWord.substring(0, 1)).toUpperCase(VI_LOCALE);
+                }
+            } else if (parts.length == 1 && !parts[0].isEmpty()) {
+                String single = parts[0];
+                return (single.length() >= 2 ? single.substring(0, 2) : single).toUpperCase(VI_LOCALE);
+            }
+        }
+
+        // Fallback cấp 2: Dựa vào mã tài khoản userCode (VD: "SV001" -> "SV")
+        if (userCode != null && !userCode.trim().isEmpty()) {
+            String cleanCode = userCode.trim();
+            return (cleanCode.length() >= 2 ? cleanCode.substring(0, 2) : cleanCode).toUpperCase(VI_LOCALE);
+        }
+
+        // Fallback cấp 3: Mặc định an toàn
+        return "??";
+    }
 }

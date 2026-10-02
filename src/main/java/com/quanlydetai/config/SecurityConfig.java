@@ -32,6 +32,8 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.ignoringRequestMatchers("/api/**", "/ai/**"))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/css/**", "/js/**", "/images/**", "/webjars/**", "/login", "/home", "/error").permitAll()
+                .requestMatchers("/admin/**").hasRole("ADMIN")
+                .requestMatchers("/announcements/create").hasAnyRole("DEAN", "ADMIN")
                 .requestMatchers("/periods/create", "/periods/edit/**", "/periods/delete/**").hasAnyRole("DEAN", "ADMIN")
                 .requestMatchers("/councils/create", "/councils/edit/**").hasAnyRole("DEAN", "ADMIN")
                 .requestMatchers("/topics/approve/**").hasAnyRole("DEAN", "HEAD_OF_DEPT", "ADMIN")

@@ -22,4 +22,9 @@ public interface EvaluationRepository extends JpaRepository<Evaluation, Long> {
      * Tìm phiếu điểm cụ thể của một giảng viên chấm cho một phiên bảo vệ đề tài nhất định.
      */
     Optional<Evaluation> findByCouncilTopicIdAndEvaluatorLecturerId(Long councilTopicId, Long evaluatorLecturerId);
+
+    /**
+     * Đếm số phiếu chấm điểm của một phiên bảo vệ đề tài tại hội đồng.
+     */
+    long countByCouncilTopicId(Long councilTopicId);
 }

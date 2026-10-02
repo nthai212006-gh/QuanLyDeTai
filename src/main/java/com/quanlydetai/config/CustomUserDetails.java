@@ -40,11 +40,15 @@ public class CustomUserDetails implements UserDetails {
     }
 
     public String getFullName() {
-        return user.getFullName();
+        return user != null ? user.getFullName() : null;
+    }
+
+    public String getInitials() {
+        return user != null ? user.getInitials() : "??";
     }
 
     public String getEmail() {
-        return user.getEmail();
+        return user != null ? user.getEmail() : null;
     }
 
     @Override

@@ -1,89 +1,66 @@
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
       th:replace="~{layout/main :: html(content=~{::#main-content}, pageTitle='Trang Chủ')}">
-<body>
+ <body>
 <div id="main-content">
 
-    <!-- Welcome Banner -->
-    <div class="card bg-primary text-white mb-4 p-4 border-0 shadow-sm" 
-         style="background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);">
-        <div class="row align-items-center">
-            <div class="col-md-8">
-                <h3 class="fw-bold mb-1">Xin chào, <span th:text="${currentUser.fullName}">Người dùng</span>!</h3>
-                <p class="mb-0 opacity-75">
-                    Mã người dùng: <strong th:text="${currentUser.userCode}">USER01</strong> 
-                    <span th:if="${currentUser.department != null}"> | Bộ môn: <strong th:text="${currentUser.department.deptName}">CNPM</strong></span>
-                    <span th:if="${currentUser.className != null}"> | Lớp: <strong th:text="${currentUser.className}">DHCNTT17A</strong></span>
-                </p>
-            </div>
-            <div class="col-md-4 text-md-end mt-3 mt-md-0">
-                <span class="badge bg-light text-primary px-3 py-2 fs-6 rounded-pill fw-bold">
-                    <i class="fa-solid fa-user-shield me-1"></i>
-                    <span sec:authorize="hasRole('DEAN')">TRƯỞNG KHOA</span>
-                    <span sec:authorize="hasRole('HEAD_OF_DEPT')">TRƯỞNG BỘ MÔN</span>
-                    <span sec:authorize="hasRole('LECTURER') and !hasRole('DEAN') and !hasRole('HEAD_OF_DEPT')">GIẢNG VIÊN</span>
-                    <span sec:authorize="hasRole('STUDENT')">SINH VIÊN</span>
-                    <span sec:authorize="hasRole('ADMIN')">QUẢN TRỊ VIÊN</span>
+    <!-- Dashboard Page Header (Minimalist Hero - Thoáng đãng, Sang trọng) -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4 pt-1">
+        <div>
+            <div class="d-flex align-items-center gap-2 mb-1.5">
+                <span class="badge-code-flat font-monospace" style="color: var(--color-primary); background: #EFF6FF; border-color: #DBEAFE;">
+                    FIT - HCMUTE PORTAL
                 </span>
+                <span class="text-secondary small">• Cổng Quản Lý Đề Tài</span>
             </div>
+            <h3 class="fw-bold mb-1 text-dark" style="letter-spacing: -0.02em;">
+                Xin chào, <span class="fw-bolder" th:text="${currentUser.fullName}">GS. TS. Nguyễn Minh Tuấn</span>!
+            </h3>
+            <div class="text-secondary small">
+                Mã người dùng: <strong class="text-dark font-monospace" th:text="${currentUser.userCode}">USER01</strong>
+                <span th:if="${currentUser.department != null}"> • Bộ môn: <strong class="text-dark" th:text="${currentUser.department.deptName}">CNPM</strong></span>
+                <span th:if="${currentUser.className != null}"> • Lớp: <strong class="text-dark" th:text="${currentUser.className}">DHCNTT17A</strong></span>
+            </div>
+        </div>
+        <div>
+            <span class="badge px-3 py-2 fs-6 rounded-pill fw-bold shadow-xs d-inline-flex align-items-center" 
+                  style="background-color: #FEF2F2; color: #DC2626; border: 1px solid #FECACA;">
+                <span sec:authorize="hasRole('DEAN')">TRƯỞNG KHOA</span>
+                <span sec:authorize="hasRole('HEAD_OF_DEPT')">TRƯỞNG BỘ MÔN</span>
+                <span sec:authorize="hasRole('LECTURER') and !hasRole('DEAN') and !hasRole('HEAD_OF_DEPT')">GIẢNG VIÊN</span>
+                <span sec:authorize="hasRole('STUDENT')">SINH VIÊN</span>
+                <span sec:authorize="hasRole('ADMIN')">QUẢN TRỊ VIÊN</span>
+            </span>
         </div>
     </div>
 
-    <!-- Metric Stat Cards -->
+    <!-- Metric Stat Cards (Minimalist Elevated Typography-First Cards) -->
     <div class="row g-3 mb-4">
         <div class="col-md-3 col-sm-6">
-            <div class="card p-3 h-100 border-start border-4 border-primary">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <div class="text-muted small fw-semibold">ĐỢT ĐĂNG KÝ</div>
-                        <div class="fs-4 fw-bold text-dark" th:text="${periods.size()}">0</div>
-                    </div>
-                    <div class="p-3 bg-primary bg-opacity-10 text-primary rounded-circle">
-                        <i class="fa-solid fa-calendar-check fs-4"></i>
-                    </div>
-                </div>
+            <div class="metric-stat-card d-flex flex-column justify-content-center p-3.5">
+                <div class="metric-label text-secondary small fw-bold text-uppercase" style="letter-spacing: 0.05em;">ĐỢT ĐĂNG KÝ</div>
+                <div class="metric-value mt-1" style="font-variant-numeric: tabular-nums; font-size: 2rem; font-weight: 800; color: #0F172A;" th:text="${periods.size()}">0</div>
             </div>
         </div>
 
         <div class="col-md-3 col-sm-6">
-            <div class="card p-3 h-100 border-start border-4 border-success">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <div class="text-muted small fw-semibold">TỔNG ĐỀ TÀI</div>
-                        <div class="fs-4 fw-bold text-dark" th:text="${totalTopics}">0</div>
-                    </div>
-                    <div class="p-3 bg-success bg-opacity-10 text-success rounded-circle">
-                        <i class="fa-solid fa-book-open fs-4"></i>
-                    </div>
-                </div>
+            <div class="metric-stat-card d-flex flex-column justify-content-center p-3.5">
+                <div class="metric-label text-secondary small fw-bold text-uppercase" style="letter-spacing: 0.05em;">TỔNG ĐỀ TÀI</div>
+                <div class="metric-value mt-1" style="font-variant-numeric: tabular-nums; font-size: 2rem; font-weight: 800; color: #0F172A;" th:text="${totalTopics}">0</div>
             </div>
         </div>
 
         <div class="col-md-3 col-sm-6">
-            <div class="card p-3 h-100 border-start border-4 border-info">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <div class="text-muted small fw-semibold">NHÓM SINH VIÊN</div>
-                        <div class="fs-4 fw-bold text-dark" th:text="${totalGroups}">0</div>
-                    </div>
-                    <div class="p-3 bg-info bg-opacity-10 text-info rounded-circle">
-                        <i class="fa-solid fa-users-rectangle fs-4"></i>
-                    </div>
-                </div>
+            <div class="metric-stat-card d-flex flex-column justify-content-center p-3.5">
+                <div class="metric-label text-secondary small fw-bold text-uppercase" style="letter-spacing: 0.05em;">NHÓM SINH VIÊN</div>
+                <div class="metric-value mt-1" style="font-variant-numeric: tabular-nums; font-size: 2rem; font-weight: 800; color: #0F172A;" th:text="${totalGroups}">0</div>
             </div>
         </div>
 
         <div class="col-md-3 col-sm-6">
-            <div class="card p-3 h-100 border-start border-4 border-warning">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <div class="text-muted small fw-semibold">AI ASSISTANT</div>
-                        <div class="fs-6 fw-bold text-warning">Sẵn sàng</div>
-                    </div>
-                    <div class="p-3 bg-warning bg-opacity-10 text-warning rounded-circle">
-                        <i class="fa-solid fa-brain fs-4"></i>
-                    </div>
-                </div>
+            <div class="metric-stat-card d-flex flex-column justify-content-center p-3.5">
+                <div class="metric-label text-secondary small fw-bold text-uppercase" style="letter-spacing: 0.05em;">AI ASSISTANT</div>
+                <div class="metric-value mt-1 text-secondary" style="font-size: 1.35rem; font-weight: 700; color: var(--color-primary) !important;">Sẵn sàng</div>
             </div>
         </div>
     </div>
@@ -92,27 +69,50 @@
     <div class="row g-4">
         <!-- Announcements Column -->
         <div class="col-lg-8">
-            <div class="card h-100">
-                <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
-                    <h5 class="fw-bold mb-0 text-dark">
-                        <i class="fa-solid fa-bullhorn text-danger me-2"></i>Thông Báo Của Khoa & Nhà Trường
-                    </h5>
-                    <span class="text-danger small fw-semibold"><i class="fa-solid fa-circle me-1" style="font-size: 0.5rem; vertical-align: middle;"></i>Mới nhất</span>
+            <div class="card h-100 shadow-sm border-0" style="border: 1px solid var(--color-border) !important; border-radius: var(--radius-lg); overflow: hidden;">
+                <div class="announcement-card-header d-flex justify-content-between align-items-center">
+                    <h6 class="fw-bold mb-0 text-white text-uppercase small" style="letter-spacing: 0.05em;">
+                        Thông Báo Của Khoa &amp; Nhà Trường
+                    </h6>
+                    <div class="d-flex align-items-center gap-2">
+                        <button sec:authorize="hasAnyRole('DEAN', 'ADMIN')" 
+                                type="button" 
+                                class="btn btn-sm btn-light fw-bold text-dark px-2.5 py-1 rounded-pill small shadow-xs" 
+                                data-bs-toggle="modal" 
+                                data-bs-target="#createAnnouncementModal">
+                            <i class="fa-solid fa-plus me-1 text-primary"></i> Đăng thông báo
+                        </button>
+                        <span class="badge bg-danger px-2.5 py-1 rounded-pill small shadow-sm fw-semibold">
+                            Mới nhất
+                        </span>
+                    </div>
                 </div>
-                <div class="card-body">
-                    <div class="list-group list-group-flush">
-                        <div th:each="ann : ${announcements}" class="list-group-item px-0 py-3 border-bottom">
-                            <div class="d-flex w-100 justify-content-between align-items-center mb-1">
-                                <h6 class="mb-1 fw-bold text-primary">
-                                    <i th:if="${ann.isPinned}" class="fa-solid fa-thumbtack text-danger me-1"></i>
+                <div class="card-body p-4">
+                    <div th:if="${announcements == null or announcements.isEmpty()}" class="p-5 text-center text-muted">
+                        <div class="fw-semibold">Hiện tại chưa có thông báo mới</div>
+                        <div class="small text-secondary mt-1">Các thông báo mới từ Khoa và Nhà trường sẽ hiển thị tại đây</div>
+                    </div>
+                    <div th:if="${announcements != null and !announcements.isEmpty()}">
+                        <div th:each="ann : ${announcements}" 
+                             class="announcement-item" 
+                             th:classappend="${ann.isPinned ? 'pinned' : ''}">
+                            <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-2">
+                                <h6 class="mb-0 fw-bold announcement-title flex-grow-1">
+                                    <span th:if="${ann.isPinned}" class="badge bg-danger text-white me-2 py-1 px-2 rounded-2 small fw-bold">
+                                        GHIM
+                                    </span>
                                     <span th:text="${ann.title}">Tiêu đề thông báo</span>
                                 </h6>
-                                <small class="text-muted" th:text="${#temporals.format(ann.createdAt, 'dd/MM/yyyy HH:mm')}">01/09/2026</small>
+                                <span class="badge-code-flat font-monospace" style="font-variant-numeric: tabular-nums;">
+                                    <span th:text="${#temporals.format(ann.createdAt, 'dd/MM/yyyy HH:mm')}">01/09/2026 13:49</span>
+                                </span>
                             </div>
-                            <p class="mb-1 text-secondary small" th:text="${ann.content}">Nội dung tóm tắt...</p>
-                            <small class="text-muted">
-                                <i class="fa-solid fa-user-pen me-1"></i> Đăng bởi: <span th:text="${ann.author.fullName}">Ban Chủ Nhiệm Khoa</span>
-                            </small>
+                            <p class="mb-3 text-secondary small" style="line-height: 1.6;" th:text="${ann.content}">Nội dung tóm tắt...</p>
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="badge-code-flat">
+                                    Đăng bởi: <strong class="text-dark" th:text="${ann.author.fullName}">Ban Chủ Nhiệm Khoa</strong>
+                                </span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -121,40 +121,78 @@
 
         <!-- Quick Access Sidebar -->
         <div class="col-lg-4">
-            <div class="card mb-4">
-                <div class="card-header bg-white py-3 border-bottom">
-                    <h5 class="fw-bold mb-0 text-dark"><i class="fa-solid fa-bolt text-warning me-2"></i>Thao Tác Nhanh</h5>
+            <div class="card mb-4 shadow-sm border-0" style="border: 1px solid var(--color-border) !important; border-radius: var(--radius-lg); overflow: hidden;">
+                <div class="announcement-card-header py-3 px-4">
+                    <h6 class="fw-bold mb-0 text-white text-uppercase small" style="letter-spacing: 0.05em;">
+                        Thao Tác Nhanh
+                    </h6>
                 </div>
-                <div class="card-body d-flex flex-column gap-2">
-                    <a sec:authorize="hasAnyRole('DEAN', 'ADMIN')" th:href="@{/periods/create}" class="btn btn-outline-primary text-start py-2">
-                        <i class="fa-solid fa-plus-circle me-2"></i> Tạo Đợt Đăng Ký Mới
+                <div class="card-body d-flex flex-column gap-2 p-3">
+                    <a sec:authorize="hasAnyRole('DEAN', 'ADMIN')" th:href="@{/periods/create}" class="btn-dashboard-action">
+                        Tạo Đợt Đăng Ký Mới
                     </a>
-                    <a sec:authorize="hasAnyRole('LECTURER', 'HEAD_OF_DEPT', 'DEAN', 'ADMIN')" th:href="@{/topics/create}" class="btn btn-outline-success text-start py-2">
-                        <i class="fa-solid fa-file-circle-plus me-2"></i> Đề Xuất Đề Tài Mới
+                    <a sec:authorize="hasAnyRole('LECTURER', 'HEAD_OF_DEPT', 'DEAN', 'ADMIN')" th:href="@{/topics/create}" class="btn-dashboard-action">
+                        Đề Xuất Đề Tài Mới
                     </a>
-                    <a sec:authorize="hasRole('STUDENT')" th:href="@{/groups/my-group}" class="btn btn-outline-info text-start py-2">
-                        <i class="fa-solid fa-user-group me-2"></i> Quản Lý Nhóm & Đăng Ký Đề Tài
+                    <a sec:authorize="hasRole('STUDENT')" th:href="@{/groups/my-group}" class="btn-dashboard-action">
+                        Quản Lý Nhóm &amp; Đăng Ký Đề Tài
                     </a>
-                    <a th:href="@{/topics}" class="btn btn-outline-secondary text-start py-2">
-                        <i class="fa-solid fa-list-check me-2"></i> Xem Danh Sách Đề Tài Đã Duyệt
+                    <a th:href="@{/topics}" class="btn-dashboard-action">
+                        Xem Danh Sách Đề Tài Đã Duyệt
                     </a>
-                    <a th:href="@{/councils}" class="btn btn-outline-dark text-start py-2">
-                        <i class="fa-solid fa-gavel me-2"></i> Lịch Báo Cáo & Điểm Hội Đồng
+                    <a th:href="@{/councils}" class="btn-dashboard-action">
+                        Lịch Báo Cáo &amp; Điểm Hội Đồng
                     </a>
-                    <a th:href="@{/ai/assistant}" class="btn btn-primary text-start py-2 shadow-sm">
-                        <i class="fa-solid fa-robot me-2"></i> Mở Trợ Lý AI Assistant
+                    <a th:href="@{/ai/assistant}" class="btn btn-academic-navy text-center py-2.5 mt-1 shadow-sm">
+                        Mở Trợ Lý AI Assistant
                     </a>
                 </div>
             </div>
 
-            <div class="card p-3 bg-light border-0">
-                <h6 class="fw-bold text-secondary mb-2"><i class="fa-solid fa-circle-info me-1"></i> Quy định đợt đăng ký:</h6>
-                <ul class="small text-muted mb-0 ps-3">
-                    <li>Giai đoạn 1: Giảng viên nộp & duyệt đề tài.</li>
+            <div class="card p-3.5 bg-light border-0" style="border: 1px solid var(--color-border) !important; border-radius: var(--radius-lg);">
+                <div class="fw-bold text-secondary text-uppercase small mb-2" style="letter-spacing: 0.04em;">Quy định đợt đăng ký:</div>
+                <ul class="small text-secondary mb-0 ps-3" style="line-height: 1.7;">
+                    <li>Giai đoạn 1: Giảng viên nộp &amp; duyệt đề tài.</li>
                     <li>Giai đoạn 2: Nhóm sinh viên (tối đa 3 SV) đăng ký 1 đề tài.</li>
                     <li>Chỉ nhóm trưởng nộp báo cáo đề tài.</li>
                     <li>GV không được chấm đề tài mình hướng dẫn.</li>
                 </ul>
+            </div>
+        </div>
+    <!-- Modal Đăng Thông Báo -->
+    <div sec:authorize="hasAnyRole('DEAN', 'ADMIN')" class="modal fade" id="createAnnouncementModal" tabindex="-1" aria-labelledby="createAnnouncementModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: var(--radius-lg); overflow: hidden;">
+                <form th:action="@{/announcements/create}" method="post">
+                    <div class="modal-header bg-academic-navy text-white px-4 py-3">
+                        <h5 class="modal-title fw-bold fs-6" id="createAnnouncementModalLabel">
+                            <i class="fa-solid fa-bullhorn me-2 text-warning"></i> Đăng Thông Báo Mới
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body p-4">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small text-secondary">Tiêu đề thông báo <span class="text-danger">*</span></label>
+                            <input type="text" name="title" class="form-control" placeholder="Nhập tiêu đề thông báo..." required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small text-secondary">Nội dung thông báo <span class="text-danger">*</span></label>
+                            <textarea name="content" class="form-control" rows="5" placeholder="Nhập nội dung thông báo chi tiết..." required></textarea>
+                        </div>
+                        <div class="form-check form-switch mb-0">
+                            <input class="form-check-input" type="checkbox" role="switch" id="isPinned" name="isPinned" value="true">
+                            <label class="form-check-label small fw-semibold text-dark" for="isPinned">
+                                Ghim thông báo này lên đầu trang
+                            </label>
+                        </div>
+                    </div>
+                    <div class="modal-footer px-4 py-3 bg-light border-0">
+                        <button type="button" class="btn btn-secondary px-3" data-bs-dismiss="modal">Hủy</button>
+                        <button type="submit" class="btn btn-primary px-4 fw-bold">
+                            <i class="fa-solid fa-paper-plane me-1"></i> Đăng ngay
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>

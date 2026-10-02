@@ -2,6 +2,7 @@ package com.quanlydetai.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.extern.slf4j.Slf4j;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -13,6 +14,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@Slf4j
 public class Topic {
 
     @Id
@@ -60,6 +62,7 @@ public class Topic {
     private User approvedBy;
 
     @OneToMany(mappedBy = "topic", cascade = CascadeType.ALL, orphanRemoval = true)
+    @org.hibernate.annotations.BatchSize(size = 25)
     @Builder.Default
     private List<TopicSupervisor> supervisors = new ArrayList<>();
 
@@ -71,5 +74,46 @@ public class Topic {
 
     public enum TopicStatus {
         PENDING_APPROVAL, APPROVED, REJECTED, ASSIGNED, COMPLETED
+    }
+
+    @Transient
+    public User getPrimarySupervisor() {
+        if (supervisors != null && !supervisors.isEmpty()) {
+            for (TopicSupervisor ts : supervisors) {
+                if (Boolean.TRUE.equals(ts.getIsPrimary())) {
+                    return ts.getLecturer();
+                }
+            }
+            log.warn("Dữ liệu bất thường: Topic ID {} có {} supervisors nhưng không có ai mang is_primary = true. Fallback về createdByLecturer.", id, supervisors.size());
+        }
+        return createdByLecturer;
+    }
+
+    @Transient
+    public User getCoSupervisor() {
+        if (supervisors != null && !supervisors.isEmpty()) {
+            for (TopicSupervisor ts : supervisors) {
+                if (Boolean.FALSE.equals(ts.getIsPrimary())) {
+                    return ts.getLecturer();
+                }
+            }
+        }
+        return null;
+    }
+
+    @Transient
+    public boolean hasCoSupervisor() {
+        return getCoSupervisor() != null;
+    }
+
+    @Transient
+    public String getSupervisorsDisplayString() {
+        User primary = getPrimarySupervisor();
+        String primaryName = primary != null ? primary.getFullName() : (createdByLecturer != null ? createdByLecturer.getFullName() : "N/A");
+        User co = getCoSupervisor();
+        if (co != null) {
+            return primaryName + " (Chính), " + co.getFullName() + " (Đồng HD)";
+        }
+        return primaryName;
     }
 }

@@ -54,6 +54,8 @@ class CouncilStructureAndPublishTest {
                 .topicSubmissionEnd(LocalDateTime.now().minusDays(5))
                 .studentRegistrationStart(LocalDateTime.now().minusDays(4))
                 .studentRegistrationEnd(LocalDateTime.now().plusDays(5))
+                .reviewDeadline(LocalDateTime.now().plusDays(20))
+                .defenseDate(LocalDateTime.now().plusDays(30).toLocalDate())
                 .createdBy(creator)
                 .build();
         periodRepository.save(period);

@@ -4,21 +4,22 @@
 <body>
 <div id="main-content">
 
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <!-- Page Header (Thoáng đãng, Trang trọng) -->
+    <div class="d-flex justify-content-between align-items-center mb-4 pt-1">
         <div>
-            <h4 class="fw-bold text-dark mb-1">Danh Sách Nhóm Sinh Viên</h4>
-            <p class="text-muted small mb-0">Theo dõi các nhóm thực hiện đề tài và phân công hướng dẫn</p>
+            <h4 class="fw-bold text-dark mb-1" style="letter-spacing: -0.02em;">Danh Sách Nhóm Sinh Viên</h4>
+            <p class="text-secondary small mb-0">Theo dõi các nhóm thực hiện đề tài và phân công hướng dẫn</p>
         </div>
     </div>
 
-    <!-- Filter by Period -->
-    <div class="card p-3 mb-4 bg-white border-0 shadow-sm">
+    <!-- Filter by Period (Gọn gàng, viền mảnh) -->
+    <div class="card p-3 mb-4 bg-white border-0 shadow-sm" style="border: 1px solid var(--color-border) !important; border-radius: var(--radius-md);">
         <form th:action="@{/groups}" method="get" class="row g-2 align-items-center">
             <div class="col-auto">
-                <label class="form-label mb-0 fw-semibold text-secondary">Lọc theo đợt:</label>
+                <label class="form-label mb-0 fw-semibold text-secondary small">LỌC THEO ĐỢT:</label>
             </div>
-            <div class="col-md-5">
-                <select name="periodId" class="form-select" onchange="this.form.submit()">
+            <div class="col-md-5 col-sm-8">
+                <select name="periodId" class="form-select form-select-sm" onchange="this.form.submit()">
                     <option th:each="p : ${periods}" th:value="${p.id}" th:text="${p.periodName}"
                             th:selected="${p.id == selectedPeriodId}">Đợt KLTN</option>
                 </select>
@@ -26,13 +27,14 @@
         </form>
     </div>
 
-    <div class="card border-0 shadow-sm">
+    <!-- Main Table Card (Giữ nguyên cấu trúc cốt lõi, tinh chỉnh độ nét & màu sắc) -->
+    <div class="card border-0 shadow-sm" style="border: 1px solid var(--color-border) !important; border-radius: var(--radius-lg); overflow: hidden;">
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0 table-academic">
-                <thead class="table-light">
+                <thead>
                     <tr>
-                        <th class="ps-4">Mã & Tên Nhóm</th>
-                        <th>Trưởng Nhóm & Thành Viên</th>
+                        <th class="ps-4">Mã &amp; Tên Nhóm</th>
+                        <th>Trưởng Nhóm &amp; Thành Viên</th>
                         <th>Đề Tài Đăng Ký</th>
                         <th>Trạng Thái ĐK</th>
                         <th>Điểm Tổng Kết</th>
@@ -41,22 +43,40 @@
                 </thead>
                 <tbody>
                     <tr th:each="g : ${groups}">
-                        <td class="ps-4">
-                            <strong class="text-primary" th:text="${g.groupName}">Nhóm 1</strong>
-                            <div class="small text-muted mt-1"><span class="badge-fit-tag" th:text="${g.groupCode}">GRP_01</span></div>
+                        <td class="ps-4 py-3">
+                            <div class="fw-bold text-dark" style="letter-spacing: -0.01em; font-size: 0.92rem;" th:text="${g.groupName}">Nhóm sigma</div>
+                            <div class="mt-1">
+                                <span class="badge-code-flat font-monospace" th:text="${g.groupCode}">GRP_80</span>
+                            </div>
                         </td>
                         <td>
-                            <div><i class="fa-solid fa-crown text-warning me-1"></i> <strong th:text="${g.leader.fullName}">Trưởng nhóm</strong> (<span th:text="${g.leader.userCode}">SV001</span>)</div>
-                            <div class="small text-muted mt-1">
-                                Số lượng: <span class="badge-fit-tag" th:text="${g.members.size()} + '/3'">3/3</span>
+                            <div>
+                                <span class="text-secondary small">Trưởng nhóm:</span> 
+                                <strong class="text-dark" th:text="${g.leader.fullName}">Nguyễn Tuấn Anh</strong> 
+                                <span class="text-muted font-monospace small" th:text="'(' + ${g.leader.userCode} + ')'">(SV001)</span>
+                            </div>
+                            <div class="small text-secondary mt-1">
+                                Thành viên: <span class="badge-code-flat px-2 py-0.5" th:text="${g.members.size()} + '/3'">1/3</span>
                             </div>
                         </td>
                         <td>
                             <div th:if="${g.topic != null}">
-                                <span class="fw-semibold text-dark" th:text="${g.topic.title}">Tên đề tài</span>
-                                <div class="small text-muted">GVHD: <span th:text="${g.topic.createdByLecturer.fullName}">TS. A</span></div>
+                                <div class="fw-semibold text-dark" th:text="${g.topic.title}">Tên đề tài</div>
+                                <div th:if="${g.topic.hasCoSupervisor()}" class="small text-secondary mt-0.5">
+                                    <div>
+                                        <span class="text-secondary">Chính:</span> <span class="text-dark fw-medium" th:text="${g.topic.primarySupervisor.fullName}">TS. A</span>
+                                    </div>
+                                    <div>
+                                        <span class="text-secondary">Đồng HD:</span> <span class="text-dark fw-medium" th:text="${g.topic.coSupervisor.fullName}">ThS. B</span>
+                                    </div>
+                                </div>
+                                <div th:if="${!g.topic.hasCoSupervisor()}" class="small text-secondary mt-0.5">
+                                    GVHD: <span class="text-dark fw-medium" th:text="${g.topic.primarySupervisor.fullName}">TS. Nguyễn Văn A</span>
+                                </div>
                             </div>
-                            <div th:if="${g.topic == null}" class="text-muted small"><em>Chưa đăng ký</em></div>
+                            <div th:if="${g.topic == null}" class="text-muted small">
+                                <em>Chưa đăng ký đề tài</em>
+                            </div>
                         </td>
                         <td>
                             <span th:if="${g.registrationStatus.name() == 'NONE'}" class="badge-status badge-status-neutral">CHƯA ĐK</span>
@@ -64,18 +84,21 @@
                             <span th:if="${g.registrationStatus.name() == 'APPROVED'}" class="badge-status badge-status-success">ĐÃ DUYỆT</span>
                             <span th:if="${g.registrationStatus.name() == 'REJECTED'}" class="badge-status badge-status-danger">TỪ CHỐI</span>
                         </td>
-                        <td>
-                            <span th:if="${g.finalScore != null}" class="fw-bold text-success fs-6" th:text="${g.finalScore} + ' / 10'">8.5</span>
-                            <span th:if="${g.finalScore == null}" class="text-muted small">Chưa có</span>
+                        <td style="font-variant-numeric: tabular-nums;">
+                            <span th:if="${g.finalScore != null}" class="fw-bold text-success fs-6" th:text="${g.finalScore} + ' / 10'">8.5 / 10</span>
+                            <span th:if="${g.finalScore == null}" class="text-muted">—</span>
                         </td>
-                        <td class="text-end pe-4">
-                            <a th:href="@{/weekly-reports/group/{id}(id=${g.id})}" class="btn btn-sm btn-outline-primary">
-                                <i class="fa-solid fa-clipboard-list me-1"></i> Báo Cáo Tuần
+                        <td class="text-end pe-4 text-nowrap">
+                            <a th:href="@{/weekly-reports/group/{id}(id=${g.id})}" class="btn-table-outline" title="Xem tiến độ báo cáo tuần">
+                                Báo Cáo Tuần
                             </a>
                         </td>
                     </tr>
                     <tr th:if="${#lists.isEmpty(groups)}">
-                        <td colspan="6" class="text-center py-4 text-muted">Chưa có nhóm nào trong đợt này.</td>
+                        <td colspan="6" class="text-center py-5 text-muted">
+                            <div class="fw-semibold">Chưa có nhóm nào trong đợt này</div>
+                            <div class="small text-secondary mt-1">Các nhóm sinh viên sau khi tạo sẽ hiển thị tại đây.</div>
+                        </td>
                     </tr>
                 </tbody>
             </table>

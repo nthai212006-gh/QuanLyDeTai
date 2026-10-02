@@ -48,7 +48,15 @@ public class GroupController {
     public String myGroup(@RequestParam(value = "periodId", required = false) Long periodId,
                           Model model, @AuthenticationPrincipal CustomUserDetails userDetails) {
         List<RegistrationPeriod> periods = periodRepository.findAllByOrderByCreatedAtDesc();
-        Long activePeriodId = periodId != null ? periodId : (periods.isEmpty() ? null : periods.get(0).getId());
+        
+        Long activePeriodId = null;
+        if (periodId != null && periodRepository.existsById(periodId)) {
+            activePeriodId = periodId;
+        } else {
+            activePeriodId = groupService.findActivePeriodIdByStudent(userDetails.getId())
+                    .or(() -> groupService.findLatestPeriodIdByStudent(userDetails.getId()))
+                    .orElseGet(() -> periods.isEmpty() ? null : periods.get(0).getId());
+        }
 
         Optional<StudentGroup> myGroup = Optional.empty();
         if (activePeriodId != null) {
@@ -61,6 +69,7 @@ public class GroupController {
         model.addAttribute("group", myGroup.orElse(null));
         model.addAttribute("periods", periods);
         model.addAttribute("selectedPeriodId", activePeriodId);
+        model.addAttribute("joinedPeriodIds", groupService.getJoinedPeriodIdsByStudent(userDetails.getId()));
         model.addAttribute("availableTopics", availableTopics);
         model.addAttribute("currentUser", userDetails.getUser());
         if (myGroup.isPresent()) {
@@ -94,31 +103,39 @@ public class GroupController {
     @PreAuthorize("hasRole('STUDENT')")
     public String addMember(@PathVariable("id") Long groupId,
                             @RequestParam("studentCode") String studentCode,
+                            @RequestParam(value = "periodId", required = false) Long periodId,
                             org.springframework.web.servlet.mvc.support.RedirectAttributes redirectAttributes) {
+        Long targetPeriodId = periodId;
         try {
+            if (targetPeriodId == null) {
+                targetPeriodId = groupService.getPeriodIdByGroupId(groupId);
+            }
             groupService.addMember(groupId, studentCode);
             redirectAttributes.addFlashAttribute("successMessage", "Thêm thành viên vào nhóm thành công!");
-            return "redirect:/groups/my-group";
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", com.quanlydetai.util.SqlErrorUtils.extractFriendlyMessage(e));
-            return "redirect:/groups/my-group";
         }
+        return "redirect:/groups/my-group" + (targetPeriodId != null ? "?periodId=" + targetPeriodId : "");
     }
 
     @PostMapping("/{id}/register-topic")
     @PreAuthorize("hasRole('STUDENT')")
     public String registerTopic(@PathVariable("id") Long groupId,
                                 @RequestParam("topicId") Long topicId,
+                                @RequestParam(value = "periodId", required = false) Long periodId,
                                 @AuthenticationPrincipal CustomUserDetails userDetails,
                                 org.springframework.web.servlet.mvc.support.RedirectAttributes redirectAttributes) {
+        Long targetPeriodId = periodId;
         try {
+            if (targetPeriodId == null) {
+                targetPeriodId = groupService.getPeriodIdByGroupId(groupId);
+            }
             groupService.registerTopic(groupId, topicId, userDetails.getUser());
             redirectAttributes.addFlashAttribute("successMessage", "Đăng ký đề tài thành công!");
-            return "redirect:/groups/my-group";
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", com.quanlydetai.util.SqlErrorUtils.extractFriendlyMessage(e));
-            return "redirect:/groups/my-group";
         }
+        return "redirect:/groups/my-group" + (targetPeriodId != null ? "?periodId=" + targetPeriodId : "");
     }
 
     @PostMapping("/{id}/submit-report")
@@ -128,15 +145,34 @@ public class GroupController {
                                @RequestParam("fileUrl") String fileUrl,
                                @RequestParam(value = "sourceCodeUrl", required = false) String sourceCodeUrl,
                                @RequestParam(value = "note", required = false) String note,
+                               @RequestParam(value = "periodId", required = false) Long periodId,
                                @AuthenticationPrincipal CustomUserDetails userDetails,
                                org.springframework.web.servlet.mvc.support.RedirectAttributes redirectAttributes) {
+        Long targetPeriodId = periodId;
         try {
+            if (targetPeriodId == null) {
+                targetPeriodId = groupService.getPeriodIdByGroupId(groupId);
+            }
             groupService.submitReport(groupId, userDetails.getUser(), title, fileUrl, sourceCodeUrl, note);
             redirectAttributes.addFlashAttribute("successMessage", "Nộp báo cáo tiến độ thành công!");
-            return "redirect:/groups/my-group";
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", com.quanlydetai.util.SqlErrorUtils.extractFriendlyMessage(e));
-            return "redirect:/groups/my-group";
+        }
+        return "redirect:/groups/my-group" + (targetPeriodId != null ? "?periodId=" + targetPeriodId : "");
+    }
+
+    @PostMapping("/{id}/remove-member")
+    @PreAuthorize("hasAnyRole('HEAD_OF_DEPT', 'DEAN', 'ADMIN')")
+    public String removeMember(@PathVariable("id") Long groupId,
+                               @RequestParam("studentId") Long studentId,
+                               org.springframework.web.servlet.mvc.support.RedirectAttributes redirectAttributes) {
+        try {
+            groupService.removeMember(groupId, studentId);
+            redirectAttributes.addFlashAttribute("successMessage", "Đã xóa sinh viên khỏi nhóm thành công!");
+            return "redirect:/groups";
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", com.quanlydetai.util.SqlErrorUtils.extractFriendlyMessage(e));
+            return "redirect:/groups";
         }
     }
 }

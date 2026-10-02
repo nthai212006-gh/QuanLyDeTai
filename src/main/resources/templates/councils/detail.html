@@ -105,7 +105,22 @@
                             <div class="small fw-semibold text-dark" th:text="${ct.group.topic != null ? ct.group.topic.title : 'Chưa có đề tài'}">Tên đề tài</div>
                         </td>
                         <td class="small">
-                            <span th:if="${ct.group.topic != null}" th:text="${ct.group.topic.createdByLecturer.fullName}">TS. Lê Hướng Dẫn</span>
+                            <div th:if="${ct.group.topic != null}">
+                                <div th:if="${ct.group.topic.hasCoSupervisor()}">
+                                    <div class="mb-1">
+                                        <strong class="text-dark" th:text="${ct.group.topic.primarySupervisor.fullName}">TS. Lê Anh Tuấn</strong>
+                                        <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 ms-1" style="font-size: 0.65rem;">Chính</span>
+                                    </div>
+                                    <div>
+                                        <strong class="text-dark" th:text="${ct.group.topic.coSupervisor.fullName}">ThS. Phạm Quốc Hoàng</strong>
+                                        <span class="badge bg-info bg-opacity-10 text-info-emphasis border border-info border-opacity-25 ms-1" style="font-size: 0.65rem;">Đồng HD</span>
+                                    </div>
+                                </div>
+                                <div th:if="${!ct.group.topic.hasCoSupervisor()}">
+                                    <strong class="text-dark" th:text="${ct.group.topic.primarySupervisor.fullName}">TS. Lê Anh Tuấn</strong>
+                                </div>
+                            </div>
+                            <span th:if="${ct.group.topic == null}" class="text-muted">Chưa có đề tài</span>
                         </td>
                         <td class="small">
                             <span th:text="${ct.reviewerLecturer != null ? ct.reviewerLecturer.fullName : 'Chưa phân công'}">ThS. Phạm Phản Biện</span>
@@ -131,7 +146,8 @@
                                         th:data-council-topic-id="${ct.id}"
                                         th:data-council-id="${council.id}"
                                         th:data-topic-title="${ct.group.topic != null ? ct.group.topic.title : 'Chưa có đề tài'}"
-                                        th:data-group-name="${ct.group.groupName}">
+                                        th:data-group-name="${ct.group.groupName}"
+                                        th:data-supervisors="${ct.group.topic != null ? ct.group.topic.supervisorsDisplayString : ''}">
                                     <i class="fa-solid fa-pen-to-square me-1"></i> Chấm Điểm
                                 </button>
                                 <button th:if="${council.members.size() < 3}"
@@ -178,11 +194,12 @@
                 <div class="modal-body text-start">
                     <div class="bg-light p-3 rounded-3 mb-3 border">
                         <div class="small text-muted mb-1">Nhóm thực hiện: <strong id="modalGroupName" class="text-primary"></strong></div>
-                        <div class="small text-muted">Đề tài: <strong id="modalTopicTitle" class="text-dark"></strong></div>
+                        <div class="small text-muted mb-1">Đề tài: <strong id="modalTopicTitle" class="text-dark"></strong></div>
+                        <div class="small text-muted">GV Hướng Dẫn: <strong id="modalSupervisors" class="text-dark"></strong></div>
                     </div>
 
                     <div class="alert alert-warning py-2 small mb-3">
-                        <i class="fa-solid fa-triangle-exclamation me-1"></i> <strong>Ràng buộc quy chế:</strong> Giảng viên không được phép chấm đề tài do chính mình hướng dẫn!
+                        <i class="fa-solid fa-triangle-exclamation me-1"></i> <strong>Ràng buộc quy chế:</strong> Giảng viên không được phép chấm đề tài do chính mình hướng dẫn <em>(áp dụng cho cả GVHD chính và Đồng hướng dẫn)</em>!
                     </div>
 
                     <div class="mb-3">

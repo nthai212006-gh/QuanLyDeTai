@@ -4,27 +4,81 @@
 <body>
 <div id="main-content">
 
-    <div class="row justify-content-center">
-        <div class="col-lg-8">
-            <div class="card shadow-sm border-0">
-                <div class="card-header bg-white py-3 border-bottom">
-                    <h5 class="fw-bold mb-0 text-primary">
-                        <i class="fa-solid fa-calendar-plus me-2"></i>Tạo Đợt Đăng Ký Đề Tài Mới (Dành Cho Trưởng Khoa)
-                    </h5>
-                </div>
-                <div class="card-body p-4">
-                    <form th:action="@{/periods/create}" th:object="${period}" method="post">
-                        
+    <!-- Page Header & Academic Breadcrumb Info -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+        <div>
+            <h4 class="fw-bold mb-1 text-primary d-flex align-items-center gap-2">
+                <i class="fa-solid fa-calendar-plus text-primary"></i>
+                <span>Tạo Đợt Đăng Ký Đề Tài Mới</span>
+            </h4>
+            <div class="text-muted small">Thiết lập các mốc thời gian đào tạo dành cho Ban Chủ Nhiệm Khoa CNTT</div>
+        </div>
+        <div>
+            <a th:href="@{/periods}" class="btn btn-secondary shadow-sm">
+                <i class="fa-solid fa-arrow-left me-1.5"></i> Quay lại danh sách
+            </a>
+        </div>
+    </div>
+
+    <!-- Mobile Mini Status Bar (Chỉ hiển thị trên Mobile/Tablet < 992px) -->
+    <div class="mini-timeline-bar d-lg-none">
+        <div class="d-flex align-items-center gap-2">
+            <i class="fa-solid fa-clock-rotate-left text-primary"></i>
+            <span class="small fw-bold" id="mobileTimelineSummary">Dự kiến: Chưa thiết lập ngày</span>
+        </div>
+        <span id="mobileTimelineStatusBadge" class="badge bg-secondary rounded-pill small">Chưa đủ dữ liệu</span>
+    </div>
+
+    <!-- Form & Split-Screen Layout -->
+    <form id="periodForm" th:action="@{/periods/create}" th:object="${period}" method="post">
+        
+        <!-- Server-Side Error Alert (Backend Validation - Focusable on Page Load) -->
+        <div th:if="${errorMessage}" 
+             id="periodFormErrorAlert-server" 
+             class="alert alert-danger d-flex align-items-center gap-2 mb-4 shadow-sm" 
+             role="alert" 
+             tabindex="-1">
+            <i class="fa-solid fa-circle-exclamation fs-5 flex-shrink-0"></i>
+            <div th:text="${errorMessage}"></div>
+        </div>
+
+        <!-- Client-Side Dynamic Error Alert (Hidden by default via d-none, Live Accessibility) -->
+        <div id="periodFormErrorAlert-client" 
+             class="alert alert-danger align-items-center gap-2 mb-4 shadow-sm d-none" 
+             role="alert" 
+             aria-live="assertive" 
+             aria-atomic="true">
+            <i class="fa-solid fa-triangle-exclamation fs-5 flex-shrink-0 text-danger"></i>
+            <div id="periodFormErrorText" class="fw-semibold"></div>
+        </div>
+
+        <div class="row g-4">
+            
+            <!-- CỘT TRÁI: 4 Phase Cards Nhập Liệu (7 Cột Desktop) -->
+            <div class="col-lg-7">
+                
+                <!-- Phase 0: Thông Tin Chung Đợt Đăng Ký -->
+                <div class="phase-card">
+                    <div class="phase-card-header">
+                        <div class="phase-card-title">
+                            <i class="fa-solid fa-circle-info text-primary fs-5"></i>
+                            <span>Thông Tin Chung Đợt Đăng Ký</span>
+                        </div>
+                        <span class="phase-badge phase-badge-primary">Bước 0</span>
+                    </div>
+                    <div class="phase-card-body">
                         <div class="mb-3">
-                            <label class="form-label fw-semibold">Tên Đợt Đăng Ký <span class="text-danger">*</span></label>
+                            <label class="form-label">Tên Đợt Đăng Ký <span class="text-danger">*</span></label>
                             <input type="text" th:field="*{periodName}" class="form-control" 
-                                   placeholder="VD: Đợt Khóa Luận Tốt Nghiệp Học Kỳ 1 2026-2027" required>
+                                   placeholder="VD: Đợt Khóa Luận Tốt Nghiệp Học Kỳ 1 2026-2027" 
+                                   data-v-msg="Vui lòng nhập tên đợt đăng ký" required>
                         </div>
 
-                        <div class="row g-3 mb-3">
+                        <div class="row g-3">
                             <div class="col-md-4">
-                                <label class="form-label fw-semibold">Loại Đợt <span class="text-danger">*</span></label>
-                                <select th:field="*{periodType}" id="periodTypeSelect" class="form-select" onchange="toggleConditionalFields()" required>
+                                <label class="form-label">Loại Đợt <span class="text-danger">*</span></label>
+                                <select th:field="*{periodType}" id="periodTypeSelect" class="form-select" onchange="toggleConditionalFields(); triggerTimelineUpdate();" 
+                                        data-v-msg="Vui lòng chọn loại đợt đăng ký" required>
                                     <option value="COURSE_PROJECT">Môn học</option>
                                     <option value="RESEARCH">Nghiên cứu khoa học (NCKH)</option>
                                     <option value="INTERNSHIP">Tiểu luận chuyên ngành (TLCN)</option>
@@ -32,71 +86,232 @@
                                 </select>
                             </div>
                             <div class="col-md-4">
-                                <label class="form-label fw-semibold">Năm Học <span class="text-danger">*</span></label>
-                                <input type="text" th:field="*{academicYear}" class="form-control" placeholder="2026-2027" required>
+                                <label class="form-label">Năm Học <span class="text-danger">*</span></label>
+                                <input type="text" th:field="*{academicYear}" class="form-control font-monospace" 
+                                       placeholder="2026-2027" 
+                                       data-v-msg="Vui lòng nhập năm học (VD: 2026-2027)" required>
                             </div>
                             <div class="col-md-4">
-                                <label class="form-label fw-semibold">Học Kỳ <span class="text-danger">*</span></label>
-                                <select th:field="*{semester}" class="form-select" required>
+                                <label class="form-label">Học Kỳ <span class="text-danger">*</span></label>
+                                <select th:field="*{semester}" class="form-select" 
+                                        data-v-msg="Vui lòng chọn học kỳ" required>
                                     <option value="1">Học kỳ 1</option>
                                     <option value="2">Học kỳ 2</option>
                                 </select>
                             </div>
                         </div>
+                    </div>
+                </div>
 
-                        <h6 class="fw-bold text-secondary border-bottom pb-2 mt-4">1. Giai Đoạn Giảng Viên Đề Xuất Đề Tài</h6>
-                        <div class="row g-3 mb-3">
+                <!-- Phase 1: Giai Đoạn Giảng Viên Đề Xuất Đề Tài -->
+                <div class="phase-card">
+                    <div class="phase-card-header">
+                        <div class="phase-card-title">
+                            <i class="fa-solid fa-chalkboard-user text-primary fs-5"></i>
+                            <span>Giai Đoạn 1: Giảng Viên Đề Xuất Đề Tài</span>
+                        </div>
+                        <span class="phase-badge phase-badge-primary">Bước 1</span>
+                    </div>
+                    <div class="phase-card-body">
+                        <div class="text-muted small mb-3">Khoảng thời gian mở cổng cho giảng viên bộ môn nộp đề cương đề tài nghiên cứu.</div>
+                        <div class="row g-3">
                             <div class="col-md-6">
-                                <label class="form-label small fw-semibold">Thời Gian Bắt Đầu Cho GV</label>
-                                <input type="datetime-local" th:field="*{gvStartDate}" class="form-control" required>
+                                <label class="form-label">Thời Gian Bắt Đầu Cho GV <span class="text-danger">*</span></label>
+                                <input type="text" th:field="*{topicSubmissionStart}" id="topicSubmissionStart" class="form-control datetime-picker" 
+                                       placeholder="dd/mm/yyyy --:--" data-required="true"
+                                       data-v-msg="Vui lòng chọn thời gian bắt đầu cho giảng viên" required>
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label small fw-semibold">Thời Gian Kết Thúc Cho GV</label>
-                                <input type="datetime-local" th:field="*{gvEndDate}" class="form-control" required>
+                                <label class="form-label">Thời Gian Kết Thúc Cho GV <span class="text-danger">*</span></label>
+                                <input type="text" th:field="*{topicSubmissionEnd}" id="topicSubmissionEnd" class="form-control datetime-picker" 
+                                       placeholder="dd/mm/yyyy --:--" data-required="true"
+                                       data-v-msg="Vui lòng chọn thời gian kết thúc cho giảng viên" required>
                             </div>
                         </div>
+                    </div>
+                </div>
 
-                        <h6 class="fw-bold text-secondary border-bottom pb-2 mt-4">2. Giai Đoạn Sinh Viên Đăng Ký Đề Tài</h6>
-                        <div class="row g-3 mb-3">
+                <!-- Phase 2: Giai Đoạn Sinh Viên Đăng Ký Đề Tài -->
+                <div class="phase-card">
+                    <div class="phase-card-header">
+                        <div class="phase-card-title">
+                            <i class="fa-solid fa-user-graduate text-success fs-5"></i>
+                            <span>Giai Đoạn 2: Sinh Viên Đăng Ký Đề Tài</span>
+                        </div>
+                        <span class="phase-badge phase-badge-success">Bước 2</span>
+                    </div>
+                    <div class="phase-card-body">
+                        <div class="text-muted small mb-3">Khoảng thời gian mở cổng cho các nhóm sinh viên chọn đề tài và liên hệ GVHD.</div>
+                        <div class="row g-3">
                             <div class="col-md-6">
-                                <label class="form-label small fw-semibold">Thời Gian Bắt Đầu Cho SV</label>
-                                <input type="datetime-local" th:field="*{svStartDate}" class="form-control" required>
+                                <label class="form-label">Thời Gian Bắt Đầu Cho SV <span class="text-danger">*</span></label>
+                                <input type="text" th:field="*{studentRegistrationStart}" id="studentRegistrationStart" class="form-control datetime-picker" 
+                                       placeholder="dd/mm/yyyy --:--" data-required="true"
+                                       data-v-msg="Vui lòng chọn thời gian bắt đầu cho sinh viên" required>
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label small fw-semibold">Thời Gian Kết Thúc Cho SV</label>
-                                <input type="datetime-local" th:field="*{svEndDate}" class="form-control" required>
+                                <label class="form-label">Thời Gian Kết Thúc Cho SV <span class="text-danger">*</span></label>
+                                <input type="text" th:field="*{studentRegistrationEnd}" id="studentRegistrationEnd" class="form-control datetime-picker" 
+                                       placeholder="dd/mm/yyyy --:--" data-required="true"
+                                       data-v-msg="Vui lòng chọn thời gian kết thúc cho sinh viên" required>
                             </div>
                         </div>
+                    </div>
+                </div>
 
-                        <h6 class="fw-bold text-secondary border-bottom pb-2 mt-4">3. Mốc Thời Gian Phản Biện & Hội Đồng (Theo Quy Định)</h6>
-                        <div class="row g-3 mb-4">
-                            <!-- Chỉ thiết lập khi TLCN hoặc KLTN -->
+                <!-- Phase 3: Mốc Phản Biện & Hội Đồng (Điều Kiện) -->
+                <div class="phase-card">
+                    <div class="phase-card-header">
+                        <div class="phase-card-title">
+                            <i class="fa-solid fa-scale-balanced text-warning fs-5"></i>
+                            <span>Giai Đoạn 3: Đánh Giá Phản Biện & Hội Đồng</span>
+                        </div>
+                        <span class="phase-badge phase-badge-amber">Bước 3</span>
+                    </div>
+                    <div class="phase-card-body">
+                        <div class="text-muted small mb-3">Áp dụng cho các đợt Tiểu luận chuyên ngành (TLCN) và Khóa luận tốt nghiệp (KLTN).</div>
+                        <div class="row g-3">
+                            <!-- Hạn chót GVPB nộp điểm (TLCN & KLTN) -->
                             <div class="col-md-6" id="gvpbField">
-                                <label class="form-label small fw-semibold text-primary">
-                                    Hạn Chót GVPB Nộp Điểm Về Khoa (Áp dụng TLCN & KLTN)
+                                <label class="form-label">
+                                    Hạn Chót GVPB Nộp Điểm <span class="text-danger">*</span>
                                 </label>
-                                <input type="datetime-local" th:field="*{gvpbDeadline}" class="form-control">
+                                <input type="text" th:field="*{reviewDeadline}" id="reviewDeadline" class="form-control datetime-picker" 
+                                       placeholder="dd/mm/yyyy --:--"
+                                       data-v-msg="Vui lòng chọn hạn chót GVPB nộp điểm">
+                                <div class="form-text">Áp dụng cho TLCN và KLTN.</div>
                             </div>
-                            <!-- Chỉ thiết lập khi KLTN -->
+                            <!-- Ngày họp Hội đồng (Chỉ KLTN) -->
                             <div class="col-md-6" id="councilDateField">
-                                <label class="form-label small fw-semibold text-danger">
-                                    Ngày Báo Cáo Hội Đồng (Chỉ áp dụng KLTN)
+                                <label class="form-label">
+                                    Ngày Báo Cáo Hội Đồng <span class="text-danger">*</span>
                                 </label>
-                                <input type="datetime-local" th:field="*{councilDate}" class="form-control">
+                                <input type="text" th:field="*{defenseDate}" id="defenseDate" class="form-control date-picker" 
+                                       placeholder="dd/mm/yyyy"
+                                       data-v-msg="Vui lòng chọn ngày báo cáo hội đồng">
+                                <div class="form-text">Chỉ áp dụng cho đợt KLTN.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons Cột Trái -->
+                <div class="d-flex justify-content-between align-items-center mb-5">
+                    <a th:href="@{/periods}" class="btn btn-secondary">
+                        <i class="fa-solid fa-xmark me-1.5"></i> Hủy bỏ
+                    </a>
+                    <button type="submit" id="btnSubmitPeriod" class="btn btn-primary px-4 shadow-sm">
+                        <i class="fa-solid fa-floppy-disk me-1.5"></i> Lưu & Khởi Tạo Đợt
+                    </button>
+                </div>
+
+            </div>
+
+            <!-- CỘT PHẢI: Live Interactive Timeline Preview Widget (5 Cột Desktop - Sticky) -->
+            <div class="col-lg-5">
+                <div class="timeline-preview-widget sticky-lg-top">
+                    <!-- Widget Header -->
+                    <div class="timeline-widget-header">
+                        <div class="timeline-widget-title">
+                            <i class="fa-solid fa-timeline text-warning"></i>
+                            <span>Tiến Trình Thời Gian Thực</span>
+                        </div>
+                        <span id="timelineTotalDurationBadge" class="badge bg-white bg-opacity-20 text-white rounded-pill px-3 py-1 font-monospace small">
+                            Chờ dữ liệu
+                        </span>
+                    </div>
+
+                    <!-- Widget Body -->
+                    <div class="timeline-widget-body">
+                        
+                        <!-- Cây Tiến Trình Vertical Stepper -->
+                        <div class="timeline-stepper">
+                            
+                            <!-- Chặng 1: Giảng viên nộp đề tài -->
+                            <div class="timeline-step-item active" id="stepGvNode">
+                                <div class="timeline-step-dot">
+                                    <i class="fa-solid fa-1"></i>
+                                </div>
+                                <div class="timeline-step-content">
+                                    <div class="timeline-step-title">
+                                        <span>GV Đề Xuất Đề Tài</span>
+                                        <i class="fa-solid fa-chalkboard-user text-primary small"></i>
+                                    </div>
+                                    <div class="timeline-step-time" id="timelineGvTime">
+                                        <i class="fa-regular fa-calendar me-1"></i>
+                                        <span>Chưa chọn ngày</span>
+                                    </div>
+                                    <div id="timelineGvDuration" class="timeline-step-duration" style="display: none;">
+                                        0 ngày
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Chặng 2: Sinh viên đăng ký -->
+                            <div class="timeline-step-item success" id="stepSvNode">
+                                <div class="timeline-step-dot">
+                                    <i class="fa-solid fa-2"></i>
+                                </div>
+                                <div class="timeline-step-content">
+                                    <div class="timeline-step-title">
+                                        <span>SV Đăng Ký Đề Tài</span>
+                                        <i class="fa-solid fa-user-graduate text-success small"></i>
+                                    </div>
+                                    <div class="timeline-step-time" id="timelineSvTime">
+                                        <i class="fa-regular fa-calendar me-1"></i>
+                                        <span>Chưa chọn ngày</span>
+                                    </div>
+                                    <div id="timelineSvDuration" class="timeline-step-duration" style="display: none;">
+                                        0 ngày
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Chặng 3: Phản biện & Hội đồng -->
+                            <div class="timeline-step-item amber" id="stepDefenseNode">
+                                <div class="timeline-step-dot">
+                                    <i class="fa-solid fa-3"></i>
+                                </div>
+                                <div class="timeline-step-content">
+                                    <div class="timeline-step-title">
+                                        <span>Đánh Giá & Hội Đồng</span>
+                                        <i class="fa-solid fa-gavel text-warning small"></i>
+                                    </div>
+                                    <div id="timelineGvpbContainer">
+                                        <div class="timeline-step-time text-secondary" id="timelineGvpbTime">
+                                            <i class="fa-solid fa-file-pen me-1 text-primary"></i>
+                                            <span>Hạn GVPB: Chưa chọn</span>
+                                        </div>
+                                    </div>
+                                    <div id="timelineCouncilContainer" class="mt-1">
+                                        <div class="timeline-step-time text-secondary" id="timelineCouncilTime">
+                                            <i class="fa-solid fa-award me-1 text-danger"></i>
+                                            <span>Hội đồng: Chưa chọn</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+
+                        <!-- Thanh Trạng Thái Kiểm Tra Logic (Live Validation Banner) -->
+                        <div id="timelineStatusBanner" class="timeline-status-banner status-warning mb-3">
+                            <i class="fa-solid fa-circle-info fs-5 mt-0.5"></i>
+                            <div id="timelineStatusText">
+                                Vui lòng chọn các mốc thời gian để hệ thống thẩm định tiến trình đào tạo.
                             </div>
                         </div>
 
-                        <div class="d-flex justify-content-between">
-                            <a th:href="@{/periods}" class="btn btn-outline-secondary">Hủy bỏ</a>
-                            <button type="submit" class="btn btn-primary px-4 fw-semibold shadow-sm">
-                                <i class="fa-solid fa-save me-1"></i> Lưu & Khởi Tạo Đợt
-                            </button>
-                        </div>
-                    </form>
+                        <!-- Nút Khởi Tạo Nhanh Đồng Bộ -->
+                        <button type="button" class="btn btn-primary w-100 shadow-sm" onclick="document.getElementById('periodForm').requestSubmit();">
+                            <i class="fa-solid fa-floppy-disk me-1.5"></i> Lưu & Khởi Tạo Đợt Ngay
+                        </button>
+                    </div>
                 </div>
             </div>
+
         </div>
-    </div>
+    </form>
 
 </div>
 </body>

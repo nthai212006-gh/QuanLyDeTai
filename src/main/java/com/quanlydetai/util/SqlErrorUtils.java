@@ -42,8 +42,45 @@ public class SqlErrorUtils {
                     return "Lỗi vi phạm quy chế: Giảng viên không được phép chỉnh sửa điểm đề tài mình đang hướng dẫn!";
                 }
 
+                // Check for max 2 supervisors trigger
+                if (msg.contains("tối đa 2") || msg.contains("t?i ?a 2") || (msg.contains("2") && msg.contains("gi"))) {
+                    return "Quy chế: Mỗi đề tài chỉ được hướng dẫn bởi tối đa 2 giảng viên!";
+                }
+
+                // Check for max 1 primary supervisor trigger
+                if (msg.contains("duy nhất 1 giảng viên hướng dẫn chính") || msg.contains("duy nhất 1") || (msg.contains("duy") && msg.contains("1"))) {
+                    return "Quy chế: Mỗi đề tài chỉ được có duy nhất 1 giảng viên hướng dẫn chính!";
+                }
+
+                if (msg.contains("Hội đồng đã bắt đầu chấm điểm")
+                        || msg.contains("b???t ?????u ch???m ??i???m")) {
+                    if (msg.contains("thêm") || msg.contains("th??m")) {
+                        return "Hội đồng đã bắt đầu chấm điểm, không được phép thêm thành viên mới!";
+                    }
+                    if (msg.contains("chỉnh sửa") || msg.contains("ch???nh s???a")) {
+                        return "Hội đồng đã bắt đầu chấm điểm, không được phép chỉnh sửa thông tin thành viên!";
+                    }
+                    if (msg.contains("xóa") || msg.contains("x??a")) {
+                        return "Hội đồng đã bắt đầu chấm điểm, không được phép xóa thành viên hội đồng!";
+                    }
+                    return "Hội đồng đã bắt đầu chấm điểm, không được phép thay đổi thành viên!";
+                }
+
+                if (msg.contains("Chưa đủ điểm") || msg.contains("Ch??a ????? ??i???m")
+                        || msg.contains("chưa hoàn tất chấm điểm") || msg.contains("Chưa thể công bố")) {
+                    return "Chưa thể công bố: Chưa đủ điểm thành phần từ tất cả thành viên trong hội đồng phản biện!";
+                }
+
                 if (msg.contains("Da het han nop bao cao") || msg.contains("hết hạn nộp báo cáo")) {
                     return "Đã hết hạn nộp báo cáo tiến độ theo quy định!";
+                }
+
+                if (msg.contains("Lock wait timeout exceeded") 
+                        || msg.contains("1205") 
+                        || msg.contains("CannotAcquireLockException")
+                        || msg.contains("LockAcquisitionException")
+                        || msg.contains("PessimisticLockException")) {
+                    return "Hệ thống đang bận xử lý yêu cầu song song của hội đồng, vui lòng thử lại sau giây lát!";
                 }
 
                 // Extract SQLSTATE 45000 custom text if enclosed
