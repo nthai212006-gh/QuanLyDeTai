@@ -49,9 +49,19 @@ public class TopicController {
     @GetMapping("/create")
     @PreAuthorize("hasAnyRole('LECTURER', 'HEAD_OF_DEPT', 'DEAN', 'ADMIN')")
     public String showCreateForm(Model model, @AuthenticationPrincipal CustomUserDetails userDetails) {
-        model.addAttribute("topic", new Topic());
+        if (!model.containsAttribute("topic")) {
+            model.addAttribute("topic", new Topic());
+        }
+        List<RegistrationPeriod> periods = periodRepository.findAllByOrderByCreatedAtDesc();
+        Long firstOpenPeriodId = periods.stream()
+                .filter(RegistrationPeriod::isTopicSubmissionOpen)
+                .map(RegistrationPeriod::getId)
+                .findFirst()
+                .orElse(null);
+        model.addAttribute("firstOpenPeriodId", firstOpenPeriodId);
+        model.addAttribute("hasOpenPeriod", firstOpenPeriodId != null);
+        model.addAttribute("periods", periods);
         model.addAttribute("departments", departmentRepository.findAll());
-        model.addAttribute("periods", periodRepository.findAllByOrderByCreatedAtDesc());
         
         // Danh sách giảng viên để chọn GVHD phụ
         List<User> lecturers = userRepository.findAll().stream()
@@ -68,9 +78,21 @@ public class TopicController {
                               @RequestParam("departmentId") Long departmentId,
                               @RequestParam("periodId") Long periodId,
                               @RequestParam(value = "coSupervisorId", required = false) Long coSupervisorId,
-                              @AuthenticationPrincipal CustomUserDetails userDetails) {
-        topicService.proposeTopic(topic, departmentId, periodId, userDetails.getUser(), coSupervisorId);
-        return "redirect:/topics?periodId=" + periodId + "&success=true";
+                              @AuthenticationPrincipal CustomUserDetails userDetails,
+                              org.springframework.web.servlet.mvc.support.RedirectAttributes redirectAttributes) {
+        try {
+            topicService.proposeTopic(topic, departmentId, periodId, userDetails.getUser(), coSupervisorId);
+            redirectAttributes.addFlashAttribute("successMessage", "Đề xuất đề tài thành công và đã được gửi chờ phê duyệt!");
+            return "redirect:/topics?periodId=" + periodId;
+        } catch (IllegalStateException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+            redirectAttributes.addFlashAttribute("topic", topic);
+            return "redirect:/topics/create";
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", com.quanlydetai.util.SqlErrorUtils.extractFriendlyMessage(e));
+            redirectAttributes.addFlashAttribute("topic", topic);
+            return "redirect:/topics/create";
+        }
     }
 
     @PostMapping("/approve/{id}")

@@ -5,16 +5,8 @@
 <div id="main-content">
 
     <!-- Alert Messages -->
-    <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
-        <i class="fa-solid fa-triangle-exclamation me-2"></i> <strong>Lỗi:</strong> <span th:text="${errorMessage}">Đã xảy ra lỗi</span>
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
     <div th:if="${warningMessage}" class="alert alert-warning alert-dismissible fade show shadow-sm" role="alert">
         <i class="fa-solid fa-circle-exclamation me-2"></i> <strong>Cảnh báo:</strong> <span th:text="${warningMessage}"></span>
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-    <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
-        <i class="fa-solid fa-circle-check me-2"></i> <strong>Thành công:</strong> <span th:text="${successMessage}"></span>
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
     <div th:if="${param.graded}" class="alert alert-success alert-dismissible fade show" role="alert">
@@ -31,10 +23,6 @@
     </div>
     <div th:if="${param.topicAssigned}" class="alert alert-success alert-dismissible fade show" role="alert">
         <i class="fa-solid fa-check-double me-2"></i> Phân công đề tài vào hội đồng thành công.
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-    <div th:if="${param.error}" class="alert alert-danger alert-dismissible fade show" role="alert">
-        <i class="fa-solid fa-triangle-exclamation me-2"></i> <strong>Lỗi:</strong> <span th:text="${param.error}">Đã xảy ra lỗi</span>
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
 
@@ -225,14 +213,7 @@
                         <i class="fa-solid fa-triangle-exclamation me-1"></i> <strong>Ràng buộc quy chế:</strong> Giảng viên không được phép chấm đề tài do chính mình hướng dẫn <em>(áp dụng cho cả GVHD chính và Đồng hướng dẫn)</em>!
                     </div>
 
-                    <div class="mb-3">
-                        <label class="form-label small fw-semibold">Vai Trò Đánh Giá Trong Buổi Báo Cáo <span class="text-danger">*</span></label>
-                        <select name="evalType" class="form-select form-select-sm" required>
-                            <option value="COUNCIL_CHAIR">Chủ tịch hội đồng (CHAIR)</option>
-                            <option value="COUNCIL_MEMBER">Ủy viên hội đồng (MEMBER / SECRETARY)</option>
-                            <option value="REVIEWER">Giảng viên phản biện (GVPB)</option>
-                        </select>
-                    </div>
+
 
                     <div class="mb-3">
                         <div class="d-flex justify-content-between">

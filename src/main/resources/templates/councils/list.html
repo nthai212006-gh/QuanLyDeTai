@@ -4,17 +4,7 @@
 <body>
 <div id="main-content">
 
-    <!-- Flash Alert Messages -->
-    <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show shadow-sm d-flex align-items-center gap-2 mb-4" role="alert">
-        <i class="fa-solid fa-circle-exclamation fs-5 flex-shrink-0 text-danger"></i>
-        <div class="fw-semibold" th:text="${errorMessage}">Đã xảy ra lỗi khi thực hiện thao tác.</div>
-        <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>
-    </div>
-    <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show shadow-sm d-flex align-items-center gap-2 mb-4" role="alert">
-        <i class="fa-solid fa-circle-check fs-5 flex-shrink-0 text-success"></i>
-        <div class="fw-semibold" th:text="${successMessage}">Thao tác thành công.</div>
-        <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>
-    </div>
+
 
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
@@ -34,6 +24,7 @@
             </div>
             <div class="col-md-5">
                 <select name="periodId" class="form-select" onchange="this.form.submit()">
+                    <option value="" th:selected="${selectedPeriodId == null}">-- Tất cả các đợt --</option>
                     <option th:each="p : ${periods}" th:value="${p.id}" th:text="${p.periodName}"
                             th:selected="${p.id == selectedPeriodId}">Đợt KLTN</option>
                 </select>
@@ -87,7 +78,7 @@
 
         <div th:if="${#lists.isEmpty(councils)}" class="col-12 text-center py-5 text-muted">
             <i class="fa-solid fa-gavel fs-1 mb-2"></i>
-            <p>Chưa có hội đồng nào được thành lập trong đợt này.</p>
+            <p>Chưa có hội đồng nào được thành lập.</p>
         </div>
     </div>
 

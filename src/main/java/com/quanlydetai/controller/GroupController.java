@@ -32,13 +32,11 @@ public class GroupController {
     public String listGroups(@RequestParam(value = "periodId", required = false) Long periodId,
                              Model model, @AuthenticationPrincipal CustomUserDetails userDetails) {
         List<RegistrationPeriod> periods = periodRepository.findAllByOrderByCreatedAtDesc();
-        Long activePeriodId = periodId != null ? periodId : (periods.isEmpty() ? null : periods.get(0).getId());
-
-        List<StudentGroup> groups = activePeriodId != null ? groupService.getGroupsByPeriod(activePeriodId) : List.of();
+        List<StudentGroup> groups = periodId != null ? groupService.getGroupsByPeriod(periodId) : groupService.getAllGroups();
 
         model.addAttribute("groups", groups);
         model.addAttribute("periods", periods);
-        model.addAttribute("selectedPeriodId", activePeriodId);
+        model.addAttribute("selectedPeriodId", periodId);
         model.addAttribute("currentUser", userDetails.getUser());
         return "groups/list";
     }

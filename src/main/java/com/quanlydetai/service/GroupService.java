@@ -26,6 +26,10 @@ public class GroupService {
         return groupRepository.findByPeriodId(periodId);
     }
 
+    public List<StudentGroup> getAllGroups() {
+        return groupRepository.findAllByOrderByCreatedAtDesc();
+    }
+
     public StudentGroup getGroupById(Long id) {
         return groupRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy nhóm ID: " + id));

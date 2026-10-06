@@ -15,6 +15,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -35,6 +36,10 @@ public class CouncilService {
 
     public List<Council> getCouncilsByPeriod(Long periodId) {
         return councilRepository.findByPeriodId(periodId);
+    }
+
+    public List<Council> getAllCouncils() {
+        return councilRepository.findAllByOrderByCreatedAtDesc();
     }
 
     public Council getCouncilById(Long id) {
@@ -209,6 +214,28 @@ public class CouncilService {
             }
         }
 
+        // D2: Kiểm tra người chấm phải là GVPB của đề tài hoặc thành viên hội đồng
+        boolean isReviewer = councilTopic.getReviewerLecturer() != null
+                && councilTopic.getReviewerLecturer().getId().equals(evaluator.getId());
+        Optional<CouncilMember> memberOpt = memberRepository.findByCouncilIdAndLecturerId(council.getId(), evaluator.getId());
+        boolean isMember = memberOpt.isPresent();
+
+        if (!isReviewer && !isMember) {
+            throw new IllegalArgumentException("Bạn không thuộc hội đồng này hoặc không phải GVPB của đề tài!");
+        }
+
+        // FB6: Tự động xác định evalType nếu không truyền vào (null)
+        Evaluation.EvaluationType effectiveEvalType = evalType;
+        if (effectiveEvalType == null) {
+            if (isReviewer) {
+                effectiveEvalType = Evaluation.EvaluationType.REVIEWER;
+            } else if (memberOpt.isPresent() && memberOpt.get().getPosition() == CouncilMember.CouncilPosition.CHAIR) {
+                effectiveEvalType = Evaluation.EvaluationType.COUNCIL_CHAIR;
+            } else {
+                effectiveEvalType = Evaluation.EvaluationType.COUNCIL_MEMBER;
+            }
+        }
+
         // Tính tổng điểm của GV này (Thang 10: 30% báo cáo, 40% sản phẩm, 30% thuyết trình)
         BigDecimal totalScore = c1.multiply(new BigDecimal("0.30"))
                 .add(c2.multiply(new BigDecimal("0.40")))
@@ -221,7 +248,7 @@ public class CouncilService {
                         .evaluatorLecturer(evaluator)
                         .build());
 
-        eval.setEvaluationType(evalType);
+        eval.setEvaluationType(effectiveEvalType);
         eval.setCriteria1Score(c1);
         eval.setCriteria2Score(c2);
         eval.setCriteria3Score(c3);

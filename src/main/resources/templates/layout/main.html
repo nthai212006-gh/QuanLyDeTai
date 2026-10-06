@@ -64,7 +64,7 @@
                     <i class="fa-solid fa-list-check"></i>
                     <span>Báo cáo tuần</span>
                 </a>
-                <a sec:authorize="hasAnyRole('LECTURER', 'HEAD_OF_DEPT', 'DEAN', 'ADMIN')" th:href="@{/groups}" class="sidebar-link" th:classappend="${pageTitle == 'Danh Sách Nhóm' or pageTitle == 'Nhật Ký Tiến Độ Tuần' ? 'active' : ''}" title="Danh sách nhóm & Báo cáo tiến độ">
+                <a sec:authorize="hasAnyRole('LECTURER', 'HEAD_OF_DEPT', 'DEAN', 'ADMIN')" th:href="@{/groups}" class="sidebar-link" th:classappend="${pageTitle == 'Danh Sách Nhóm' or pageTitle == 'Danh Sách Nhóm Sinh Viên' or pageTitle == 'Nhật Ký Tiến Độ Tuần' ? 'active' : ''}" title="Danh sách nhóm & Báo cáo tiến độ">
                     <i class="fa-solid fa-layer-group"></i>
                     <span>Danh sách nhóm</span>
                 </a>

@@ -86,12 +86,12 @@
                 </div>
                 <div class="text-md-end">
                     <div class="mb-2">
-                        <span th:if="${group.status.name() == 'FORMING'}" class="badge-status badge-status-neutral">ĐANG THÀNH LẬP</span>
-                        <span th:if="${group.status.name() == 'REGISTERED'}" class="badge-status badge-status-pending">ĐÃ ĐĂNG KÝ ĐỀ TÀI</span>
-                        <span th:if="${group.status.name() == 'DOING'}" class="badge-status badge-status-info">ĐANG THỰC HIỆN</span>
-                        <span th:if="${group.status.name() == 'SUBMITTED'}" class="badge-status badge-status-info">ĐÃ NỘP BÁO CÁO</span>
+                        <span th:if="${group.status.name() == 'PENDING_APPROVAL'}" class="badge-status badge-status-neutral">ĐANG THÀNH LẬP</span>
+                        <span th:if="${group.status.name() == 'ASSIGNED'}" class="badge-status badge-status-pending">ĐÃ ĐĂNG KÝ ĐỀ TÀI</span>
+                        <span th:if="${group.status.name() == 'IN_PROGRESS'}" class="badge-status badge-status-info">ĐANG THỰC HIỆN</span>
                         <span th:if="${group.status.name() == 'DEFENDING'}" class="badge-status badge-status-info">ĐANG PHẢN BIỆN</span>
                         <span th:if="${group.status.name() == 'COMPLETED'}" class="badge-status badge-status-success">HOÀN TẤT BẢO VỆ</span>
+                        <span th:if="${group.status.name() == 'DISQUALIFIED'}" class="badge-status badge-status-danger">BỊ LOẠI</span>
                     </div>
                     <!-- Final Score Badge -->
                     <div th:if="${group.finalScore != null}" class="px-3 py-2 bg-success bg-opacity-10 text-success rounded-2 fw-bold border border-success border-opacity-25" style="font-variant-numeric: tabular-nums;">
@@ -104,36 +104,8 @@
         <div class="row g-4">
             <!-- Left: Members & Topic -->
             <div class="col-lg-7">
-                <!-- Members Card -->
+                <!-- Topic Card (Đưa lên trên Thành Viên) -->
                 <div class="card p-4 mb-4 border-0 shadow-sm" style="border: 1px solid var(--color-border) !important; border-radius: var(--radius-lg);">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h6 class="fw-bold text-dark mb-0 text-uppercase small" style="letter-spacing: 0.05em;">
-                            Thành Viên (<span th:text="${group.members.size()}">1</span>/3)
-                        </h6>
-                        <!-- Add Member Button (Only Leader) -->
-                        <button th:if="${currentUser.id == group.leader.id}" 
-                                class="btn-table-outline" data-bs-toggle="modal" data-bs-target="#addMemberModal">
-                            + Thêm Thành Viên
-                        </button>
-                    </div>
-
-                    <div class="list-group list-group-flush">
-                        <div th:each="m : ${group.members}" class="list-group-item d-flex justify-content-between align-items-center px-0 py-2.5 border-bottom" style="border-color: #F1F5F9 !important;">
-                            <div>
-                                <strong class="text-dark" th:text="${m.student.fullName}">Nguyễn Tuấn Anh</strong> 
-                                <span class="badge-code-flat font-monospace ms-1" th:text="${m.student.userCode}">SV001</span>
-                                <div class="small text-secondary mt-0.5" th:text="${m.student.email}">email@student.edu.vn</div>
-                            </div>
-                            <div>
-                                <span th:if="${m.roleInGroup.name() == 'LEADER'}" class="badge-role-lead">NHÓM TRƯỞNG</span>
-                                <span th:if="${m.roleInGroup.name() == 'MEMBER'}" class="badge-role-sub">THÀNH VIÊN</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Topic Card -->
-                <div class="card p-4 border-0 shadow-sm" style="border: 1px solid var(--color-border) !important; border-radius: var(--radius-lg);">
                     <h6 class="fw-bold text-dark mb-3 text-uppercase small" style="letter-spacing: 0.05em;">
                         Đề Tài Thực Hiện
                     </h6>
@@ -167,9 +139,10 @@
                             </div>
                             <div class="mt-2 d-flex align-items-center gap-2">
                                 <span class="text-secondary">Trạng thái đăng ký:</span>
-                                <span th:if="${group.registrationStatus.name() == 'PENDING'}" class="badge-status badge-status-pending">CHỜ DUYỆT</span>
-                                <span th:if="${group.registrationStatus.name() == 'APPROVED'}" class="badge-status badge-status-success">CHÍNH THỨC NHẬN ĐỀ TÀI</span>
-                                <span th:if="${group.registrationStatus.name() == 'REJECTED'}" class="badge-status badge-status-danger">TỪ CHỐI</span>
+                                <!--/* TODO: approveTopicRegistration() chưa có controller endpoint - nhóm sẽ ở trạng thái CHỜ DUYỆT */-->
+                                <span th:if="${group.topic != null and group.status.name() == 'ASSIGNED'}" class="badge-status badge-status-pending">CHỜ DUYỆT</span>
+                                <span th:if="${group.status.name() == 'IN_PROGRESS' or group.status.name() == 'DEFENDING' or group.status.name() == 'COMPLETED'}" class="badge-status badge-status-success">ĐÃ ĐƯỢC CHẤP THUẬN</span>
+                                <span th:if="${group.status.name() == 'DISQUALIFIED'}" class="badge-status badge-status-danger">TỪ CHỐI</span>
                             </div>
                         </div>
                     </div>
@@ -187,6 +160,34 @@
                         </div>
                         <div th:if="${currentUser.id != group.leader.id}" class="text-muted small">
                             <em>(Chỉ Nhóm trưởng mới có quyền đăng ký đề tài)</em>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Members Card (Đưa xuống dưới Đề Tài) -->
+                <div class="card p-4 border-0 shadow-sm" style="border: 1px solid var(--color-border) !important; border-radius: var(--radius-lg);">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6 class="fw-bold text-dark mb-0 text-uppercase small" style="letter-spacing: 0.05em;">
+                            Thành Viên (<span th:text="${group.members.size()}">1</span>/3)
+                        </h6>
+                        <!-- Add Member Button (Only Leader) -->
+                        <button th:if="${currentUser.id == group.leader.id}" 
+                                class="btn-table-outline" data-bs-toggle="modal" data-bs-target="#addMemberModal">
+                            + Thêm Thành Viên
+                        </button>
+                    </div>
+
+                    <div class="list-group list-group-flush">
+                        <div th:each="m : ${group.members}" class="list-group-item d-flex justify-content-between align-items-center px-0 py-2.5 border-bottom" style="border-color: #F1F5F9 !important;">
+                            <div>
+                                <strong class="text-dark" th:text="${m.student.fullName}">Nguyễn Tuấn Anh</strong> 
+                                <span class="badge-code-flat font-monospace ms-1" th:text="${m.student.userCode}">SV001</span>
+                                <div class="small text-secondary mt-0.5" th:text="${m.student.email}">email@student.edu.vn</div>
+                            </div>
+                            <div>
+                                <span th:if="${m.roleInGroup.name() == 'LEADER'}" class="badge-role-lead">NHÓM TRƯỞNG</span>
+                                <span th:if="${m.roleInGroup.name() == 'MEMBER'}" class="badge-role-sub">THÀNH VIÊN</span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -244,13 +245,40 @@
 
                     <!-- Submission History -->
                     <div th:if="${submissions != null and !submissions.isEmpty()}" class="mt-4 border-top pt-3">
-                        <h6 class="fw-bold small text-secondary text-uppercase mb-2" style="letter-spacing: 0.04em;">Lịch Sử Nộp Bài</h6>
-                        <div th:each="sub : ${submissions}" class="small p-2.5 rounded-2 mb-2" style="background: #F8FAFC; border: 1px solid var(--color-border);">
-                            <div class="fw-bold text-dark" th:text="${sub.title}">Tiêu đề</div>
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-2 py-1 small">
+                                <i class="fa-solid fa-circle-check me-1"></i>
+                                Đã nộp lúc <strong th:text="${#temporals.format(submissions[0].submittedAt, 'dd/MM/yyyy HH:mm')}">01/01/2026 10:00</strong>
+                            </span>
+                        </div>
+                        <!-- Latest submission card -->
+                        <div class="small p-3 rounded-2 mb-2 bg-light border">
+                            <div class="fw-bold text-dark" th:text="${submissions[0].title}">Tiêu đề mới nhất</div>
                             <div class="text-secondary small mt-1">
-                                <span th:text="${#temporals.format(sub.submittedAt, 'dd/MM/yyyy HH:mm')}">01/01/2026 10:00</span>
-                                <span class="mx-1 text-muted">•</span>
-                                <a th:href="${sub.fileUrl}" target="_blank" class="text-primary fw-semibold text-decoration-none">Xem file</a>
+                                <a th:href="${submissions[0].fileUrl}" target="_blank" class="text-primary fw-semibold text-decoration-none me-3">
+                                    <i class="fa-solid fa-file-pdf me-1"></i> Xem file báo cáo
+                                </a>
+                                <a th:if="${submissions[0].sourceCodeUrl != null and !submissions[0].sourceCodeUrl.isEmpty()}" 
+                                   th:href="${submissions[0].sourceCodeUrl}" target="_blank" class="text-dark fw-semibold text-decoration-none">
+                                    <i class="fa-brands fa-github me-1"></i> Mã nguồn
+                                </a>
+                            </div>
+                        </div>
+
+                        <!-- Previous submissions (collapsible if more than 1) -->
+                        <div th:if="${submissions.size() > 1}" class="mt-2">
+                            <a class="text-muted small text-decoration-none" data-bs-toggle="collapse" href="#olderSubmissions" role="button" aria-expanded="false">
+                                <i class="fa-solid fa-clock-rotate-left me-1"></i> Lịch sử các lần nộp trước (<span th:text="${submissions.size() - 1}">1</span>)
+                            </a>
+                            <div class="collapse mt-2" id="olderSubmissions">
+                                <div th:each="sub, iterStat : ${submissions}" th:if="${!iterStat.first}" class="small p-2 rounded-2 mb-1 border bg-white">
+                                    <div class="fw-semibold text-secondary" th:text="${sub.title}">Tiêu đề cũ</div>
+                                    <div class="text-muted small">
+                                        <span th:text="${#temporals.format(sub.submittedAt, 'dd/MM/yyyy HH:mm')}">01/01/2026 10:00</span>
+                                        <span class="mx-1">•</span>
+                                        <a th:href="${sub.fileUrl}" target="_blank" class="text-primary text-decoration-none">Xem file</a>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>

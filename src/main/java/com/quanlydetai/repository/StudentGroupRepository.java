@@ -26,6 +26,11 @@ public interface StudentGroupRepository extends JpaRepository<StudentGroup, Long
     List<StudentGroup> findByPeriodId(Long periodId);
 
     /**
+     * Lấy tất cả các nhóm sinh viên sắp xếp mới nhất trước.
+     */
+    List<StudentGroup> findAllByOrderByCreatedAtDesc();
+
+    /**
      * Tìm nhóm sinh viên do một sinh viên cụ thể làm nhóm trưởng trong đợt đăng ký đó.
      */
     Optional<StudentGroup> findByLeaderIdAndPeriodId(Long leaderId, Long periodId);

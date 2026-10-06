@@ -40,6 +40,17 @@ class SqlErrorUtilsTest {
     }
 
     @Test
+    @DisplayName("Should extract duplicate topic_code error message")
+    void testExtractDuplicateTopicCodeMessage() {
+        SQLException sqlEx = new SQLException("Duplicate entry 'KLTN_2026_01' for key 'topics.topic_code'", "23000", 1062);
+        org.springframework.dao.DataIntegrityViolationException wrappedEx =
+                new org.springframework.dao.DataIntegrityViolationException("Duplicate key", sqlEx);
+
+        String friendlyMessage = SqlErrorUtils.extractFriendlyMessage(wrappedEx);
+        assertThat(friendlyMessage).isEqualTo("Mã đề tài đã tồn tại trong hệ thống. Vui lòng nhập mã đề tài khác!");
+    }
+
+    @Test
     @DisplayName("Should fallback gracefully when no specific trigger message found")
     void testFallbackMessage() {
         RuntimeException ex = new RuntimeException("Dữ liệu nhập không hợp lệ");

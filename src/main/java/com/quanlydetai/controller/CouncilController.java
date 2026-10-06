@@ -37,13 +37,11 @@ public class CouncilController {
     public String listCouncils(@RequestParam(value = "periodId", required = false) Long periodId,
                               Model model, @AuthenticationPrincipal CustomUserDetails userDetails) {
         List<RegistrationPeriod> periods = periodRepository.findAllByOrderByCreatedAtDesc();
-        Long activePeriodId = periodId != null ? periodId : (periods.isEmpty() ? null : periods.get(0).getId());
-
-        List<Council> councils = activePeriodId != null ? councilService.getCouncilsByPeriod(activePeriodId) : List.of();
+        List<Council> councils = periodId != null ? councilService.getCouncilsByPeriod(periodId) : councilService.getAllCouncils();
 
         model.addAttribute("councils", councils);
         model.addAttribute("periods", periods);
-        model.addAttribute("selectedPeriodId", activePeriodId);
+        model.addAttribute("selectedPeriodId", periodId);
         model.addAttribute("currentUser", userDetails.getUser());
         return "councils/list";
     }

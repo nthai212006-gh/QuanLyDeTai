@@ -24,6 +24,11 @@ public interface CouncilRepository extends JpaRepository<Council, Long> {
     List<Council> findByPeriodId(Long periodId);
 
     /**
+     * Lấy danh sách tất cả các hội đồng sắp xếp mới nhất trước.
+     */
+    List<Council> findAllByOrderByCreatedAtDesc();
+
+    /**
      * Truy vấn trực tiếp từ View v_council_grading_summary theo mã ID hội đồng.
      */
     @org.springframework.data.jpa.repository.Query(value = "SELECT " +

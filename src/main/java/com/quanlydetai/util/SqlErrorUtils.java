@@ -42,6 +42,11 @@ public class SqlErrorUtils {
                     return "Lỗi vi phạm quy chế: Giảng viên không được phép chỉnh sửa điểm đề tài mình đang hướng dẫn!";
                 }
 
+                // Check for duplicate topic_code
+                if (msg.contains("topic_code") || (msg.contains("Duplicate entry") && msg.contains("topics"))) {
+                    return "Mã đề tài đã tồn tại trong hệ thống. Vui lòng nhập mã đề tài khác!";
+                }
+
                 // Check for max 2 supervisors trigger
                 if (msg.contains("tối đa 2") || msg.contains("t?i ?a 2") || (msg.contains("2") && msg.contains("gi"))) {
                     return "Quy chế: Mỗi đề tài chỉ được hướng dẫn bởi tối đa 2 giảng viên!";

@@ -33,11 +33,19 @@
                 <div class="card-body p-4">
                     <form th:action="@{/topics/create}" th:object="${topic}" method="post">
 
+                        <div th:if="${hasOpenPeriod == false}" class="alert alert-warning mb-3">
+                            <i class="fa-solid fa-triangle-exclamation me-1"></i>
+                            <strong>Thông báo:</strong> Hiện tại không có đợt nào đang mở thời gian đề xuất đề tài cho giảng viên.
+                        </div>
+
                         <div class="row g-3 mb-3">
                             <div class="col-md-6">
                                 <label class="form-label fw-semibold">Đợt Đăng Ký <span class="text-danger">*</span></label>
                                 <select name="periodId" id="periodSelect" class="form-select" required>
-                                    <option th:each="p : ${periods}" th:value="${p.id}" th:text="${p.periodName}">Đợt KLTN HK1</option>
+                                    <option th:each="p : ${periods}" th:value="${p.id}"
+                                            th:text="${p.periodName} + (${p.topicSubmissionOpen} ? ' (Đang mở đề xuất)' : ' (Đã đóng đề xuất)')"
+                                            th:disabled="${!p.topicSubmissionOpen}"
+                                            th:selected="${p.topicSubmissionOpen and (firstOpenPeriodId == null or p.id == firstOpenPeriodId)}">Đợt KLTN HK1</option>
                                 </select>
                             </div>
                             <div class="col-md-6">
@@ -90,7 +98,7 @@
 
                         <div class="d-flex justify-content-between">
                             <a th:href="@{/topics}" class="btn btn-outline-secondary">Hủy bỏ</a>
-                            <button type="submit" class="btn btn-success px-4 fw-semibold shadow-sm">
+                            <button type="submit" class="btn btn-success px-4 fw-semibold shadow-sm" th:disabled="${hasOpenPeriod == false}">
                                 <i class="fa-solid fa-paper-plane me-1"></i> Gửi Phê Duyệt Đề Tài
                             </button>
                         </div>
