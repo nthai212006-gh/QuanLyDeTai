@@ -45,7 +45,7 @@
 
                 <!-- Group 2: Quản lý đào tạo -->
                 <div class="nav-group-title">Quản lý đào tạo</div>
-                <a th:href="@{/periods}" class="sidebar-link" th:classappend="${pageTitle == 'Đợt Đăng Ký' or pageTitle == 'Tạo Đợt Đăng Ký' ? 'active' : ''}" title="Đợt đăng ký">
+                <a th:href="@{/periods}" class="sidebar-link" th:classappend="${pageTitle == 'Quản Lý Đợt Đăng Ký' or pageTitle == 'Tạo Đợt Đăng Ký' or pageTitle == 'Đợt Đăng Ký' ? 'active' : ''}" title="Đợt đăng ký">
                     <i class="fa-solid fa-calendar-days"></i>
                     <span>Đợt đăng ký</span>
                 </a>
@@ -60,13 +60,13 @@
                     <i class="fa-solid fa-users"></i>
                     <span>Nhóm của tôi</span>
                 </a>
-                <a sec:authorize="hasAnyRole('LECTURER', 'HEAD_OF_DEPT', 'DEAN', 'ADMIN')" th:href="@{/groups}" class="sidebar-link" th:classappend="${pageTitle == 'Danh Sách Nhóm' ? 'active' : ''}" title="Danh sách nhóm">
-                    <i class="fa-solid fa-layer-group"></i>
-                    <span>Danh sách nhóm</span>
-                </a>
-                <a th:href="@{/groups}" class="sidebar-link" th:classappend="${pageTitle == 'Báo Cáo Tiến Độ' ? 'active' : ''}" title="Báo cáo tuần">
+                <a sec:authorize="hasRole('STUDENT')" th:href="@{/weekly-reports/my}" class="sidebar-link" th:classappend="${pageTitle == 'Nhật Ký Tiến Độ Tuần' or pageTitle == 'Báo Cáo Tiến Độ' ? 'active' : ''}" title="Báo cáo tuần">
                     <i class="fa-solid fa-list-check"></i>
                     <span>Báo cáo tuần</span>
+                </a>
+                <a sec:authorize="hasAnyRole('LECTURER', 'HEAD_OF_DEPT', 'DEAN', 'ADMIN')" th:href="@{/groups}" class="sidebar-link" th:classappend="${pageTitle == 'Danh Sách Nhóm' or pageTitle == 'Nhật Ký Tiến Độ Tuần' ? 'active' : ''}" title="Danh sách nhóm & Báo cáo tiến độ">
+                    <i class="fa-solid fa-layer-group"></i>
+                    <span>Danh sách nhóm</span>
                 </a>
 
                 <!-- Group 4: Đánh giá & Hội đồng -->
@@ -78,7 +78,7 @@
 
                 <!-- Group 5: Công cụ AI -->
                 <div class="nav-group-title">Công cụ thông minh</div>
-                <a th:href="@{/ai/assistant}" class="sidebar-link ai-link" th:classappend="${pageTitle == 'Trợ Lý AI' ? 'active' : ''}" title="Trợ lý AI Assistant">
+                <a th:href="@{/ai/assistant}" class="sidebar-link ai-link" th:classappend="${pageTitle == 'AI Assistant' or pageTitle == 'Trợ Lý AI' ? 'active' : ''}" title="Trợ lý AI Assistant">
                     <i class="fa-solid fa-robot"></i>
                     <span>AI Assistant</span>
                 </a>

@@ -153,8 +153,12 @@ function initFlatpickrInputs() {
         return;
     }
 
-    // Thiết lập locale tiếng Việt
+    // Thiết lập locale tiếng Việt gọn gàng: "Tháng 1" ... "Tháng 12" để hiển thị đầy đủ năm
     if (flatpickr.l10ns && flatpickr.l10ns.vn) {
+        flatpickr.l10ns.vn.months = {
+            shorthand: ["Th1", "Th2", "Th3", "Th4", "Th5", "Th6", "Th7", "Th8", "Th9", "Th10", "Th11", "Th12"],
+            longhand: ["Tháng 1", "Tháng 2", "Tháng 3", "Tháng 4", "Tháng 5", "Tháng 6", "Tháng 7", "Tháng 8", "Tháng 9", "Tháng 10", "Tháng 11", "Tháng 12"]
+        };
         flatpickr.localize(flatpickr.l10ns.vn);
     }
 
@@ -174,6 +178,7 @@ function initFlatpickrInputs() {
             altFormat: "d/m/Y H:i",
             altInputClass: "form-control alt-flatpickr-input",
             locale: "vn",
+            monthSelectorType: "dropdown",
             allowInput: true,
             onChange: function (selectedDates, dateStr, instance) {
                 if (instance.altInput) {
@@ -199,6 +204,7 @@ function initFlatpickrInputs() {
             altFormat: "d/m/Y",
             altInputClass: "form-control alt-flatpickr-input",
             locale: "vn",
+            monthSelectorType: "dropdown",
             allowInput: true,
             onChange: function (selectedDates, dateStr, instance) {
                 if (instance.altInput) {

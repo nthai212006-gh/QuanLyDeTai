@@ -23,6 +23,25 @@ public class WeeklyReportController {
     private final WeeklyReportService reportService;
     private final GroupService groupService;
 
+    @GetMapping("/my")
+    @PreAuthorize("hasRole('STUDENT')")
+    public String myReports(@AuthenticationPrincipal CustomUserDetails userDetails,
+                            org.springframework.web.servlet.mvc.support.RedirectAttributes redirectAttributes) {
+        Long studentId = userDetails.getId();
+        java.util.Optional<Long> activePeriodId = groupService.findActivePeriodIdByStudent(studentId);
+        if (activePeriodId.isEmpty()) {
+            activePeriodId = groupService.findLatestPeriodIdByStudent(studentId);
+        }
+        if (activePeriodId.isPresent()) {
+            java.util.Optional<StudentGroup> group = groupService.getGroupByStudentAndPeriod(studentId, activePeriodId.get());
+            if (group.isPresent()) {
+                return "redirect:/weekly-reports/group/" + group.get().getId();
+            }
+        }
+        redirectAttributes.addFlashAttribute("errorMessage", "Bạn chưa tham gia nhóm sinh viên nào để xem báo cáo tuần.");
+        return "redirect:/groups/my-group";
+    }
+
     @GetMapping("/group/{groupId}")
     public String listReports(@PathVariable("groupId") Long groupId, Model model,
                              @AuthenticationPrincipal CustomUserDetails userDetails) {

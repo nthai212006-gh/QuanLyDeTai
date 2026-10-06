@@ -1013,6 +1013,26 @@ body.sidebar-collapsed #main-wrapper {
 
 .flatpickr-current-month {
     font-weight: 600 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 4px !important;
+    padding-top: 4px !important;
+}
+
+.flatpickr-current-month .flatpickr-monthDropdown-months {
+    font-weight: 600 !important;
+    font-size: 0.92rem !important;
+}
+
+.flatpickr-current-month .numInputWrapper {
+    width: 68px !important;
+    display: inline-flex !important;
+}
+
+.flatpickr-current-month input.cur-year {
+    font-weight: 600 !important;
+    font-size: 0.92rem !important;
 }
 
 .flatpickr-day.selected, 

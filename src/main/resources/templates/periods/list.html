@@ -25,7 +25,7 @@
                     <tr>
                         <th class="ps-4">Tên Đợt</th>
                         <th>Loại Đợt</th>
-                        <th>Năm Học &amp; HK</th>
+                        <th>HK &amp; Năm Học</th>
                         <th>Thời Gian GV Nộp</th>
                         <th>Thời Gian SV ĐK</th>
                         <th>Hạn GVPB / Báo Cáo HĐ</th>
@@ -57,8 +57,8 @@
                         </td>
                         <td>
                             <div class="d-flex align-items-center text-nowrap">
+                                <span class="badge-semester me-2" th:text="'[HK' + ${p.semester} + ']'">[HK1]</span>
                                 <span class="fw-semibold text-dark" th:text="${p.academicYear}">2026-2027</span>
-                                <span class="badge-semester ms-2" th:text="'HK' + ${p.semester}">HK1</span>
                             </div>
                         </td>
                         <td class="small text-secondary" style="font-variant-numeric: tabular-nums;">

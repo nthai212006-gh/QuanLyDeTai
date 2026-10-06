@@ -37,6 +37,21 @@ public class GroupService {
 
     public Optional<Long> findActivePeriodIdByStudent(Long studentId) {
         List<GroupMember> members = memberRepository.findMembersWithPeriodByStudentId(studentId);
+        // Ưu tiên 1: Đợt mà nhóm của SV đang hoạt động (chưa hoàn thành)
+        Optional<Long> activeGroupPeriod = members.stream()
+                .filter(gm -> gm.getGroup() != null
+                        && gm.getGroup().getStatus() != StudentGroup.GroupStatus.COMPLETED
+                        && gm.getGroup().getStatus() != StudentGroup.GroupStatus.DISQUALIFIED)
+                .map(GroupMember::getPeriod)
+                .filter(java.util.Objects::nonNull)
+                .map(RegistrationPeriod::getId)
+                .findFirst();
+
+        if (activeGroupPeriod.isPresent()) {
+            return activeGroupPeriod;
+        }
+
+        // Ưu tiên 2: Đợt đang trong giai đoạn SV đăng ký hoặc thực hiện
         return members.stream()
                 .map(GroupMember::getPeriod)
                 .filter(p -> p != null && (p.getStatus() == RegistrationPeriod.PeriodStatus.SV_REGISTRATION || p.getStatus() == RegistrationPeriod.PeriodStatus.IN_PROGRESS))

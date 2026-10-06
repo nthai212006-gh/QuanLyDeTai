@@ -87,9 +87,9 @@
                             </div>
                             <div class="col-md-4">
                                 <label class="form-label">Năm Học <span class="text-danger">*</span></label>
-                                <input type="text" th:field="*{academicYear}" class="form-control font-monospace" 
-                                       placeholder="2026-2027" 
-                                       data-v-msg="Vui lòng nhập năm học (VD: 2026-2027)" required>
+                                <select th:field="*{academicYear}" class="form-select font-monospace" data-v-msg="Vui lòng chọn năm học" required>
+                                    <option th:each="ay : ${academicYears}" th:value="${ay}" th:text="${ay}">2026-2027</option>
+                                </select>
                             </div>
                             <div class="col-md-4">
                                 <label class="form-label">Học Kỳ <span class="text-danger">*</span></label>

@@ -29,6 +29,7 @@ public class PeriodController {
     public String showCreateForm(Model model) {
         model.addAttribute("period", new RegistrationPeriod());
         model.addAttribute("periodTypes", RegistrationPeriod.PeriodType.values());
+        model.addAttribute("academicYears", generateAcademicYears());
         return "periods/create";
     }
 
@@ -43,8 +44,19 @@ public class PeriodController {
         } catch (IllegalArgumentException e) {
             model.addAttribute("period", period);
             model.addAttribute("periodTypes", RegistrationPeriod.PeriodType.values());
+            model.addAttribute("academicYears", generateAcademicYears());
             model.addAttribute("errorMessage", e.getMessage());
             return "periods/create";
         }
+    }
+
+    private java.util.List<String> generateAcademicYears() {
+        int currentYear = java.time.LocalDate.now().getYear();
+        java.util.List<String> years = new java.util.ArrayList<>();
+        for (int i = -1; i <= 2; i++) {
+            int start = currentYear + i;
+            years.add(start + "-" + (start + 1));
+        }
+        return years;
     }
 }
