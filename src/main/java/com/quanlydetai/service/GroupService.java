@@ -69,6 +69,11 @@ public class GroupService {
             throw new IllegalStateException("Bạn đã tham gia một nhóm khác trong đợt đăng ký này!");
         }
 
+        // Quy tắc: Mỗi SV chỉ được tham gia duy nhất một nhóm trong suốt quá trình thực hiện đề tài (chưa hoàn thành)
+        if (memberRepository.hasActiveGroupMembership(leader.getId(), List.of(StudentGroup.GroupStatus.COMPLETED, StudentGroup.GroupStatus.DISQUALIFIED))) {
+            throw new IllegalStateException("Bạn đang tham gia một nhóm đề tài khác chưa hoàn thành!");
+        }
+
         RegistrationPeriod period = periodRepository.findById(periodId)
                 .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy đợt đăng ký"));
 
@@ -111,6 +116,11 @@ public class GroupService {
 
         if (memberRepository.existsByStudentIdAndPeriodId(student.getId(), group.getPeriod().getId())) {
             throw new IllegalStateException("Sinh viên " + student.getFullName() + " đã ở trong một nhóm khác của đợt này!");
+        }
+
+        // Quy tắc: Mỗi SV chỉ được tham gia duy nhất một nhóm trong suốt quá trình thực hiện đề tài (chưa hoàn thành)
+        if (memberRepository.hasActiveGroupMembership(student.getId(), List.of(StudentGroup.GroupStatus.COMPLETED, StudentGroup.GroupStatus.DISQUALIFIED))) {
+            throw new IllegalStateException("Sinh viên " + student.getFullName() + " đang tham gia một nhóm đề tài khác chưa hoàn thành!");
         }
 
         GroupMember newMember = GroupMember.builder()

@@ -42,4 +42,8 @@ public interface GroupMemberRepository extends JpaRepository<GroupMember, Long> 
 
     @org.springframework.data.jpa.repository.Query("SELECT gm FROM GroupMember gm JOIN FETCH gm.period WHERE gm.student.id = :studentId ORDER BY gm.id DESC")
     List<GroupMember> findMembersWithPeriodByStudentId(@org.springframework.data.repository.query.Param("studentId") Long studentId);
+
+    @org.springframework.data.jpa.repository.Query("SELECT COUNT(gm) > 0 FROM GroupMember gm WHERE gm.student.id = :studentId AND gm.group.status NOT IN (:excludedStatuses)")
+    boolean hasActiveGroupMembership(@org.springframework.data.repository.query.Param("studentId") Long studentId,
+                                    @org.springframework.data.repository.query.Param("excludedStatuses") List<com.quanlydetai.entity.StudentGroup.GroupStatus> excludedStatuses);
 }

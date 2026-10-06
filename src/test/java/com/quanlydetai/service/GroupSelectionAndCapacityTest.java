@@ -70,4 +70,66 @@ class GroupSelectionAndCapacityTest {
         Long resolvedPeriodId = activePeriodId.or(() -> latestPeriodId).orElse(null);
         assertThat(resolvedPeriodId).isEqualTo(1L);
     }
+
+    @Test
+    @DisplayName("Single active group rule: student in active group cannot create new group in another period")
+    void testStudentInActiveGroupCannotCreateNewGroup() {
+        User sv001 = userRepository.findByUserCode("SV001").orElseThrow();
+        User creator = userRepository.findByUserCode("TK001").orElseThrow();
+
+        RegistrationPeriod period2 = RegistrationPeriod.builder()
+                .periodName("Period 2 KLTN")
+                .periodType(RegistrationPeriod.PeriodType.GRADUATION_THESIS)
+                .academicYear("2026-2027")
+                .semester(2)
+                .topicSubmissionStart(java.time.LocalDateTime.now().minusDays(10))
+                .topicSubmissionEnd(java.time.LocalDateTime.now().minusDays(5))
+                .studentRegistrationStart(java.time.LocalDateTime.now().minusDays(4))
+                .studentRegistrationEnd(java.time.LocalDateTime.now().plusDays(5))
+                .reviewDeadline(java.time.LocalDateTime.now().plusDays(20))
+                .defenseDate(java.time.LocalDate.now().plusDays(30))
+                .createdBy(creator)
+                .build();
+        periodRepository.save(period2);
+
+        assertThatThrownBy(() -> groupService.createGroup("New Group Test", period2.getId(), sv001))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("chưa hoàn thành");
+    }
+
+    @Test
+    @DisplayName("Single active group rule: student in active group cannot be added to another group in another period")
+    void testStudentInActiveGroupCannotBeAddedToAnotherGroup() {
+        User sv001 = userRepository.findByUserCode("SV001").orElseThrow();
+        User creator = userRepository.findByUserCode("TK001").orElseThrow();
+
+        User freeStudent = userRepository.save(User.builder()
+                .userCode("SV_FREE_TEST")
+                .fullName("Sinh Vien Test Free")
+                .email("svfree@student.edu.vn")
+                .password("123456")
+                .roles(new java.util.HashSet<>(sv001.getRoles()))
+                .build());
+
+        RegistrationPeriod period2 = RegistrationPeriod.builder()
+                .periodName("Period 2 TLCN")
+                .periodType(RegistrationPeriod.PeriodType.GRADUATION_THESIS)
+                .academicYear("2026-2027")
+                .semester(2)
+                .topicSubmissionStart(java.time.LocalDateTime.now().minusDays(10))
+                .topicSubmissionEnd(java.time.LocalDateTime.now().minusDays(5))
+                .studentRegistrationStart(java.time.LocalDateTime.now().minusDays(4))
+                .studentRegistrationEnd(java.time.LocalDateTime.now().plusDays(5))
+                .reviewDeadline(java.time.LocalDateTime.now().plusDays(20))
+                .defenseDate(java.time.LocalDate.now().plusDays(30))
+                .createdBy(creator)
+                .build();
+        periodRepository.save(period2);
+
+        StudentGroup groupPeriod2 = groupService.createGroup("Period 2 Group", period2.getId(), freeStudent);
+
+        assertThatThrownBy(() -> groupService.addMember(groupPeriod2.getId(), "SV001"))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("chưa hoàn thành");
+    }
 }

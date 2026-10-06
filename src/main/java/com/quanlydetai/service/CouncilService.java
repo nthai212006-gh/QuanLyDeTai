@@ -84,6 +84,19 @@ public class CouncilService {
         User lecturer = userRepository.findById(lecturerId)
                 .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy giảng viên"));
 
+        // RÀNG BUỘC: Giảng viên không được tham gia hội đồng nếu đang hướng dẫn đề tài đã được gán vào hội đồng
+        List<CouncilTopic> assignedTopics = councilTopicRepository.findByCouncilId(councilId);
+        for (CouncilTopic ct : assignedTopics) {
+            Topic topic = ct.getGroup() != null ? ct.getGroup().getTopic() : null;
+            if (topic != null) {
+                boolean isSupervisor = supervisorRepository.existsByTopicIdAndLecturerId(topic.getId(), lecturerId)
+                        || (topic.getCreatedByLecturer() != null && topic.getCreatedByLecturer().getId().equals(lecturerId));
+                if (isSupervisor) {
+                    throw new IllegalStateException("Quy tắc nghiệp vụ: Giảng viên không được tham gia hội đồng chấm đề tài mà mình đang hướng dẫn ('" + topic.getTitle() + "')!");
+                }
+            }
+        }
+
         CouncilMember member = CouncilMember.builder()
                 .council(council)
                 .lecturer(lecturer)
@@ -132,6 +145,29 @@ public class CouncilService {
         }
         if (group.getTopic().getStatus() != Topic.TopicStatus.APPROVED) {
             throw new IllegalStateException("Đề tài của nhóm chưa được duyệt (APPROVED), không thể xếp lịch bảo vệ!");
+        }
+
+        Topic topic = group.getTopic();
+
+        // RÀNG BUỘC 3: Giảng viên hướng dẫn không được phân công làm cán bộ phản biện (GVPB)
+        if (reviewerId != null) {
+            boolean isReviewerSupervisor = supervisorRepository.existsByTopicIdAndLecturerId(topic.getId(), reviewerId)
+                    || (topic.getCreatedByLecturer() != null && topic.getCreatedByLecturer().getId().equals(reviewerId));
+            if (isReviewerSupervisor) {
+                throw new IllegalStateException("Quy định: Giảng viên hướng dẫn không được phân công làm cán bộ phản biện (GVPB) cho chính đề tài mình hướng dẫn!");
+            }
+        }
+
+        // RÀNG BUỘC 4: Không gán đề tài vào hội đồng nếu GVHD của đề tài đã là thành viên của hội đồng đó
+        List<CouncilMember> councilMembers = memberRepository.findByCouncilId(councilId);
+        for (CouncilMember cm : councilMembers) {
+            Long memLecturerId = cm.getLecturer().getId();
+            boolean isMemSupervisor = supervisorRepository.existsByTopicIdAndLecturerId(topic.getId(), memLecturerId)
+                    || (topic.getCreatedByLecturer() != null && topic.getCreatedByLecturer().getId().equals(memLecturerId));
+            if (isMemSupervisor) {
+                throw new IllegalStateException("Quy định: Giảng viên " + cm.getLecturer().getFullName() +
+                        " đang hướng dẫn đề tài này và đã là thành viên hội đồng. Một GV không được chấm đề tài mà mình đang hướng dẫn!");
+            }
         }
 
         User reviewer = reviewerId != null ? userRepository.findById(reviewerId).orElse(null) : null;

@@ -29,6 +29,9 @@ class CouncilStructureAndPublishTest {
     @Autowired private RegistrationPeriodRepository periodRepository;
     @Autowired private CouncilRepository councilRepository;
     @Autowired private CouncilMemberRepository memberRepository;
+    @Autowired private StudentGroupRepository groupRepository;
+    @Autowired private TopicRepository topicRepository;
+    @Autowired private TopicSupervisorRepository supervisorRepository;
 
     private Council testCouncil;
     private List<User> lecturers;
@@ -148,5 +151,91 @@ class CouncilStructureAndPublishTest {
         assertThatThrownBy(() ->
                 councilService.removeCouncilMember(testCouncil.getId(), 999999L))
                 .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    // ====================================================================
+    // SEAM 6: Khong cho gan de tai vao hoi dong neu GVHD da la thanh vien
+    // ====================================================================
+    @Test
+    void assignTopicToCouncil_WhenSupervisorIsCouncilMember_ThrowsException() {
+        User gv001 = userRepository.findByUserCode("GV001").orElseThrow();
+        councilService.addCouncilMember(testCouncil.getId(), gv001.getId(),
+                CouncilMember.CouncilPosition.CHAIR);
+
+        Topic topic = topicRepository.findById(1L).orElseThrow();
+        topic.setMaxGroups(10);
+        topic.setStatus(Topic.TopicStatus.APPROVED);
+        topicRepository.saveAndFlush(topic);
+
+        User student = userRepository.findByUserCode("SV004").orElseThrow();
+        StudentGroup testGroup = groupRepository.save(StudentGroup.builder()
+                .groupName("Test Group Conflict 1")
+                .period(topic.getPeriod())
+                .leader(student)
+                .topic(topic)
+                .status(StudentGroup.GroupStatus.IN_PROGRESS)
+                .build());
+
+        assertThatThrownBy(() ->
+                councilService.assignTopicToCouncil(testCouncil.getId(), testGroup.getId(), null, 1))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("không được chấm đề tài mà mình đang hướng dẫn");
+    }
+
+    // ====================================================================
+    // SEAM 7: Khong cho them GV vao hoi dong neu GV dang HD de tai trong hoi dong
+    // ====================================================================
+    @Test
+    void addCouncilMember_WhenLecturerSupervisesAssignedTopic_ThrowsException() {
+        Topic topic = topicRepository.findById(1L).orElseThrow();
+        topic.setMaxGroups(10);
+        topic.setStatus(Topic.TopicStatus.APPROVED);
+        topicRepository.saveAndFlush(topic);
+
+        User student = userRepository.findByUserCode("SV004").orElseThrow();
+        StudentGroup testGroup = groupRepository.save(StudentGroup.builder()
+                .groupName("Test Group Conflict 2")
+                .period(topic.getPeriod())
+                .leader(student)
+                .topic(topic)
+                .status(StudentGroup.GroupStatus.IN_PROGRESS)
+                .build());
+
+        // Gán đề tài vào testCouncil (chưa có gv001)
+        councilService.assignTopicToCouncil(testCouncil.getId(), testGroup.getId(), null, 1);
+
+        User gv001 = userRepository.findByUserCode("GV001").orElseThrow();
+        // Sau đó cố tình thêm GVHD vào hội đồng
+        assertThatThrownBy(() ->
+                councilService.addCouncilMember(testCouncil.getId(), gv001.getId(),
+                        CouncilMember.CouncilPosition.MEMBER))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("Giảng viên không được tham gia hội đồng");
+    }
+
+    // ====================================================================
+    // SEAM 8: Khong cho gan GVPB trung GVHD
+    // ====================================================================
+    @Test
+    void assignTopicToCouncil_WhenReviewerIsSupervisor_ThrowsException() {
+        Topic topic = topicRepository.findById(1L).orElseThrow();
+        topic.setMaxGroups(10);
+        topic.setStatus(Topic.TopicStatus.APPROVED);
+        topicRepository.saveAndFlush(topic);
+
+        User student = userRepository.findByUserCode("SV004").orElseThrow();
+        StudentGroup testGroup = groupRepository.save(StudentGroup.builder()
+                .groupName("Test Group Conflict 3")
+                .period(topic.getPeriod())
+                .leader(student)
+                .topic(topic)
+                .status(StudentGroup.GroupStatus.IN_PROGRESS)
+                .build());
+
+        User gv001 = userRepository.findByUserCode("GV001").orElseThrow();
+        assertThatThrownBy(() ->
+                councilService.assignTopicToCouncil(testCouncil.getId(), testGroup.getId(), gv001.getId(), 1))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("Giảng viên hướng dẫn không được phân công làm cán bộ phản biện");
     }
 }
