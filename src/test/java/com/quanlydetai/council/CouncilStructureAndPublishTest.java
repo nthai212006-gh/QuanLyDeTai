@@ -129,4 +129,24 @@ class CouncilStructureAndPublishTest {
         assertThat(councilService.isChairOfCouncil(testCouncil.getId(), lecturers.get(1).getId()))
                 .isFalse();
     }
+
+    // ====================================================================
+    // SEAM 5: removeCouncilMember - Xoa thanh vien khoi hoi dong
+    // ====================================================================
+    @Test
+    void removeCouncilMember_Succeeds() {
+        councilService.addCouncilMember(testCouncil.getId(), lecturers.get(0).getId(),
+                CouncilMember.CouncilPosition.MEMBER);
+        assertThat(memberRepository.countByCouncilId(testCouncil.getId())).isEqualTo(1);
+
+        councilService.removeCouncilMember(testCouncil.getId(), lecturers.get(0).getId());
+        assertThat(memberRepository.countByCouncilId(testCouncil.getId())).isEqualTo(0);
+    }
+
+    @Test
+    void removeCouncilMember_NotFound_ThrowsException() {
+        assertThatThrownBy(() ->
+                councilService.removeCouncilMember(testCouncil.getId(), 999999L))
+                .isInstanceOf(IllegalArgumentException.class);
+    }
 }

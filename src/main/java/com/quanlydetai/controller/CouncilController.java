@@ -6,6 +6,7 @@ import com.quanlydetai.entity.CouncilMember;
 import com.quanlydetai.entity.Evaluation;
 import com.quanlydetai.entity.RegistrationPeriod;
 import com.quanlydetai.entity.User;
+import com.quanlydetai.repository.CouncilMemberRepository;
 import com.quanlydetai.repository.RegistrationPeriodRepository;
 import com.quanlydetai.repository.StudentGroupRepository;
 import com.quanlydetai.repository.UserRepository;
@@ -27,6 +28,7 @@ import java.util.List;
 public class CouncilController {
 
     private final CouncilService councilService;
+    private final CouncilMemberRepository councilMemberRepository;
     private final RegistrationPeriodRepository periodRepository;
     private final UserRepository userRepository;
     private final StudentGroupRepository groupRepository;
@@ -97,6 +99,27 @@ public class CouncilController {
             councilService.addCouncilMember(councilId, lecturerId, position);
             redirectAttributes.addFlashAttribute("successMessage", "Thành viên đã được thêm vào hội đồng thành công.");
             return "redirect:/councils/" + councilId + "?memberAdded=true";
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", com.quanlydetai.util.SqlErrorUtils.extractFriendlyMessage(e));
+            return "redirect:/councils/" + councilId;
+        }
+    }
+
+    @PostMapping("/{id}/remove-member/{lecturerId}")
+    @PreAuthorize("hasAnyRole('DEAN', 'ADMIN')")
+    public String removeMember(@PathVariable("id") Long councilId,
+                              @PathVariable("lecturerId") Long lecturerId,
+                              org.springframework.web.servlet.mvc.support.RedirectAttributes redirectAttributes) {
+        try {
+            councilService.removeCouncilMember(councilId, lecturerId);
+            long remaining = councilMemberRepository.countByCouncilId(councilId);
+            if (remaining < 3) {
+                redirectAttributes.addFlashAttribute("warningMessage",
+                        "Đã xóa thành viên khỏi hội đồng. Lưu ý: Hội đồng hiện chỉ còn " + remaining + "/3 GV tối thiểu, cần bổ sung đủ trước khi chấm điểm.");
+            } else {
+                redirectAttributes.addFlashAttribute("successMessage", "Đã xóa thành viên khỏi hội đồng thành công.");
+            }
+            return "redirect:/councils/" + councilId;
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", com.quanlydetai.util.SqlErrorUtils.extractFriendlyMessage(e));
             return "redirect:/councils/" + councilId;

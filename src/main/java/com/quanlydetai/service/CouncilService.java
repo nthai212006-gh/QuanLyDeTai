@@ -93,6 +93,16 @@ public class CouncilService {
         memberRepository.save(member);
     }
 
+    @Transactional
+    @AuditAction(action = "REMOVE_COUNCIL_MEMBER", entityName = "CouncilMember")
+    public void removeCouncilMember(Long councilId, Long lecturerId) {
+        CouncilMember member = memberRepository.findByCouncilIdAndLecturerId(councilId, lecturerId)
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy giảng viên này trong hội đồng!"));
+
+        memberRepository.delete(member);
+        memberRepository.flush();
+    }
+
     /**
      * Kiểm tra một user có đang là CHỦ TỊCH của hội đồng đó không.
      * Dùng để cấp quyền publish kết quả cho CHAIR.
