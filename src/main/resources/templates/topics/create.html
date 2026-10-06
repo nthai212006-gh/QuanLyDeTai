@@ -4,12 +4,27 @@
 <body>
 <div id="main-content">
 
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+        <div>
+            <h4 class="fw-bold mb-1 text-primary d-flex align-items-center gap-2">
+                <i class="fa-solid fa-file-circle-plus text-primary"></i>
+                <span>Đề Xuất Đề Tài Mới</span>
+            </h4>
+            <div class="text-muted small">Đăng ký đề cương đề tài nghiên cứu dành cho Giảng viên</div>
+        </div>
+        <div>
+            <a th:href="@{/topics}" class="btn btn-secondary shadow-sm">
+                <i class="fa-solid fa-arrow-left me-1.5"></i> Quay lại danh sách đề tài
+            </a>
+        </div>
+    </div>
+
     <div class="row justify-content-center">
         <div class="col-lg-8">
             <div class="card shadow-sm border-0">
                 <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
                     <h5 class="fw-bold mb-0 text-success">
-                        <i class="fa-solid fa-file-circle-plus me-2"></i>Đề Xuất Đề Tài Mới (Dành Cho Giảng Viên)
+                        <i class="fa-solid fa-file-circle-plus me-2"></i>Thông Tin Đề Tài Nghiên Cứu
                     </h5>
                     <button type="button" class="btn btn-sm btn-outline-warning text-dark fw-semibold" onclick="checkSimilarityWithAI()">
                         <i class="fa-solid fa-robot me-1 text-primary"></i> AI Check Trùng Lặp

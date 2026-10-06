@@ -68,10 +68,23 @@ public class CouncilController {
                                @RequestParam("councilName") String name,
                                @RequestParam("periodId") Long periodId,
                                @RequestParam("defenseDate") String defenseDateStr,
-                               @RequestParam("location") String location) {
-        LocalDateTime defenseDate = LocalDateTime.parse(defenseDateStr);
-        councilService.createCouncil(code, name, periodId, defenseDate, location);
-        return "redirect:/councils?periodId=" + periodId + "&created=true";
+                               @RequestParam("location") String location,
+                               org.springframework.web.servlet.mvc.support.RedirectAttributes redirectAttributes) {
+        try {
+            LocalDateTime defenseDate;
+            try {
+                defenseDate = LocalDateTime.parse(defenseDateStr);
+            } catch (Exception parseEx) {
+                java.time.format.DateTimeFormatter formatter = java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+                defenseDate = LocalDateTime.parse(defenseDateStr, formatter);
+            }
+            councilService.createCouncil(code, name, periodId, defenseDate, location);
+            redirectAttributes.addFlashAttribute("successMessage", "Thành lập hội đồng phản biện mới thành công.");
+            return "redirect:/councils?periodId=" + periodId + "&created=true";
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", com.quanlydetai.util.SqlErrorUtils.extractFriendlyMessage(e));
+            return "redirect:/councils?periodId=" + periodId;
+        }
     }
 
     @PostMapping("/{id}/add-member")

@@ -15,10 +15,15 @@
                 GVHD: <strong th:text="${group.topic != null ? group.topic.supervisorsDisplayString : 'N/A'}">TS. A</strong>
             </p>
         </div>
-        <div th:if="${currentUser.id == group.leader.id}">
-            <button class="btn btn-primary shadow-sm" data-bs-toggle="modal" data-bs-target="#submitReportModal">
-                <i class="fa-solid fa-plus me-1"></i> Báo Cáo Tuần Mới
-            </button>
+        <div class="d-flex align-items-center gap-2">
+            <a th:href="@{/groups}" class="btn btn-outline-secondary shadow-sm">
+                <i class="fa-solid fa-arrow-left me-1"></i> Quay lại danh sách nhóm
+            </a>
+            <div th:if="${currentUser != null and group.leader != null and currentUser.id == group.leader.id}">
+                <button class="btn btn-primary shadow-sm" data-bs-toggle="modal" data-bs-target="#submitReportModal">
+                    <i class="fa-solid fa-plus me-1"></i> Báo Cáo Tuần Mới
+                </button>
+            </div>
         </div>
     </div>
 
@@ -32,14 +37,17 @@
                             <i class="fa-solid fa-bookmark me-2"></i>Báo Cáo Tiến Độ Tuần <span th:text="${r.weekNumber}">1</span>
                         </h5>
                         <small class="text-muted">
-                            Thời gian: <span th:text="${#temporals.format(r.startDate, 'dd/MM/yyyy')}">01/09</span> đến <span th:text="${#temporals.format(r.endDate, 'dd/MM/yyyy')}">07/09</span>
-                            | Nộp bởi: <span th:text="${r.submittedBy.fullName}">SV A</span> vào lúc <span th:text="${#temporals.format(r.submittedAt, 'dd/MM/yyyy HH:mm')}">08/09</span>
+                            <span th:if="${r.startDate != null and r.endDate != null}">
+                                Thời gian: <span th:text="${#temporals.format(r.startDate, 'dd/MM/yyyy')}">01/09</span> đến <span th:text="${#temporals.format(r.endDate, 'dd/MM/yyyy')}">07/09</span> | 
+                            </span>
+                            Nộp bởi: <span th:text="${r.submittedBy != null ? r.submittedBy.fullName : (group.leader != null ? group.leader.fullName : 'Nhóm trưởng')}">SV A</span>
+                            <span th:if="${r.submittedAt != null}"> vào lúc <span th:text="${#temporals.format(r.submittedAt, 'dd/MM/yyyy HH:mm')}">08/09</span></span>
                         </small>
                     </div>
                     <div>
-                        <span th:if="${r.status.name() == 'PENDING'}" class="badge-status badge-status-pending">CHỜ GVHD NHẬN XÉT</span>
-                        <span th:if="${r.status.name() == 'APPROVED'}" class="badge-status badge-status-success">GVHD ĐÁNH GIÁ: ĐẠT</span>
-                        <span th:if="${r.status.name() == 'REVISION_REQUIRED'}" class="badge-status badge-status-danger">CẦN CHỈNH SỬA LẠI</span>
+                        <span th:if="${r.status != null and r.status.name() == 'PENDING'}" class="badge-status badge-status-pending">CHỜ GVHD NHẬN XÉT</span>
+                        <span th:if="${r.status != null and (r.status.name() == 'APPROVED' or r.status.name() == 'ACCEPTED')}" class="badge-status badge-status-success">GVHD ĐÁNH GIÁ: ĐẠT</span>
+                        <span th:if="${r.status != null and (r.status.name() == 'REVISION_REQUIRED' or r.status.name() == 'NEEDS_REVISION')}" class="badge-status badge-status-danger">CẦN CHỈNH SỬA LẠI</span>
                     </div>
                 </div>
 

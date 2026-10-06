@@ -4,6 +4,18 @@
 <body>
 <div id="main-content">
 
+    <!-- Flash Alert Messages -->
+    <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show shadow-sm d-flex align-items-center gap-2 mb-4" role="alert">
+        <i class="fa-solid fa-circle-exclamation fs-5 flex-shrink-0 text-danger"></i>
+        <div class="fw-semibold" th:text="${errorMessage}">Đã xảy ra lỗi khi thực hiện thao tác.</div>
+        <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>
+    </div>
+    <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show shadow-sm d-flex align-items-center gap-2 mb-4" role="alert">
+        <i class="fa-solid fa-circle-check fs-5 flex-shrink-0 text-success"></i>
+        <div class="fw-semibold" th:text="${successMessage}">Thao tác thành công.</div>
+        <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>
+    </div>
+
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <h4 class="fw-bold text-dark mb-1">Hội Đồng Phản Biện & Chấm Điểm</h4>

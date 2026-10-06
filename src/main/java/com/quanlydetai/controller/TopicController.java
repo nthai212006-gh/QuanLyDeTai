@@ -58,6 +58,7 @@ public class TopicController {
                 .filter(u -> u.hasRole("ROLE_LECTURER") && !u.getId().equals(userDetails.getId()))
                 .toList();
         model.addAttribute("lecturers", lecturers);
+        model.addAttribute("currentUser", userDetails.getUser());
         return "topics/create";
     }
 
