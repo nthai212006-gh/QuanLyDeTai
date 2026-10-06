@@ -1052,10 +1052,14 @@ INSERT INTO `topic_supervisors` (`topic_id`, `lecturer_id`, `is_primary`) VALUES
 
 -- 8. Nạp nhóm sinh viên & thành viên nhóm
 INSERT INTO `users` (`id`, `user_code`, `password`, `full_name`, `email`, `phone`, `academic_rank`, `class_name`, `department_id`) VALUES
-(11, 'SV004', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iKTVKIUi', 'Phạm Minh Đức', 'sv004@student.edu.vn', '0912345681', NULL, 'DHCNTT17B', 4);
+(10, 'SV005', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iKTVKIUi', 'Trịnh Hoàng Long', 'sv005@student.edu.vn', '0912345682', NULL, 'DHCNTT17B', 4),
+(11, 'SV004', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iKTVKIUi', 'Phạm Minh Đức', 'sv004@student.edu.vn', '0912345681', NULL, 'DHCNTT17B', 4),
+(12, 'GV004', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iKTVKIUi', 'ThS. Nguyễn Văn D', 'gv004@fit.edu.vn', '0906789012', 'ThS', NULL, 1);
 
 INSERT INTO `user_roles` (`user_id`, `role_id`) VALUES
-(11, 4);
+(10, 4),
+(11, 4),
+(12, 3);
 
 INSERT INTO `student_groups` (`id`, `group_name`, `period_id`, `topic_id`, `leader_id`, `status`) VALUES
 (1, 'Nhóm Nghiên Cứu Phần Mềm', 1, 1, 6, 'DEFENDING'),
