@@ -39,6 +39,7 @@ public class SecurityConfig {
                 .requestMatchers("/topics/approve/**").hasAnyRole("DEAN", "HEAD_OF_DEPT", "ADMIN")
                 .requestMatchers("/topics/create").hasAnyRole("LECTURER", "HEAD_OF_DEPT", "DEAN", "ADMIN")
                 .requestMatchers("/groups/create", "/groups/register-topic").hasRole("STUDENT")
+                .requestMatchers("/ai/**").hasAnyRole("DEAN", "HEAD_OF_DEPT", "LECTURER", "ADMIN")
                 .anyRequest().authenticated()
             )
             .formLogin(form -> form
