@@ -1,8 +1,6 @@
 package com.quanlydetai.controller;
 
 import com.quanlydetai.config.CustomUserDetails;
-import com.quanlydetai.entity.RegistrationPeriod;
-import com.quanlydetai.repository.RegistrationPeriodRepository;
 import com.quanlydetai.service.AiService;
 import com.quanlydetai.dto.AiRecommendRequest;
 import com.quanlydetai.dto.AiSimilarityRequest;
@@ -17,6 +15,8 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
+import com.quanlydetai.entity.User;
+import com.quanlydetai.service.AiChatbotService;
 import java.util.List;
 import java.util.Map;
 
@@ -26,14 +26,44 @@ import java.util.Map;
 public class AiAssistantController {
 
     private final AiService aiService;
-    private final RegistrationPeriodRepository periodRepository;
+    private final AiChatbotService aiChatbotService;
+
+    @GetMapping("/chatbot")
+    public String chatbotPage(Model model, @AuthenticationPrincipal CustomUserDetails userDetails) {
+        User user = userDetails.getUser();
+        String prefix = (user.getAcademicRank() != null && !user.getAcademicRank().trim().isEmpty()) 
+                ? user.getAcademicRank() + " " 
+                : "";
+        String welcomeGreeting = "Xin chào " + prefix + user.getFullName() + ", tôi có thể giúp gì được cho bạn?";
+        model.addAttribute("currentUser", user);
+        model.addAttribute("welcomeGreeting", welcomeGreeting);
+        model.addAttribute("chatHistory", aiChatbotService.getChatHistory(user.getId()));
+        return "ai/chatbot";
+    }
 
     @GetMapping("/assistant")
-    public String assistantPage(Model model, @AuthenticationPrincipal CustomUserDetails userDetails) {
-        List<RegistrationPeriod> periods = periodRepository.findAllByOrderByCreatedAtDesc();
-        model.addAttribute("periods", periods);
-        model.addAttribute("currentUser", userDetails.getUser());
-        return "ai/assistant";
+    public String assistantPage() {
+        return "redirect:/ai/chatbot";
+    }
+
+    @PostMapping("/chat")
+    @ResponseBody
+    public ResponseEntity<?> chatMessage(@RequestBody Map<String, String> payload,
+                                         @AuthenticationPrincipal CustomUserDetails userDetails) {
+        String message = payload.get("message");
+        String reply = aiChatbotService.processChat(message, userDetails.getUser());
+        String timeNow = java.time.LocalTime.now().format(java.time.format.DateTimeFormatter.ofPattern("HH:mm"));
+        return ResponseEntity.ok(Map.of(
+                "reply", reply,
+                "timestamp", timeNow
+        ));
+    }
+
+    @PostMapping("/clear-chat")
+    @ResponseBody
+    public ResponseEntity<?> clearChat(@AuthenticationPrincipal CustomUserDetails userDetails) {
+        aiChatbotService.clearChatHistory(userDetails.getUser().getId());
+        return ResponseEntity.ok(Map.of("success", true));
     }
 
     @PostMapping("/recommend")
