@@ -49,4 +49,12 @@ public interface StudentGroupRepository extends JpaRepository<StudentGroup, Long
            "AND g.topic IS NOT NULL AND g.topic.status = 'APPROVED' " +
            "AND g.id NOT IN (SELECT ct.group.id FROM CouncilTopic ct)")
     List<StudentGroup> findAvailableForCouncilAssignment(@Param("periodId") Long periodId);
+
+    /**
+     * Truy vấn tìm các nhóm sinh viên do một giảng viên cụ thể hướng dẫn (chính hoặc phụ hoặc tạo đề tài).
+     */
+    @Query("SELECT g FROM StudentGroup g WHERE g.topic IS NOT NULL AND (" +
+           "g.topic.createdByLecturer.id = :lecturerId OR " +
+           "EXISTS (SELECT ts FROM TopicSupervisor ts WHERE ts.topic.id = g.topic.id AND ts.lecturer.id = :lecturerId))")
+    List<StudentGroup> findSupervisedGroupsByLecturerId(@Param("lecturerId") Long lecturerId);
 }
