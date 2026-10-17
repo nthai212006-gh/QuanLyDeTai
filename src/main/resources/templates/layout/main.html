@@ -76,12 +76,14 @@
                     <span>Hội đồng phản biện</span>
                 </a>
 
-                <!-- Group 5: Công cụ AI -->
-                <div class="nav-group-title">Công cụ thông minh</div>
-                <a th:href="@{/ai/assistant}" class="sidebar-link ai-link" th:classappend="${pageTitle == 'AI Assistant' or pageTitle == 'Trợ Lý AI' ? 'active' : ''}" title="Trợ lý AI Assistant">
-                    <i class="fa-solid fa-robot"></i>
-                    <span>AI Assistant</span>
-                </a>
+                <!-- Group 5: Công cụ AI Chatbot (Ngoại trừ Sinh viên) -->
+                <div sec:authorize="hasAnyRole('DEAN', 'HEAD_OF_DEPT', 'LECTURER', 'ADMIN')">
+                    <div class="nav-group-title">Công cụ thông minh</div>
+                    <a th:href="@{/ai/chatbot}" class="sidebar-link ai-link" th:classappend="${pageTitle == 'AI Chatbot' or pageTitle == 'Trợ Lý AI' ? 'active' : ''}" title="Trợ lý AI Chatbot">
+                        <i class="fa-solid fa-comments"></i>
+                        <span>AI Chatbot</span>
+                    </a>
+                </div>
 
                 <!-- Group 6: Quản trị hệ thống (Chỉ Admin) -->
                 <div sec:authorize="hasRole('ADMIN')">
