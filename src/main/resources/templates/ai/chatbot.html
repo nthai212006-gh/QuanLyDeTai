@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:replace="~{layout/main :: html(content=~{::#main-content}, pageTitle='AI Chatbot')}">
+<body>
+<div id="main-content">
+
+    <style>
+        .chat-container {
+            display: flex;
+            flex-direction: column;
+            height: calc(100vh - 165px);
+            min-height: 580px;
+            background: #FFFFFF;
+            border: 1px solid var(--color-border, #E2E8F0);
+            border-radius: 16px;
+            box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.06);
+            overflow: hidden;
+        }
+
+        /* Chat Header */
+        .chat-header {
+            padding: 16px 24px;
+            background: #F8FAFC;
+            border-bottom: 1px solid var(--color-border, #E2E8F0);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .chat-bot-avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #1E40AF 0%, #3B82F6 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #FFFFFF;
+            font-size: 1.25rem;
+            position: relative;
+            box-shadow: 0 4px 12px rgba(30, 64, 175, 0.25);
+        }
+
+        .chat-online-dot {
+            width: 11px;
+            height: 11px;
+            background: #10B981;
+            border: 2px solid #FFFFFF;
+            border-radius: 50%;
+            position: absolute;
+            bottom: -1px;
+            right: -1px;
+        }
+
+        /* Suggested Chips Bar */
+        .chat-chips-bar {
+            padding: 10px 20px;
+            background: #F8FAFC;
+            border-bottom: 1px solid #F1F5F9;
+            overflow-x: auto;
+            white-space: nowrap;
+            display: flex;
+            gap: 8px;
+            scrollbar-width: thin;
+        }
+
+        .chat-chips-bar::-webkit-scrollbar {
+            height: 4px;
+        }
+        .chat-chips-bar::-webkit-scrollbar-thumb {
+            background: #CBD5E1;
+            border-radius: 4px;
+        }
+
+        .chip-btn {
+            background: #FFFFFF;
+            border: 1px solid #E2E8F0;
+            border-radius: 20px;
+            padding: 6px 14px;
+            font-size: 0.8125rem;
+            font-weight: 500;
+            color: #334155;
+            cursor: pointer;
+            transition: all 0.15s ease-in-out;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            user-select: none;
+        }
+
+        .chip-btn:hover {
+            background: #EFF6FF;
+            border-color: #BFDBFE;
+            color: #1D4ED8;
+            transform: translateY(-1px);
+        }
+
+        /* Messages Body */
+        .chat-messages {
+            flex: 1;
+            padding: 24px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+            background: #FAFBFD;
+        }
+
+        .message-row {
+            display: flex;
+            gap: 12px;
+            max-width: 85%;
+        }
+
+        .message-row.bot {
+            align-self: flex-start;
+        }
+
+        .message-row.user {
+            align-self: flex-end;
+            flex-direction: row-reverse;
+        }
+
+        .message-avatar {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.85rem;
+            font-weight: 700;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .message-avatar.bot {
+            background: #1E40AF;
+            color: #FFFFFF;
+        }
+
+        .message-avatar.user {
+            background: #E2E8F0;
+            color: #334155;
+        }
+
+        .message-bubble {
+            padding: 14px 18px;
+            border-radius: 16px;
+            font-size: 0.925rem;
+            line-height: 1.6;
+            word-break: break-word;
+            position: relative;
+        }
+
+        .message-row.bot .message-bubble {
+            background: #FFFFFF;
+            color: #1E293B;
+            border: 1px solid #E2E8F0;
+            border-top-left-radius: 4px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+        }
+
+        .message-row.user .message-bubble {
+            background: #1E40AF;
+            color: #FFFFFF;
+            border-top-right-radius: 4px;
+            box-shadow: 0 2px 8px rgba(30, 64, 175, 0.2);
+        }
+
+        .message-time {
+            font-size: 0.725rem;
+            margin-top: 4px;
+            color: #94A3B8;
+        }
+
+        .message-row.user .message-time {
+            text-align: right;
+            color: #94A3B8;
+        }
+
+        /* Formatted Content inside Bot Bubble */
+        .message-bubble h3, .message-bubble h4 {
+            font-size: 1rem;
+            font-weight: 700;
+            margin-top: 6px;
+            margin-bottom: 10px;
+            color: #0F172A;
+            border-bottom: 1px solid #F1F5F9;
+            padding-bottom: 6px;
+        }
+
+        .message-bubble p {
+            margin-bottom: 8px;
+        }
+
+        .message-bubble p:last-child {
+            margin-bottom: 0;
+        }
+
+        .message-bubble strong {
+            color: #0F172A;
+        }
+
+        .message-row.user .message-bubble strong {
+            color: #FFFFFF;
+        }
+
+        .message-bubble code {
+            background: #F1F5F9;
+            color: #0369A1;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.85em;
+        }
+
+        .message-bubble a {
+            color: #2563EB;
+            text-decoration: underline;
+        }
+
+        /* Typing indicator animation */
+        .typing-dots {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 6px 12px;
+            background: #FFFFFF;
+            border: 1px solid #E2E8F0;
+            border-radius: 16px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+        }
+
+        .typing-dots span {
+            width: 7px;
+            height: 7px;
+            background: #94A3B8;
+            border-radius: 50%;
+            animation: bounce 1.4s infinite ease-in-out both;
+        }
+
+        .typing-dots span:nth-child(1) { animation-delay: -0.32s; }
+        .typing-dots span:nth-child(2) { animation-delay: -0.16s; }
+
+        @keyframes bounce {
+            0%, 80%, 100% { transform: scale(0); opacity: 0.4; }
+            40% { transform: scale(1); opacity: 1; }
+        }
+
+        /* Chat Input Bar */
+        .chat-input-area {
+            padding: 16px 24px;
+            background: #FFFFFF;
+            border-top: 1px solid var(--color-border, #E2E8F0);
+        }
+
+        .chat-input-box {
+            display: flex;
+            align-items: flex-end;
+            gap: 10px;
+            background: #F8FAFC;
+            border: 1px solid #CBD5E1;
+            border-radius: 14px;
+            padding: 6px 10px 6px 16px;
+            transition: all 0.2s;
+        }
+
+        .chat-input-box:focus-within {
+            border-color: #2563EB;
+            background: #FFFFFF;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+        }
+
+        .chat-textarea {
+            flex: 1;
+            border: none;
+            background: transparent;
+            resize: none;
+            outline: none;
+            font-size: 0.925rem;
+            line-height: 1.5;
+            max-height: 120px;
+            min-height: 24px;
+            padding: 6px 0;
+            color: #1E293B;
+        }
+
+        .btn-send {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            background: #1E40AF;
+            border: none;
+            color: #FFFFFF;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.15s ease-in-out;
+            flex-shrink: 0;
+        }
+
+        .btn-send:hover:not(:disabled) {
+            background: #1D4ED8;
+            transform: scale(1.05);
+        }
+
+        .btn-send:disabled {
+            background: #94A3B8;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+    </style>
+
+    <!-- Main Chatbot Card -->
+    <div class="chat-container">
+
+        <!-- 1. Header -->
+        <div class="chat-header">
+            <div class="d-flex align-items-center gap-3">
+                <div class="chat-bot-avatar">
+                    <i class="fa-solid fa-robot"></i>
+                    <span class="chat-online-dot"></span>
+                </div>
+                <div>
+                    <div class="d-flex align-items-center gap-2">
+                        <h6 class="fw-bold mb-0 text-dark">AI Chatbot • FIT Assistant</h6>
+                        <span class="badge bg-success-subtle text-success border border-success-subtle small px-2 py-0.5 rounded-pill fw-medium">
+                            Trực tuyến
+                        </span>
+                    </div>
+                    <small class="text-secondary">Trợ lý hỗ trợ tổng hợp thông tin học vụ &amp; quản lý đề tài Khoa CNTT</small>
+                </div>
+            </div>
+
+            <div class="d-flex align-items-center gap-2">
+                <button type="button" class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1.5 px-3 py-1.5 rounded-3" 
+                        onclick="clearChatHistory()" title="Xóa toàn bộ lịch sử tin nhắn của bạn">
+                    <i class="fa-regular fa-trash-can"></i>
+                    <span>Xóa đoạn chat</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- 2. Suggestion Prompt Chips Bar -->
+        <div class="chat-chips-bar">
+            <button type="button" class="chip-btn" onclick="sendPrompt('Hiện tại đang có những đợt đăng ký nào diễn ra?')">
+                📅 Đợt đăng ký đang diễn ra?
+            </button>
+            <button type="button" class="chip-btn" onclick="sendPrompt('Hiện tại tôi đang là giảng viên hướng dẫn của những nhóm nào?')">
+                👥 Nhóm tôi đang hướng dẫn?
+            </button>
+            <button type="button" class="chip-btn" onclick="sendPrompt('Hiện tại tôi đang là giảng viên hướng dẫn của bao nhiêu nhóm?')">
+                📊 Tôi hướng dẫn bao nhiêu nhóm?
+            </button>
+            <button type="button" class="chip-btn" onclick="sendPrompt('Cho tôi biết những nhóm nào đã nộp báo cáo tuần.')">
+                📝 Nhóm đã nộp báo cáo tuần?
+            </button>
+            <button type="button" class="chip-btn" onclick="sendPrompt('Cho tôi biết nhóm nào đang chờ duyệt báo cáo tuần.')">
+                ⏳ Nhóm chờ duyệt báo cáo tuần?
+            </button>
+            <button type="button" class="chip-btn" onclick="sendPrompt('Nhóm nào đã nộp báo cáo hoàn chỉnh.')">
+                📑 Nhóm đã nộp báo cáo hoàn chỉnh?
+            </button>
+            <button type="button" class="chip-btn" onclick="sendPrompt('Tôi đang làm giảng viên phản biện/chủ tịch/thư ký/ủy viên cho những hội đồng nào?')">
+                🏛️ Hội đồng tôi tham gia?
+            </button>
+            <button type="button" class="chip-btn" onclick="sendPrompt('Tôi đang tham gia vào bao nhiêu hội đồng?')">
+                🔢 Tôi tham gia bao nhiêu hội đồng?
+            </button>
+        </div>
+
+        <!-- 3. Message Stream -->
+        <div class="chat-messages" id="chatMessages">
+
+            <!-- Welcome Message (Always first) -->
+            <div class="message-row bot">
+                <div class="message-avatar bot">
+                    <i class="fa-solid fa-robot"></i>
+                </div>
+                <div>
+                    <div class="message-bubble" id="welcomeBubble">
+                        <p class="fw-semibold text-dark mb-2" th:text="${welcomeGreeting}">Xin chào, tôi có thể giúp gì được cho bạn?</p>
+                        <p class="mb-2 text-secondary">
+                            Tôi có thể giúp bạn tổng hợp nhanh thông tin đợt đăng ký, tiến độ các nhóm hướng dẫn, tình trạng nộp báo cáo tuần/hoàn chỉnh và danh sách hội đồng bảo vệ.
+                        </p>
+                        <div class="small fw-semibold text-primary mb-2">💡 Gợi ý câu hỏi phổ biến:</div>
+                        <div class="d-flex flex-wrap gap-1.5">
+                            <span class="chip-btn" onclick="sendPrompt('Hiện tại đang có những đợt đăng ký nào diễn ra?')">
+                                📅 Đợt đăng ký hiện tại
+                            </span>
+                            <span class="chip-btn" onclick="sendPrompt('Hội đồng sắp tới cần tham gia là khi nào?')">
+                                ⚖️ Hội đồng sắp tới
+                            </span>
+                            <span class="chip-btn" onclick="sendPrompt('Danh sách Nhóm & đề tài trong hội đồng sắp tới')">
+                                📋 Nhóm & đề tài HĐ
+                            </span>
+                            <span class="chip-btn" onclick="sendPrompt('Có những đề tài nào trong đợt này?')">
+                                📚 Đề tài trong đợt
+                            </span>
+                            <span class="chip-btn" onclick="sendPrompt('Có bao nhiêu đề tài trong đợt này?')">
+                                📊 Thống kê đề tài đợt
+                            </span>
+                            <span class="chip-btn" onclick="sendPrompt('Có những đề tài nào chưa có nhóm đăng ký?')">
+                                🌟 Đề tài còn trống
+                            </span>
+                            <span class="chip-btn" onclick="sendPrompt('Hiện tại tôi đang là giảng viên hướng dẫn của những nhóm nào?')">
+                                👥 Nhóm tôi hướng dẫn
+                            </span>
+                            <span class="chip-btn" onclick="sendPrompt('Cho tôi biết nhóm nào đang chờ duyệt báo cáo tuần.')">
+                                ⏳ Báo cáo chờ duyệt
+                            </span>
+                            <span class="chip-btn" onclick="sendPrompt('Tôi đang làm giảng viên phản biện/chủ tịch/thư ký/ủy viên cho những hội đồng nào?')">
+                                🏛️ Hội đồng của tôi
+                            </span>
+                        </div>
+                    </div>
+                    <div class="message-time">Trợ lý AI • Hôm nay</div>
+                </div>
+            </div>
+
+            <!-- Existing Chat History (If any) -->
+            <th:block th:each="entry : ${chatHistory}">
+                <!-- User Question -->
+                <div class="message-row user">
+                    <div class="message-avatar user" th:text="${currentUser.initials}">GV</div>
+                    <div>
+                        <div class="message-bubble" th:text="${entry.inputContent}">Câu hỏi người dùng</div>
+                        <div class="message-time" th:text="${#temporals.format(entry.createdAt, 'HH:mm')}">14:00</div>
+                    </div>
+                </div>
+
+                <!-- Bot Response -->
+                <div class="message-row bot">
+                    <div class="message-avatar bot">
+                        <i class="fa-solid fa-robot"></i>
+                    </div>
+                    <div>
+                        <div class="message-bubble chat-markdown-content" th:attr="data-raw=${entry.aiResponse}">
+                            <!-- Content will be parsed by JS -->
+                        </div>
+                        <div class="message-time" th:text="${#temporals.format(entry.createdAt, 'HH:mm')}">14:00</div>
+                    </div>
+                </div>
+            </th:block>
+
+            <!-- Typing indicator element (Hidden by default) -->
+            <div class="message-row bot" id="typingRow" style="display: none;">
+                <div class="message-avatar bot">
+                    <i class="fa-solid fa-robot"></i>
+                </div>
+                <div>
+                    <div class="typing-dots">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- 4. Input Area -->
+        <div class="chat-input-area">
+            <div class="chat-input-box">
+                <textarea id="chatInput" 
+                          class="chat-textarea" 
+                          rows="1" 
+                          placeholder="Nhập câu hỏi của bạn tại đây... (Nhấn Enter để gửi, Shift+Enter xuống dòng)"
+                          onkeydown="handleInputKeyDown(event)"
+                          oninput="autoResizeTextarea(this)"></textarea>
+
+                <button type="button" id="btnSend" class="btn-send" onclick="submitUserMessage()" title="Gửi tin nhắn (Enter)">
+                    <i class="fa-solid fa-paper-plane"></i>
+                </button>
+            </div>
+            <div class="d-flex justify-content-between align-items-center mt-2 px-1">
+                <span class="small text-muted" style="font-size: 0.775rem;">
+                    <i class="fa-solid fa-circle-info me-1"></i> AI Chatbot tổng hợp dữ liệu thời gian thực từ cơ sở dữ liệu Khoa CNTT.
+                </span>
+                <span class="small text-muted" style="font-size: 0.775rem;">
+                    Nhấn <strong>Enter</strong> để gửi
+                </span>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Scripts for Chat UI -->
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        const CURRENT_USER_INITIALS = /*[[${currentUser.initials}]]*/ 'GV';
+
+        /**
+         * Escape HTML để ngăn ngừa XSS
+         */
+        function escapeHtml(text) {
+            if (!text) return '';
+            return String(text)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        /**
+         * Format Markdown đơn giản cho tin nhắn bot
+         */
+        function parseMarkdown(text) {
+            if (!text) return '';
+            let safe = escapeHtml(text);
+
+            // 1. Heading h4 / h3
+            safe = safe.replace(/^#### (.*$)/gim, '<h4 class="mt-2 mb-1.5 font-bold text-dark fs-6">$1</h4>');
+            safe = safe.replace(/^### (.*$)/gim, '<h3 class="mt-2 mb-2 font-bold text-dark fs-6 pb-1 border-bottom">$1</h3>');
+
+            // 2. Bold text **text**
+            safe = safe.replace(/\*\*(.*?)\*\*/gim, '<strong>$1</strong>');
+
+            // 3. Italic *text*
+            safe = safe.replace(/\*(.*?)\*/gim, '<em>$1</em>');
+
+            // 4. Inline code `code`
+            safe = safe.replace(/`([^`]+)`/gim, '<code>$1</code>');
+
+            // 5. Links [text](url)
+            safe = safe.replace(/\[(.*?)\]\((.*?)\)/gim, '<a href="$2" target="_blank" rel="noopener">$1</a>');
+
+            // 6. Bullet lists - item
+            safe = safe.replace(/^- (.*$)/gim, '<div class="ps-2 py-0.5">• $1</div>');
+
+            // 7. Line breaks
+            safe = safe.replace(/\n/gim, '<br>');
+
+            return safe;
+        }
+
+        /**
+         * Render markdown cho toàn bộ lịch sử ban đầu
+         */
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('.chat-markdown-content').forEach(el => {
+                const raw = el.getAttribute('data-raw');
+                if (raw) {
+                    el.innerHTML = parseMarkdown(raw);
+                }
+            });
+            scrollToBottom();
+        });
+
+        function scrollToBottom() {
+            const container = document.getElementById('chatMessages');
+            if (container) {
+                container.scrollTop = container.scrollHeight;
+            }
+        }
+
+        function autoResizeTextarea(el) {
+            el.style.height = 'auto';
+            el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+        }
+
+        function handleInputKeyDown(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                submitUserMessage();
+            }
+        }
+
+        function sendPrompt(promptText) {
+            const input = document.getElementById('chatInput');
+            if (input) {
+                input.value = promptText;
+                submitUserMessage();
+            }
+        }
+
+        function submitUserMessage() {
+            const input = document.getElementById('chatInput');
+            const btnSend = document.getElementById('btnSend');
+            const messagesContainer = document.getElementById('chatMessages');
+            const typingRow = document.getElementById('typingRow');
+
+            if (!input) return;
+            const message = input.value.trim();
+            if (!message) return;
+
+            // Lấy thời gian hiện tại
+            const now = new Date();
+            const timeStr = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
+
+            // Append user message to UI
+            const userHtml = `
+                <div class="message-row user">
+                    <div class="message-avatar user">${escapeHtml(CURRENT_USER_INITIALS)}</div>
+                    <div>
+                        <div class="message-bubble">${escapeHtml(message)}</div>
+                        <div class="message-time">${timeStr}</div>
+                    </div>
+                </div>
+            `;
+            typingRow.insertAdjacentHTML('beforebegin', userHtml);
+
+            // Clear input
+            input.value = '';
+            input.style.height = 'auto';
+            btnSend.disabled = true;
+
+            // Show typing indicator
+            typingRow.style.display = 'flex';
+            scrollToBottom();
+
+            // Send to server
+            fetch('/ai/chat', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json; charset=utf-8'
+                },
+                body: JSON.stringify({ message: message })
+            })
+            .then(res => {
+                if (!res.ok) throw new Error('Mã phản hồi lỗi: ' + res.status);
+                return res.json();
+            })
+            .then(data => {
+                typingRow.style.display = 'none';
+
+                const botTime = data.timestamp || timeStr;
+                const botContent = parseMarkdown(data.reply);
+
+                const botHtml = `
+                    <div class="message-row bot">
+                        <div class="message-avatar bot">
+                            <i class="fa-solid fa-robot"></i>
+                        </div>
+                        <div>
+                            <div class="message-bubble">${botContent}</div>
+                            <div class="message-time">${botTime}</div>
+                        </div>
+                    </div>
+                `;
+                typingRow.insertAdjacentHTML('beforebegin', botHtml);
+                scrollToBottom();
+            })
+            .catch(err => {
+                typingRow.style.display = 'none';
+                const errorHtml = `
+                    <div class="message-row bot">
+                        <div class="message-avatar bot" style="background:#EF4444;">
+                            <i class="fa-solid fa-triangle-exclamation"></i>
+                        </div>
+                        <div>
+                            <div class="message-bubble text-danger border-danger-subtle bg-danger-subtle">
+                                <strong>Lỗi kết nối:</strong> Không thể nhận phản hồi từ AI Chatbot. Vui lòng thử lại sau giây lát. (${escapeHtml(err.message)})
+                            </div>
+                            <div class="message-time">${timeStr}</div>
+                        </div>
+                    </div>
+                `;
+                typingRow.insertAdjacentHTML('beforebegin', errorHtml);
+                scrollToBottom();
+            })
+            .finally(() => {
+                btnSend.disabled = false;
+                input.focus();
+            });
+        }
+
+        function clearChatHistory() {
+            if (!confirm('Thầy/Cô có chắc chắn muốn xóa toàn bộ lịch sử đoạn chat này không?')) {
+                return;
+            }
+
+            fetch('/ai/clear-chat', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json; charset=utf-8'
+                }
+            })
+            .then(res => res.json())
+            .then(() => {
+                // Tải lại trang hoặc xóa các message rows
+                window.location.reload();
+            })
+            .catch(err => {
+                alert('Không thể xóa lịch sử chat: ' + err.message);
+            });
+        }
+        /*]]>*/
+    </script>
+</div>
+</body>
+</html>
