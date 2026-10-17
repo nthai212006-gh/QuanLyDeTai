@@ -22,4 +22,24 @@ public interface WeeklyProgressReportRepository extends JpaRepository<WeeklyProg
      * Tìm báo cáo của một tuần cụ thể của nhóm sinh viên (ví dụ tìm báo cáo Tuần 5 của nhóm ID = 3).
      */
     Optional<WeeklyProgressReport> findByGroupIdAndWeekNumber(Long groupId, Integer weekNumber);
+
+    /**
+     * Lấy danh sách báo cáo tiến độ theo danh sách nhóm, sắp xếp thời gian nộp mới nhất lên đầu.
+     */
+    List<WeeklyProgressReport> findByGroupIdInOrderBySubmittedAtDesc(List<Long> groupIds);
+
+    /**
+     * Lấy danh sách báo cáo tiến độ theo danh sách nhóm và trạng thái duyệt.
+     */
+    List<WeeklyProgressReport> findByGroupIdInAndFeedbackStatusOrderBySubmittedAtDesc(List<Long> groupIds, WeeklyProgressReport.FeedbackStatus feedbackStatus);
+
+    /**
+     * Lấy danh sách toàn bộ báo cáo tiến độ theo trạng thái duyệt.
+     */
+    List<WeeklyProgressReport> findByFeedbackStatusOrderBySubmittedAtDesc(WeeklyProgressReport.FeedbackStatus feedbackStatus);
+
+    /**
+     * Lấy toàn bộ báo cáo sắp xếp mới nhất.
+     */
+    List<WeeklyProgressReport> findAllByOrderBySubmittedAtDesc();
 }
