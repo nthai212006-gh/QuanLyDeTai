@@ -27,4 +27,9 @@ public interface CouncilTopicRepository extends JpaRepository<CouncilTopic, Long
      * Tìm chi tiết lịch bảo vệ của một nhóm cụ thể trong một hội đồng cụ thể.
      */
     Optional<CouncilTopic> findByCouncilIdAndGroupId(Long councilId, Long groupId);
+
+    /**
+     * Lấy danh sách các đề tài/nhóm mà một giảng viên được phân công làm giảng viên phản biện.
+     */
+    List<CouncilTopic> findByReviewerLecturerId(Long reviewerLecturerId);
 }
