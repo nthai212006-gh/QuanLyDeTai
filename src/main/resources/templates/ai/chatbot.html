@@ -13,35 +13,65 @@
             background: #FFFFFF;
             border: 1px solid var(--color-border, #CBD5E1);
             border-radius: 12px;
-            box-shadow: 0 4px 16px -2px rgba(15, 23, 42, 0.05);
+            box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.08);
             overflow: hidden;
+            position: relative;
+        }
+
+        /* Top Academic Brand Gradient Stripe (3px) */
+        .chat-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3.5px;
+            background: linear-gradient(90deg, #1E3A5F 0%, #2563EB 50%, #38BDF8 100%);
+            z-index: 10;
         }
 
         /* 1. Academic Chat Header */
         .chat-header {
             padding: 14px 24px;
-            background: #F8FAFC;
-            border-bottom: 1px solid var(--color-border, #CBD5E1);
+            background: linear-gradient(180deg, #FFFFFF 0%, #F8FAFC 100%);
+            border-bottom: 1px solid var(--color-border, #E2E8F0);
             display: flex;
             align-items: center;
             justify-content: space-between;
         }
 
         .chat-bot-avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 8px;
-            background: #1E3A5F;
-            border: 1px solid #0F2847;
+            width: 42px;
+            height: 42px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #1E3A5F 0%, #2563EB 100%);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 2px 8px rgba(37, 99, 235, 0.25);
             display: flex;
             align-items: center;
             justify-content: center;
             color: #FFFFFF;
             font-size: 0.85rem;
-            font-weight: 700;
-            letter-spacing: 0.5px;
+            font-weight: 800;
+            letter-spacing: 0.8px;
             flex-shrink: 0;
             user-select: none;
+        }
+
+        .status-pulse-dot {
+            width: 8px;
+            height: 8px;
+            background-color: #10B981;
+            border-radius: 50%;
+            display: inline-block;
+            box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
+            animation: pulse-green 2s infinite;
+        }
+
+        @keyframes pulse-green {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.5); }
+            70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
         }
 
         /* 2. Messages Stream */
@@ -71,9 +101,9 @@
         }
 
         .message-avatar {
-            width: 34px;
-            height: 34px;
-            border-radius: 8px;
+            width: 36px;
+            height: 36px;
+            border-radius: 9px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -85,15 +115,17 @@
         }
 
         .message-avatar.bot {
-            background: #1E3A5F;
+            background: linear-gradient(135deg, #1E3A5F 0%, #2563EB 100%);
             color: #FFFFFF;
-            border: 1px solid #0F2847;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 2px 6px rgba(37, 99, 235, 0.2);
         }
 
         .message-avatar.user {
-            background: #E2E8F0;
-            color: #1E293B;
+            background: #F1F5F9;
+            color: #1E3A5F;
             border: 1px solid #CBD5E1;
+            font-weight: 700;
         }
 
         .message-bubble {
@@ -108,13 +140,19 @@
             background: #FFFFFF;
             color: #1E293B;
             border: 1px solid #E2E8F0;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+            box-shadow: 0 1px 4px rgba(15, 23, 42, 0.05);
+        }
+
+        .message-bubble#welcomeBubble {
+            border-left: 3.5px solid #2563EB;
+            box-shadow: 0 2px 10px rgba(15, 23, 42, 0.05);
         }
 
         .message-row.user .message-bubble {
-            background: #1E3A5F;
+            background: linear-gradient(135deg, #1E3A5F 0%, #2563EB 100%);
             color: #FFFFFF;
-            border: 1px solid #162C47;
+            border: none;
+            box-shadow: 0 3px 12px rgba(37, 99, 235, 0.22);
         }
 
         .message-time {
@@ -128,36 +166,122 @@
             text-align: right;
         }
 
-        /* 3. Welcome Action Cards (Academic 2x2 Grid) */
+        /* 3. Welcome Action Cards (Balanced 2x2 Grid) */
         .quick-action-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
-            gap: 10px;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
             margin-top: 14px;
         }
 
+        @media (max-width: 640px) {
+            .quick-action-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
         .quick-card {
-            background: #F8FAFC;
+            background: #FFFFFF;
             border: 1px solid #E2E8F0;
-            border-radius: 8px;
+            border-radius: 10px;
             padding: 12px 14px;
             cursor: pointer;
-            transition: all 0.15s ease-in-out;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
             text-align: left;
             user-select: none;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            box-shadow: 0 1px 3px rgba(15, 23, 42, 0.03);
         }
 
         .quick-card:hover {
-            border-color: #1E3A5F;
             background: #FFFFFF;
-            box-shadow: 0 2px 8px rgba(30, 58, 95, 0.08);
-            transform: translateY(-1px);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px -2px rgba(15, 23, 42, 0.08);
+        }
+
+        .quick-card-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            flex-shrink: 0;
+            transition: transform 0.2s ease;
+        }
+
+        .quick-card:hover .quick-card-icon {
+            transform: scale(1.08);
+        }
+
+        /* Card 1: Sapphire Blue */
+        .quick-card.card-sapphire {
+            border-left: 3.5px solid #2563EB;
+        }
+        .quick-card.card-sapphire .quick-card-icon {
+            background: rgba(37, 99, 235, 0.09);
+            color: #2563EB;
+            border: 1px solid rgba(37, 99, 235, 0.18);
+        }
+        .quick-card.card-sapphire:hover {
+            border-color: #93C5FD;
+            border-left-color: #2563EB;
+        }
+
+        /* Card 2: Emerald Green */
+        .quick-card.card-emerald {
+            border-left: 3.5px solid #059669;
+        }
+        .quick-card.card-emerald .quick-card-icon {
+            background: rgba(5, 150, 105, 0.09);
+            color: #059669;
+            border: 1px solid rgba(5, 150, 105, 0.18);
+        }
+        .quick-card.card-emerald:hover {
+            border-color: #A7F3D0;
+            border-left-color: #059669;
+        }
+
+        /* Card 3: Academic Amber / Gold */
+        .quick-card.card-amber {
+            border-left: 3.5px solid #D97706;
+        }
+        .quick-card.card-amber .quick-card-icon {
+            background: rgba(217, 119, 6, 0.09);
+            color: #D97706;
+            border: 1px solid rgba(217, 119, 6, 0.18);
+        }
+        .quick-card.card-amber:hover {
+            border-color: #FDE68A;
+            border-left-color: #D97706;
+        }
+
+        /* Card 4: Royal Indigo */
+        .quick-card.card-indigo {
+            border-left: 3.5px solid #4F46E5;
+        }
+        .quick-card.card-indigo .quick-card-icon {
+            background: rgba(79, 70, 229, 0.09);
+            color: #4F46E5;
+            border: 1px solid rgba(79, 70, 229, 0.18);
+        }
+        .quick-card.card-indigo:hover {
+            border-color: #C7D2FE;
+            border-left-color: #4F46E5;
+        }
+
+        .quick-card-content {
+            flex: 1;
+            min-width: 0;
         }
 
         .quick-card-title {
             font-weight: 600;
-            font-size: 0.875rem;
-            color: #1E3A5F;
+            font-size: 0.885rem;
+            color: #0F172A;
             margin-bottom: 2px;
         }
 
@@ -170,7 +294,7 @@
         /* 4. Secondary Discoverability Links (Touch-friendly >= 36px) */
         .quick-secondary-area {
             margin-top: 14px;
-            padding-top: 10px;
+            padding-top: 12px;
             border-top: 1px dashed #E2E8F0;
             display: flex;
             flex-wrap: wrap;
@@ -186,25 +310,29 @@
         }
 
         .secondary-link-btn {
-            background: #F1F5F9;
-            border: 1px solid #E2E8F0;
+            background: #FFFFFF;
+            border: 1px solid #CBD5E1;
             border-radius: 6px;
             padding: 6px 12px;
             font-size: 0.8rem;
             font-weight: 500;
-            color: #334155;
+            color: #1E3A5F;
             cursor: pointer;
-            transition: all 0.15s ease;
+            transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
             min-height: 36px;
             display: inline-flex;
             align-items: center;
+            gap: 6px;
             user-select: none;
+            box-shadow: 0 1px 2px rgba(15, 23, 42, 0.02);
         }
 
         .secondary-link-btn:hover {
-            background: #E2E8F0;
-            border-color: #CBD5E1;
-            color: #1E3A5F;
+            background: #EFF6FF;
+            border-color: #60A5FA;
+            color: #1D4ED8;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 6px rgba(37, 99, 235, 0.1);
         }
 
         /* 5. Markdown formatting inside bot bubble */
@@ -255,7 +383,7 @@
         .typing-dots span {
             width: 6px;
             height: 6px;
-            background: #64748B;
+            background: #2563EB;
             border-radius: 50%;
             animation: bounce 1.4s infinite ease-in-out both;
         }
@@ -287,9 +415,9 @@
         }
 
         .chat-input-box:focus-within {
-            border-color: #1E3A5F;
+            border-color: #2563EB;
             background: #FFFFFF;
-            box-shadow: 0 0 0 3px rgba(30, 58, 95, 0.08);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
         }
 
         .chat-textarea {
@@ -307,29 +435,32 @@
         }
 
         .btn-send {
-            width: 38px;
-            height: 38px;
+            width: 40px;
+            height: 40px;
             border-radius: 8px;
-            background: #1E3A5F;
+            background: linear-gradient(135deg, #1E3A5F 0%, #2563EB 100%);
             border: none;
             color: #FFFFFF;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            transition: all 0.15s ease-in-out;
+            transition: all 0.2s ease;
             flex-shrink: 0;
+            box-shadow: 0 2px 6px rgba(37, 99, 235, 0.2);
         }
 
         .btn-send:hover:not(:disabled) {
-            background: #162C47;
-            transform: scale(1.02);
+            background: linear-gradient(135deg, #162C47 0%, #1D4ED8 100%);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35);
         }
 
         .btn-send:disabled {
             background: #CBD5E1;
             cursor: not-allowed;
             opacity: 0.7;
+            box-shadow: none;
         }
     </style>
 
@@ -345,8 +476,10 @@
                 <div>
                     <div class="d-flex align-items-center gap-2">
                         <h6 class="fw-bold mb-0 text-dark" style="color: #1E3A5F !important;">Trợ Lý Học Vụ FIT</h6>
-                        <span class="badge bg-secondary-subtle text-secondary small px-2 py-0.5 rounded-pill fw-medium">
-                            Hệ thống
+                        <span class="badge d-inline-flex align-items-center gap-1.5 px-2.5 py-1 rounded-pill fw-medium"
+                              style="background: rgba(16, 185, 129, 0.1); color: #059669; border: 1px solid rgba(16, 185, 129, 0.25);">
+                            <span class="status-pulse-dot"></span>
+                            <span style="font-size: 0.75rem;">Trực tuyến</span>
                         </span>
                     </div>
                     <small class="text-secondary">Cổng thông tin hỗ trợ học vụ &amp; quản lý đề tài Khoa CNTT</small>
@@ -377,40 +510,64 @@
                             Hệ thống trợ lý hỗ trợ tổng hợp nhanh số liệu đợt đăng ký, tiến độ các nhóm hướng dẫn, tình trạng duyệt báo cáo tuần và danh sách hội đồng bảo vệ.
                         </p>
 
-                        <!-- Primary 4 Quick Action Cards (Grid 2x2) -->
+                        <!-- Primary 4 Quick Action Cards (Balanced 2x2 Grid with Academic Semantics) -->
                         <div class="quick-action-grid">
-                            <div class="quick-card" onclick="sendPrompt('Hiện tại đang có những đợt đăng ký nào diễn ra?')">
-                                <div class="quick-card-title">Đợt đăng ký hiện tại</div>
-                                <div class="quick-card-desc">Thời hạn &amp; tiến độ các giai đoạn đăng ký</div>
+                            <div class="quick-card card-sapphire" onclick="sendPrompt('Hiện tại đang có những đợt đăng ký nào diễn ra?')">
+                                <div class="quick-card-icon">
+                                    <i class="fa-solid fa-calendar-check"></i>
+                                </div>
+                                <div class="quick-card-content">
+                                    <div class="quick-card-title">Đợt đăng ký hiện tại</div>
+                                    <div class="quick-card-desc">Thời hạn &amp; tiến độ các giai đoạn đăng ký</div>
+                                </div>
                             </div>
-                            <div class="quick-card" onclick="sendPrompt('Hiện tại tôi đang là giảng viên hướng dẫn của những nhóm nào?')">
-                                <div class="quick-card-title">Nhóm đang hướng dẫn</div>
-                                <div class="quick-card-desc">Danh sách nhóm, đề tài &amp; sinh viên thực hiện</div>
+                            <div class="quick-card card-emerald" onclick="sendPrompt('Hiện tại tôi đang là giảng viên hướng dẫn của những nhóm nào?')">
+                                <div class="quick-card-icon">
+                                    <i class="fa-solid fa-user-group"></i>
+                                </div>
+                                <div class="quick-card-content">
+                                    <div class="quick-card-title">Nhóm đang hướng dẫn</div>
+                                    <div class="quick-card-desc">Danh sách nhóm, đề tài &amp; sinh viên thực hiện</div>
+                                </div>
                             </div>
-                            <div class="quick-card" onclick="sendPrompt('Cho tôi biết nhóm nào đang chờ duyệt báo cáo tuần.')">
-                                <div class="quick-card-title">Báo cáo chờ duyệt</div>
-                                <div class="quick-card-desc">Nhật ký tiến độ tuần cần phản hồi xác nhận</div>
+                            <div class="quick-card card-amber" onclick="sendPrompt('Cho tôi biết nhóm nào đang chờ duyệt báo cáo tuần.')">
+                                <div class="quick-card-icon">
+                                    <i class="fa-solid fa-clock-rotate-left"></i>
+                                </div>
+                                <div class="quick-card-content">
+                                    <div class="quick-card-title">Báo cáo chờ duyệt</div>
+                                    <div class="quick-card-desc">Nhật ký tiến độ tuần cần phản hồi xác nhận</div>
+                                </div>
                             </div>
-                            <div class="quick-card" onclick="sendPrompt('Tôi đang làm giảng viên phản biện/chủ tịch/thư ký/ủy viên cho những hội đồng nào?')">
-                                <div class="quick-card-title">Hội đồng tham gia</div>
-                                <div class="quick-card-desc">Lịch chấm, phân công phản biện &amp; bảo vệ</div>
+                            <div class="quick-card card-indigo" onclick="sendPrompt('Tôi đang làm giảng viên phản biện/chủ tịch/thư ký/ủy viên cho những hội đồng nào?')">
+                                <div class="quick-card-icon">
+                                    <i class="fa-solid fa-scale-balanced"></i>
+                                </div>
+                                <div class="quick-card-content">
+                                    <div class="quick-card-title">Hội đồng tham gia</div>
+                                    <div class="quick-card-desc">Lịch chấm, phân công phản biện &amp; bảo vệ</div>
+                                </div>
                             </div>
                         </div>
 
-                        <!-- Secondary Discoverability Links (Touch-friendly >= 36px) -->
+                        <!-- Secondary Discoverability Links (Touch-friendly >= 36px with Micro-Icons) -->
                         <div class="quick-secondary-area">
                             <span class="secondary-label">Chủ đề tra cứu khác:</span>
                             <button type="button" class="secondary-link-btn" onclick="sendPrompt('Có những đề tài nào chưa có nhóm đăng ký?')">
-                                Đề tài còn trống
+                                <i class="fa-solid fa-magnifying-glass text-primary" style="font-size: 0.72rem;"></i>
+                                <span>Đề tài còn trống</span>
                             </button>
                             <button type="button" class="secondary-link-btn" onclick="sendPrompt('Có bao nhiêu đề tài trong đợt này?')">
-                                Thống kê đề tài đợt
+                                <i class="fa-solid fa-chart-simple text-primary" style="font-size: 0.72rem;"></i>
+                                <span>Thống kê đề tài đợt</span>
                             </button>
                             <button type="button" class="secondary-link-btn" onclick="sendPrompt('Có những đề tài nào trong đợt này?')">
-                                Đề tài trong đợt
+                                <i class="fa-solid fa-book-open text-primary" style="font-size: 0.72rem;"></i>
+                                <span>Đề tài trong đợt</span>
                             </button>
                             <button type="button" class="secondary-link-btn" onclick="sendPrompt('Nhóm nào đã nộp báo cáo hoàn chỉnh.')">
-                                Báo cáo hoàn chỉnh
+                                <i class="fa-solid fa-file-circle-check text-primary" style="font-size: 0.72rem;"></i>
+                                <span>Báo cáo hoàn chỉnh</span>
                             </button>
                         </div>
                     </div>
