@@ -1,849 +1,783 @@
-<!DOCTYPE html>
-<html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
-      th:replace="~{layout/main :: html(content=~{::#main-content}, pageTitle='Trợ Lý Học Vụ FIT')}">
-<body>
-<div id="main-content">
-
-    <style>
-        .chat-container {
-            display: flex;
-            flex-direction: column;
-            height: calc(100vh - 165px);
-            min-height: 580px;
-            background: #FFFFFF;
-            border: 1px solid var(--color-border, #CBD5E1);
-            border-radius: 12px;
-            box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.08);
-            overflow: hidden;
-            position: relative;
-        }
-
-        /* Top Academic Brand Gradient Stripe (3px) */
-        .chat-container::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 3.5px;
-            background: linear-gradient(90deg, #1E3A5F 0%, #2563EB 50%, #38BDF8 100%);
-            z-index: 10;
-        }
-
-        /* 1. Academic Chat Header */
-        .chat-header {
-            padding: 14px 24px;
-            background: linear-gradient(180deg, #FFFFFF 0%, #F8FAFC 100%);
-            border-bottom: 1px solid var(--color-border, #E2E8F0);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .chat-bot-avatar {
-            width: 42px;
-            height: 42px;
-            border-radius: 10px;
-            background: linear-gradient(135deg, #1E3A5F 0%, #2563EB 100%);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            box-shadow: 0 2px 8px rgba(37, 99, 235, 0.25);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #FFFFFF;
-            font-size: 0.85rem;
-            font-weight: 800;
-            letter-spacing: 0.8px;
-            flex-shrink: 0;
-            user-select: none;
-        }
-
-        .status-pulse-dot {
-            width: 8px;
-            height: 8px;
-            background-color: #10B981;
-            border-radius: 50%;
-            display: inline-block;
-            box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
-            animation: pulse-green 2s infinite;
-        }
-
-        @keyframes pulse-green {
-            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.5); }
-            70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
-            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
-        }
-
-        /* 2. Messages Stream */
-        .chat-messages {
-            flex: 1;
-            padding: 24px;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-            background: #FAFBFD;
-        }
-
-        .message-row {
-            display: flex;
-            gap: 12px;
-            max-width: 88%;
-        }
-
-        .message-row.bot {
-            align-self: flex-start;
-        }
-
-        .message-row.user {
-            align-self: flex-end;
-            flex-direction: row-reverse;
-        }
-
-        .message-avatar {
-            width: 36px;
-            height: 36px;
-            border-radius: 9px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.8rem;
-            font-weight: 700;
-            flex-shrink: 0;
-            margin-top: 2px;
-            user-select: none;
-        }
-
-        .message-avatar.bot {
-            background: linear-gradient(135deg, #1E3A5F 0%, #2563EB 100%);
-            color: #FFFFFF;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            box-shadow: 0 2px 6px rgba(37, 99, 235, 0.2);
-        }
-
-        .message-avatar.user {
-            background: #F1F5F9;
-            color: #1E3A5F;
-            border: 1px solid #CBD5E1;
-            font-weight: 700;
-        }
-
-        .message-bubble {
-            padding: 14px 18px;
-            border-radius: 10px;
-            font-size: 0.925rem;
-            line-height: 1.6;
-            word-break: break-word;
-        }
-
-        .message-row.bot .message-bubble {
-            background: #FFFFFF;
-            color: #1E293B;
-            border: 1px solid #E2E8F0;
-            box-shadow: 0 1px 4px rgba(15, 23, 42, 0.05);
-        }
-
-        .message-bubble#welcomeBubble {
-            border-left: 3.5px solid #2563EB;
-            box-shadow: 0 2px 10px rgba(15, 23, 42, 0.05);
-        }
-
-        .message-row.user .message-bubble {
-            background: linear-gradient(135deg, #1E3A5F 0%, #2563EB 100%);
-            color: #FFFFFF;
-            border: none;
-            box-shadow: 0 3px 12px rgba(37, 99, 235, 0.22);
-        }
-
-        .message-time {
-            font-size: 0.75rem;
-            color: #94A3B8;
-            margin-top: 4px;
-            padding: 0 4px;
-        }
-
-        .message-row.user .message-time {
-            text-align: right;
-        }
-
-        /* 3. Welcome Action Cards (Balanced 2x2 Grid) */
-        .quick-action-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 12px;
-            margin-top: 14px;
-        }
-
-        @media (max-width: 640px) {
-            .quick-action-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        .quick-card {
-            background: #FFFFFF;
-            border: 1px solid #E2E8F0;
-            border-radius: 10px;
-            padding: 12px 14px;
-            cursor: pointer;
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-            text-align: left;
-            user-select: none;
-            display: flex;
-            align-items: flex-start;
-            gap: 12px;
-            box-shadow: 0 1px 3px rgba(15, 23, 42, 0.03);
-        }
-
-        .quick-card:hover {
-            background: #FFFFFF;
-            transform: translateY(-2px);
-            box-shadow: 0 6px 16px -2px rgba(15, 23, 42, 0.08);
-        }
-
-        .quick-card-icon {
-            width: 36px;
-            height: 36px;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1rem;
-            flex-shrink: 0;
-            transition: transform 0.2s ease;
-        }
-
-        .quick-card:hover .quick-card-icon {
-            transform: scale(1.08);
-        }
-
-        /* Card 1: Sapphire Blue */
-        .quick-card.card-sapphire {
-            border-left: 3.5px solid #2563EB;
-        }
-        .quick-card.card-sapphire .quick-card-icon {
-            background: rgba(37, 99, 235, 0.09);
-            color: #2563EB;
-            border: 1px solid rgba(37, 99, 235, 0.18);
-        }
-        .quick-card.card-sapphire:hover {
-            border-color: #93C5FD;
-            border-left-color: #2563EB;
-        }
-
-        /* Card 2: Emerald Green */
-        .quick-card.card-emerald {
-            border-left: 3.5px solid #059669;
-        }
-        .quick-card.card-emerald .quick-card-icon {
-            background: rgba(5, 150, 105, 0.09);
-            color: #059669;
-            border: 1px solid rgba(5, 150, 105, 0.18);
-        }
-        .quick-card.card-emerald:hover {
-            border-color: #A7F3D0;
-            border-left-color: #059669;
-        }
-
-        /* Card 3: Academic Amber / Gold */
-        .quick-card.card-amber {
-            border-left: 3.5px solid #D97706;
-        }
-        .quick-card.card-amber .quick-card-icon {
-            background: rgba(217, 119, 6, 0.09);
-            color: #D97706;
-            border: 1px solid rgba(217, 119, 6, 0.18);
-        }
-        .quick-card.card-amber:hover {
-            border-color: #FDE68A;
-            border-left-color: #D97706;
-        }
-
-        /* Card 4: Royal Indigo */
-        .quick-card.card-indigo {
-            border-left: 3.5px solid #4F46E5;
-        }
-        .quick-card.card-indigo .quick-card-icon {
-            background: rgba(79, 70, 229, 0.09);
-            color: #4F46E5;
-            border: 1px solid rgba(79, 70, 229, 0.18);
-        }
-        .quick-card.card-indigo:hover {
-            border-color: #C7D2FE;
-            border-left-color: #4F46E5;
-        }
-
-        .quick-card-content {
-            flex: 1;
-            min-width: 0;
-        }
-
-        .quick-card-title {
-            font-weight: 600;
-            font-size: 0.885rem;
-            color: #0F172A;
-            margin-bottom: 2px;
-        }
-
-        .quick-card-desc {
-            font-size: 0.775rem;
-            color: #64748B;
-            line-height: 1.35;
-        }
-
-        /* 4. Secondary Discoverability Links (Touch-friendly >= 36px) */
-        .quick-secondary-area {
-            margin-top: 14px;
-            padding-top: 12px;
-            border-top: 1px dashed #E2E8F0;
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .secondary-label {
-            font-size: 0.775rem;
-            color: #64748B;
-            font-weight: 600;
-            margin-right: 4px;
-        }
-
-        .secondary-link-btn {
-            background: #FFFFFF;
-            border: 1px solid #CBD5E1;
-            border-radius: 6px;
-            padding: 6px 12px;
-            font-size: 0.8rem;
-            font-weight: 500;
-            color: #1E3A5F;
-            cursor: pointer;
-            transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
-            min-height: 36px;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            user-select: none;
-            box-shadow: 0 1px 2px rgba(15, 23, 42, 0.02);
-        }
-
-        .secondary-link-btn:hover {
-            background: #EFF6FF;
-            border-color: #60A5FA;
-            color: #1D4ED8;
-            transform: translateY(-1px);
-            box-shadow: 0 2px 6px rgba(37, 99, 235, 0.1);
-        }
-
-        /* 5. Markdown formatting inside bot bubble */
-        .message-bubble h3 {
-            font-size: 1rem;
-            font-weight: 700;
-            color: #1E3A5F;
-            margin-top: 10px;
-            margin-bottom: 6px;
-            padding-bottom: 4px;
-            border-bottom: 1px solid #E2E8F0;
-        }
-
-        .message-bubble h4 {
-            font-size: 0.925rem;
-            font-weight: 600;
-            color: #0F172A;
-            margin-top: 8px;
-            margin-bottom: 4px;
-        }
-
-        .message-bubble code {
-            background: #F1F5F9;
-            color: #0F172A;
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-size: 0.85em;
-            font-family: monospace;
-        }
-
-        .message-bubble a {
-            color: #2563EB;
-            text-decoration: underline;
-        }
-
-        /* 6. Typing indicator */
-        .typing-dots {
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            padding: 8px 14px;
-            background: #FFFFFF;
-            border: 1px solid #E2E8F0;
-            border-radius: 10px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.03);
-        }
-
-        .typing-dots span {
-            width: 6px;
-            height: 6px;
-            background: #2563EB;
-            border-radius: 50%;
-            animation: bounce 1.4s infinite ease-in-out both;
-        }
-
-        .typing-dots span:nth-child(1) { animation-delay: -0.32s; }
-        .typing-dots span:nth-child(2) { animation-delay: -0.16s; }
-
-        @keyframes bounce {
-            0%, 80%, 100% { transform: scale(0); opacity: 0.3; }
-            40% { transform: scale(1); opacity: 1; }
-        }
-
-        /* 7. Chat Input Area */
-        .chat-input-area {
-            padding: 14px 24px;
-            background: #FFFFFF;
-            border-top: 1px solid var(--color-border, #CBD5E1);
-        }
-
-        .chat-input-box {
-            display: flex;
-            align-items: flex-end;
-            gap: 10px;
-            background: #F8FAFC;
-            border: 1px solid #CBD5E1;
-            border-radius: 10px;
-            padding: 6px 10px 6px 14px;
-            transition: all 0.2s;
-        }
-
-        .chat-input-box:focus-within {
-            border-color: #2563EB;
-            background: #FFFFFF;
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
-        }
-
-        .chat-textarea {
-            flex: 1;
-            border: none;
-            background: transparent;
-            resize: none;
-            outline: none;
-            font-size: 0.925rem;
-            line-height: 1.5;
-            max-height: 120px;
-            min-height: 24px;
-            padding: 6px 0;
-            color: #0F172A;
-        }
-
-        .btn-send {
-            width: 40px;
-            height: 40px;
-            border-radius: 8px;
-            background: linear-gradient(135deg, #1E3A5F 0%, #2563EB 100%);
-            border: none;
-            color: #FFFFFF;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            flex-shrink: 0;
-            box-shadow: 0 2px 6px rgba(37, 99, 235, 0.2);
-        }
-
-        .btn-send:hover:not(:disabled) {
-            background: linear-gradient(135deg, #162C47 0%, #1D4ED8 100%);
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35);
-        }
-
-        .btn-send:disabled {
-            background: #CBD5E1;
-            cursor: not-allowed;
-            opacity: 0.7;
-            box-shadow: none;
-        }
-    </style>
-
-    <!-- Main Chatbot Card -->
-    <div class="chat-container">
-
-        <!-- 1. Academic Header -->
-        <div class="chat-header">
-            <div class="d-flex align-items-center gap-3">
-                <div class="chat-bot-avatar">
-                    <span>FIT</span>
-                </div>
-                <div>
-                    <div class="d-flex align-items-center gap-2">
-                        <h6 class="fw-bold mb-0 text-dark" style="color: #1E3A5F !important;">Trợ Lý Học Vụ FIT</h6>
-                        <span class="badge d-inline-flex align-items-center gap-1.5 px-2.5 py-1 rounded-pill fw-medium"
-                              style="background: rgba(16, 185, 129, 0.1); color: #059669; border: 1px solid rgba(16, 185, 129, 0.25);">
-                            <span class="status-pulse-dot"></span>
-                            <span style="font-size: 0.75rem;">Trực tuyến</span>
-                        </span>
-                    </div>
-                    <small class="text-secondary">Cổng thông tin hỗ trợ học vụ &amp; quản lý đề tài Khoa CNTT</small>
-                </div>
-            </div>
-
-            <div class="d-flex align-items-center gap-2">
-                <button type="button" class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1.5 px-3 py-1.5 rounded-2" 
-                        onclick="clearChatHistory()" title="Xóa toàn bộ lịch sử đoạn chat của bạn">
-                    <i class="fa-regular fa-trash-can"></i>
-                    <span>Xóa đoạn chat</span>
-                </button>
-            </div>
-        </div>
-
-        <!-- 2. Message Stream -->
-        <div class="chat-messages" id="chatMessages">
-
-            <!-- Welcome Message (Always first) -->
-            <div class="message-row bot">
-                <div class="message-avatar bot">
-                    <span>FIT</span>
-                </div>
-                <div style="flex: 1;">
-                    <div class="message-bubble" id="welcomeBubble">
-                        <p class="fw-semibold text-dark mb-1" th:text="${welcomeGreeting}">Kính chào Quý Thầy/Cô, hệ thống sẵn sàng hỗ trợ tra cứu thông tin học vụ.</p>
-                        <p class="mb-2 text-secondary small">
-                            Hệ thống trợ lý hỗ trợ tổng hợp nhanh số liệu đợt đăng ký, tiến độ các nhóm hướng dẫn, tình trạng duyệt báo cáo tuần và danh sách hội đồng bảo vệ.
-                        </p>
-
-                        <!-- Primary 4 Quick Action Cards (Balanced 2x2 Grid with Academic Semantics) -->
-                        <div class="quick-action-grid">
-                            <div class="quick-card card-sapphire" onclick="sendPrompt('Hiện tại đang có những đợt đăng ký nào diễn ra?')">
-                                <div class="quick-card-icon">
-                                    <i class="fa-solid fa-calendar-check"></i>
-                                </div>
-                                <div class="quick-card-content">
-                                    <div class="quick-card-title">Đợt đăng ký hiện tại</div>
-                                    <div class="quick-card-desc">Thời hạn &amp; tiến độ các giai đoạn đăng ký</div>
-                                </div>
-                            </div>
-                            <div class="quick-card card-emerald" onclick="sendPrompt('Hiện tại tôi đang là giảng viên hướng dẫn của những nhóm nào?')">
-                                <div class="quick-card-icon">
-                                    <i class="fa-solid fa-user-group"></i>
-                                </div>
-                                <div class="quick-card-content">
-                                    <div class="quick-card-title">Nhóm đang hướng dẫn</div>
-                                    <div class="quick-card-desc">Danh sách nhóm, đề tài &amp; sinh viên thực hiện</div>
-                                </div>
-                            </div>
-                            <div class="quick-card card-amber" onclick="sendPrompt('Cho tôi biết nhóm nào đang chờ duyệt báo cáo tuần.')">
-                                <div class="quick-card-icon">
-                                    <i class="fa-solid fa-clock-rotate-left"></i>
-                                </div>
-                                <div class="quick-card-content">
-                                    <div class="quick-card-title">Báo cáo chờ duyệt</div>
-                                    <div class="quick-card-desc">Nhật ký tiến độ tuần cần phản hồi xác nhận</div>
-                                </div>
-                            </div>
-                            <div class="quick-card card-indigo" onclick="sendPrompt('Tôi đang làm giảng viên phản biện/chủ tịch/thư ký/ủy viên cho những hội đồng nào?')">
-                                <div class="quick-card-icon">
-                                    <i class="fa-solid fa-scale-balanced"></i>
-                                </div>
-                                <div class="quick-card-content">
-                                    <div class="quick-card-title">Hội đồng tham gia</div>
-                                    <div class="quick-card-desc">Lịch chấm, phân công phản biện &amp; bảo vệ</div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Secondary Discoverability Links (Touch-friendly >= 36px with Micro-Icons) -->
-                        <div class="quick-secondary-area">
-                            <span class="secondary-label">Chủ đề tra cứu khác:</span>
-                            <button type="button" class="secondary-link-btn" onclick="sendPrompt('Có những đề tài nào chưa có nhóm đăng ký?')">
-                                <i class="fa-solid fa-magnifying-glass text-primary" style="font-size: 0.72rem;"></i>
-                                <span>Đề tài còn trống</span>
-                            </button>
-                            <button type="button" class="secondary-link-btn" onclick="sendPrompt('Có bao nhiêu đề tài trong đợt này?')">
-                                <i class="fa-solid fa-chart-simple text-primary" style="font-size: 0.72rem;"></i>
-                                <span>Thống kê đề tài đợt</span>
-                            </button>
-                            <button type="button" class="secondary-link-btn" onclick="sendPrompt('Có những đề tài nào trong đợt này?')">
-                                <i class="fa-solid fa-book-open text-primary" style="font-size: 0.72rem;"></i>
-                                <span>Đề tài trong đợt</span>
-                            </button>
-                            <button type="button" class="secondary-link-btn" onclick="sendPrompt('Nhóm nào đã nộp báo cáo hoàn chỉnh.')">
-                                <i class="fa-solid fa-file-circle-check text-primary" style="font-size: 0.72rem;"></i>
-                                <span>Báo cáo hoàn chỉnh</span>
-                            </button>
-                        </div>
-                    </div>
-                    <div class="message-time">Trợ lý Học vụ FIT • Hôm nay</div>
-                </div>
-            </div>
-
-            <!-- Existing Chat History (If any) -->
-            <th:block th:each="entry : ${chatHistory}">
-                <!-- User Question -->
-                <div class="message-row user">
-                    <div class="message-avatar user" th:text="${currentUser.initials}">GV</div>
-                    <div>
-                        <div class="message-bubble" th:text="${entry.inputContent}">Câu hỏi người dùng</div>
-                        <div class="message-time" th:text="${#temporals.format(entry.createdAt, 'HH:mm')}">14:00</div>
-                    </div>
-                </div>
-
-                <!-- Bot Response -->
-                <div class="message-row bot">
-                    <div class="message-avatar bot">
-                        <span>FIT</span>
-                    </div>
-                    <div>
-                        <div class="message-bubble chat-markdown-content" th:attr="data-raw=${entry.aiResponse}">
-                            <!-- Content will be parsed by JS -->
-                        </div>
-                        <div class="message-time" th:text="${#temporals.format(entry.createdAt, 'HH:mm')}">14:00</div>
-                    </div>
-                </div>
-            </th:block>
-
-            <!-- Typing indicator element (Hidden by default) -->
-            <div class="message-row bot" id="typingRow" style="display: none;">
-                <div class="message-avatar bot">
-                    <span>FIT</span>
-                </div>
-                <div>
-                    <div class="typing-dots">
-                        <span></span>
-                        <span></span>
-                        <span></span>
-                    </div>
-                </div>
-            </div>
-
-        </div>
-
-        <!-- 3. Input Area -->
-        <div class="chat-input-area">
-            <div class="chat-input-box">
-                <textarea id="chatInput" 
-                          class="chat-textarea" 
-                          rows="1" 
-                          placeholder="Nhập câu hỏi hoặc yêu cầu tra cứu... (Nhấn Enter để gửi, Shift+Enter xuống dòng)"
-                          onkeydown="handleInputKeyDown(event)"
-                          oninput="autoResizeTextarea(this)"></textarea>
-
-                <button type="button" id="btnSend" class="btn-send" onclick="submitUserMessage()" title="Gửi tin nhắn (Enter)">
-                    <i class="fa-solid fa-paper-plane"></i>
-                </button>
-            </div>
-            <div class="d-flex justify-content-between align-items-center mt-2 px-1">
-                <span class="small text-muted" style="font-size: 0.775rem;">
-                    <i class="fa-solid fa-shield-halved me-1 text-secondary"></i> Trợ lý Học vụ FIT • Dữ liệu kết xuất thời gian thực từ CSDL Khoa CNTT.
-                </span>
-                <span class="small text-muted" style="font-size: 0.775rem;">
-                    Nhấn <strong>Enter</strong> để gửi
-                </span>
-            </div>
-        </div>
-
-    </div>
-
-    <!-- Scripts for Chat UI (Preserving 100% Core Logic) -->
-    <script th:inline="javascript">
-        /*<![CDATA[*/
-        const CURRENT_USER_INITIALS = /*[[${currentUser.initials}]]*/ 'GV';
-
-        /**
-         * Escape HTML để ngăn ngừa XSS
-         */
-        function escapeHtml(text) {
-            if (!text) return '';
-            return String(text)
-                .replace(/&/g, "&amp;")
-                .replace(/</g, "&lt;")
-                .replace(/>/g, "&gt;")
-                .replace(/"/g, "&quot;")
-                .replace(/'/g, "&#039;");
-        }
-
-        /**
-         * Format Markdown đơn giản cho tin nhắn bot
-         */
-        function parseMarkdown(text) {
-            if (!text) return '';
-            let safe = escapeHtml(text);
-
-            // 1. Heading h4 / h3
-            safe = safe.replace(/^#### (.*$)/gim, '<h4 class="mt-2 mb-1.5 font-bold text-dark fs-6">$1</h4>');
-            safe = safe.replace(/^### (.*$)/gim, '<h3 class="mt-2 mb-2 font-bold text-dark fs-6 pb-1 border-bottom">$1</h3>');
-
-            // 2. Bold text **text**
-            safe = safe.replace(/\*\*(.*?)\*\*/gim, '<strong>$1</strong>');
-
-            // 3. Italic *text*
-            safe = safe.replace(/\*(.*?)\*/gim, '<em>$1</em>');
-
-            // 4. Inline code `code`
-            safe = safe.replace(/`([^`]+)`/gim, '<code>$1</code>');
-
-            // 5. Links [text](url)
-            safe = safe.replace(/\[(.*?)\]\((.*?)\)/gim, '<a href="$2" target="_blank" rel="noopener">$1</a>');
-
-            // 6. Bullet lists - item
-            safe = safe.replace(/^- (.*$)/gim, '<div class="ps-2 py-0.5">• $1</div>');
-
-            // 7. Line breaks
-            safe = safe.replace(/\n/gim, '<br>');
-
-            return safe;
-        }
-
-        /**
-         * Render markdown cho toàn bộ lịch sử ban đầu
-         */
-        document.addEventListener('DOMContentLoaded', () => {
-            document.querySelectorAll('.chat-markdown-content').forEach(el => {
-                const raw = el.getAttribute('data-raw');
-                if (raw) {
-                    el.innerHTML = parseMarkdown(raw);
-                }
-            });
-            scrollToBottom();
-        });
-
-        function scrollToBottom() {
-            const container = document.getElementById('chatMessages');
-            if (container) {
-                container.scrollTop = container.scrollHeight;
-            }
-        }
-
-        function autoResizeTextarea(el) {
-            el.style.height = 'auto';
-            el.style.height = Math.min(el.scrollHeight, 120) + 'px';
-        }
-
-        function handleInputKeyDown(e) {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                submitUserMessage();
-            }
-        }
-
-        function sendPrompt(promptText) {
-            const input = document.getElementById('chatInput');
-            if (input) {
-                input.value = promptText;
-                submitUserMessage();
-            }
-        }
-
-        function submitUserMessage() {
-            const input = document.getElementById('chatInput');
-            const btnSend = document.getElementById('btnSend');
-            const messagesContainer = document.getElementById('chatMessages');
-            const typingRow = document.getElementById('typingRow');
-
-            if (!input) return;
-            const message = input.value.trim();
-            if (!message) return;
-
-            // Lấy thời gian hiện tại
-            const now = new Date();
-            const timeStr = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
-
-            // Append user message to UI
-            const userHtml = `
-                <div class="message-row user">
-                    <div class="message-avatar user">${escapeHtml(CURRENT_USER_INITIALS)}</div>
-                    <div>
-                        <div class="message-bubble">${escapeHtml(message)}</div>
-                        <div class="message-time">${timeStr}</div>
-                    </div>
-                </div>
-            `;
-            typingRow.insertAdjacentHTML('beforebegin', userHtml);
-
-            // Clear input
-            input.value = '';
-            input.style.height = 'auto';
-            btnSend.disabled = true;
-
-            // Show typing indicator
-            typingRow.style.display = 'flex';
-            scrollToBottom();
-
-            // Send to server
-            fetch('/ai/chat', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json; charset=utf-8'
-                },
-                body: JSON.stringify({ message: message })
-            })
-            .then(res => {
-                if (!res.ok) throw new Error('Mã phản hồi lỗi: ' + res.status);
-                return res.json();
-            })
-            .then(data => {
-                typingRow.style.display = 'none';
-
-                const botTime = data.timestamp || timeStr;
-                const botContent = parseMarkdown(data.reply);
-
-                const botHtml = `
-                    <div class="message-row bot">
-                        <div class="message-avatar bot">
-                            <span>FIT</span>
-                        </div>
-                        <div>
-                            <div class="message-bubble">${botContent}</div>
-                            <div class="message-time">${botTime}</div>
-                        </div>
-                    </div>
-                `;
-                typingRow.insertAdjacentHTML('beforebegin', botHtml);
-                scrollToBottom();
-            })
-            .catch(err => {
-                typingRow.style.display = 'none';
-                const errorHtml = `
-                    <div class="message-row bot">
-                        <div class="message-avatar bot" style="background:#DC2626;">
-                            <span>FIT</span>
-                        </div>
-                        <div>
-                            <div class="message-bubble text-danger border-danger-subtle bg-danger-subtle">
-                                <strong>Lỗi kết nối:</strong> Không thể nhận phản hồi từ hệ thống trợ lý. Vui lòng thử lại sau giây lát. (${escapeHtml(err.message)})
-                            </div>
-                            <div class="message-time">${timeStr}</div>
-                        </div>
-                    </div>
-                `;
-                typingRow.insertAdjacentHTML('beforebegin', errorHtml);
-                scrollToBottom();
-            })
-            .finally(() => {
-                btnSend.disabled = false;
-                input.focus();
-            });
-        }
-
-        function clearChatHistory() {
-            if (!confirm('Thầy/Cô có chắc chắn muốn xóa toàn bộ lịch sử đoạn chat này không?')) {
-                return;
-            }
-
-            fetch('/ai/clear-chat', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json; charset=utf-8'
-                }
-            })
-            .then(res => res.json())
-            .then(() => {
-                window.location.reload();
-            })
-            .catch(err => {
-                alert('Không thể xóa lịch sử chat: ' + err.message);
-            });
-        }
-        /*]]>*/
-    </script>
-</div>
-</body>
-</html>
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:replace="~{layout/main :: html(content=~{::#main-content}, pageTitle='Trợ Lý Học Vụ FIT')}">
+<body>
+<div id="main-content">
+
+    <style>
+        .chat-container {
+            display: flex;
+            flex-direction: column;
+            height: calc(100vh - 165px);
+            min-height: 580px;
+            background: #FFFFFF;
+            border: 1px solid var(--color-border, #CBD5E1);
+            border-radius: 12px;
+            box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.08);
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Top Academic Brand Gradient Stripe (3px) */
+        .chat-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3.5px;
+            background: linear-gradient(90deg, #1E3A5F 0%, #2563EB 50%, #38BDF8 100%);
+            z-index: 10;
+        }
+
+        /* 1. Academic Chat Header */
+        .chat-header {
+            padding: 14px 24px;
+            background: linear-gradient(180deg, #FFFFFF 0%, #F8FAFC 100%);
+            border-bottom: 1px solid var(--color-border, #E2E8F0);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .chat-bot-avatar {
+            width: 42px;
+            height: 42px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #1E3A5F 0%, #2563EB 100%);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 2px 8px rgba(37, 99, 235, 0.25);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #FFFFFF;
+            font-size: 0.85rem;
+            font-weight: 800;
+            letter-spacing: 0.8px;
+            flex-shrink: 0;
+            user-select: none;
+        }
+
+        .status-pulse-dot {
+            width: 8px;
+            height: 8px;
+            background-color: #10B981;
+            border-radius: 50%;
+            display: inline-block;
+            box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
+            animation: pulse-green 2s infinite;
+        }
+
+        @keyframes pulse-green {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.5); }
+            70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+        }
+
+        /* 2. Messages Stream */
+        .chat-messages {
+            flex: 1;
+            padding: 24px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            background: #FAFBFD;
+        }
+
+        .message-row {
+            display: flex;
+            gap: 12px;
+            max-width: 88%;
+        }
+
+        .message-row.bot {
+            align-self: flex-start;
+        }
+
+        .message-row.user {
+            align-self: flex-end;
+            flex-direction: row-reverse;
+        }
+
+        .message-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 9px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            font-weight: 700;
+            flex-shrink: 0;
+            margin-top: 2px;
+            user-select: none;
+        }
+
+        .message-avatar.bot {
+            background: linear-gradient(135deg, #1E3A5F 0%, #2563EB 100%);
+            color: #FFFFFF;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 2px 6px rgba(37, 99, 235, 0.2);
+        }
+
+        .message-avatar.user {
+            background: #F1F5F9;
+            color: #1E3A5F;
+            border: 1px solid #CBD5E1;
+            font-weight: 700;
+        }
+
+        .message-bubble {
+            padding: 14px 18px;
+            border-radius: 10px;
+            font-size: 0.925rem;
+            line-height: 1.6;
+            word-break: break-word;
+        }
+
+        .message-row.bot .message-bubble {
+            background: #FFFFFF;
+            color: #1E293B;
+            border: 1px solid #E2E8F0;
+            box-shadow: 0 1px 4px rgba(15, 23, 42, 0.05);
+        }
+
+        .message-bubble#welcomeBubble {
+            border-left: 3.5px solid #2563EB;
+            box-shadow: 0 2px 10px rgba(15, 23, 42, 0.05);
+        }
+
+        .message-row.user .message-bubble {
+            background: linear-gradient(135deg, #1E3A5F 0%, #2563EB 100%);
+            color: #FFFFFF;
+            border: none;
+            box-shadow: 0 3px 12px rgba(37, 99, 235, 0.22);
+        }
+
+        .message-time {
+            font-size: 0.75rem;
+            color: #94A3B8;
+            margin-top: 4px;
+            padding: 0 4px;
+        }
+
+        .message-row.user .message-time {
+            text-align: right;
+        }
+
+        /* 3. Welcome Action Cards (Balanced 2x2 Grid) */
+        .quick-action-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-top: 14px;
+        }
+
+        @media (max-width: 640px) {
+            .quick-action-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .quick-card {
+            background: #FFFFFF;
+            border: 1px solid #E2E8F0;
+            border-radius: 10px;
+            padding: 14px 18px;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            text-align: left;
+            user-select: none;
+            box-shadow: 0 1px 3px rgba(15, 23, 42, 0.03);
+        }
+
+        .quick-card:hover {
+            background: #FFFFFF;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px -2px rgba(15, 23, 42, 0.08);
+        }
+
+        /* Card 1: Sapphire Blue */
+        .quick-card.card-sapphire {
+            border-left: 4px solid #2563EB;
+        }
+        .quick-card.card-sapphire:hover {
+            border-color: #93C5FD;
+            border-left-color: #2563EB;
+        }
+
+        /* Card 2: Emerald Green */
+        .quick-card.card-emerald {
+            border-left: 4px solid #059669;
+        }
+        .quick-card.card-emerald:hover {
+            border-color: #A7F3D0;
+            border-left-color: #059669;
+        }
+
+        /* Card 3: Academic Amber / Gold */
+        .quick-card.card-amber {
+            border-left: 4px solid #D97706;
+        }
+        .quick-card.card-amber:hover {
+            border-color: #FDE68A;
+            border-left-color: #D97706;
+        }
+
+        /* Card 4: Royal Indigo */
+        .quick-card.card-indigo {
+            border-left: 4px solid #4F46E5;
+        }
+        .quick-card.card-indigo:hover {
+            border-color: #C7D2FE;
+            border-left-color: #4F46E5;
+        }
+
+        .quick-card-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .quick-card-title {
+            font-weight: 600;
+            font-size: 0.885rem;
+            color: #0F172A;
+            margin-bottom: 2px;
+        }
+
+        .quick-card-desc {
+            font-size: 0.775rem;
+            color: #64748B;
+            line-height: 1.35;
+        }
+
+        /* 4. Secondary Discoverability Links (Touch-friendly >= 36px) */
+        .quick-secondary-area {
+            margin-top: 14px;
+            padding-top: 12px;
+            border-top: 1px dashed #E2E8F0;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .secondary-label {
+            font-size: 0.775rem;
+            color: #64748B;
+            font-weight: 600;
+            margin-right: 4px;
+        }
+
+        .secondary-link-btn {
+            background: #FFFFFF;
+            border: 1px solid #CBD5E1;
+            border-radius: 6px;
+            padding: 6px 12px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: #1E3A5F;
+            cursor: pointer;
+            transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+            min-height: 36px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            user-select: none;
+            box-shadow: 0 1px 2px rgba(15, 23, 42, 0.02);
+        }
+
+        .secondary-link-btn:hover {
+            background: #EFF6FF;
+            border-color: #60A5FA;
+            color: #1D4ED8;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 6px rgba(37, 99, 235, 0.1);
+        }
+
+        /* 5. Markdown formatting inside bot bubble */
+        .message-bubble h3 {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #1E3A5F;
+            margin-top: 10px;
+            margin-bottom: 6px;
+            padding-bottom: 4px;
+            border-bottom: 1px solid #E2E8F0;
+        }
+
+        .message-bubble h4 {
+            font-size: 0.925rem;
+            font-weight: 600;
+            color: #0F172A;
+            margin-top: 8px;
+            margin-bottom: 4px;
+        }
+
+        .message-bubble code {
+            background: #F1F5F9;
+            color: #0F172A;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.85em;
+            font-family: monospace;
+        }
+
+        .message-bubble a {
+            color: #2563EB;
+            text-decoration: underline;
+        }
+
+        /* 6. Typing indicator */
+        .typing-dots {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 8px 14px;
+            background: #FFFFFF;
+            border: 1px solid #E2E8F0;
+            border-radius: 10px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+        }
+
+        .typing-dots span {
+            width: 6px;
+            height: 6px;
+            background: #2563EB;
+            border-radius: 50%;
+            animation: bounce 1.4s infinite ease-in-out both;
+        }
+
+        .typing-dots span:nth-child(1) { animation-delay: -0.32s; }
+        .typing-dots span:nth-child(2) { animation-delay: -0.16s; }
+
+        @keyframes bounce {
+            0%, 80%, 100% { transform: scale(0); opacity: 0.3; }
+            40% { transform: scale(1); opacity: 1; }
+        }
+
+        /* 7. Chat Input Area */
+        .chat-input-area {
+            padding: 14px 24px;
+            background: #FFFFFF;
+            border-top: 1px solid var(--color-border, #CBD5E1);
+        }
+
+        .chat-input-box {
+            display: flex;
+            align-items: flex-end;
+            gap: 10px;
+            background: #F8FAFC;
+            border: 1px solid #CBD5E1;
+            border-radius: 10px;
+            padding: 6px 10px 6px 14px;
+            transition: all 0.2s;
+        }
+
+        .chat-input-box:focus-within {
+            border-color: #2563EB;
+            background: #FFFFFF;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+        }
+
+        .chat-textarea {
+            flex: 1;
+            border: none;
+            background: transparent;
+            resize: none;
+            outline: none;
+            font-size: 0.925rem;
+            line-height: 1.5;
+            max-height: 120px;
+            min-height: 24px;
+            padding: 6px 0;
+            color: #0F172A;
+        }
+
+        .btn-send {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #1E3A5F 0%, #2563EB 100%);
+            border: none;
+            color: #FFFFFF;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            flex-shrink: 0;
+            box-shadow: 0 2px 6px rgba(37, 99, 235, 0.2);
+        }
+
+        .btn-send:hover:not(:disabled) {
+            background: linear-gradient(135deg, #162C47 0%, #1D4ED8 100%);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35);
+        }
+
+        .btn-send:disabled {
+            background: #CBD5E1;
+            cursor: not-allowed;
+            opacity: 0.7;
+            box-shadow: none;
+        }
+    </style>
+
+    <!-- Main Chatbot Card -->
+    <div class="chat-container">
+
+        <!-- 1. Academic Header -->
+        <div class="chat-header">
+            <div class="d-flex align-items-center gap-3">
+                <div class="chat-bot-avatar">
+                    <span>FIT</span>
+                </div>
+                <div>
+                    <div class="d-flex align-items-center gap-2">
+                        <h6 class="fw-bold mb-0 text-dark" style="color: #1E3A5F !important;">Trợ Lý Học Vụ FIT</h6>
+                        <span class="badge d-inline-flex align-items-center gap-1.5 px-2.5 py-1 rounded-pill fw-medium"
+                              style="background: rgba(16, 185, 129, 0.1); color: #059669; border: 1px solid rgba(16, 185, 129, 0.25);">
+                            <span class="status-pulse-dot"></span>
+                            <span style="font-size: 0.75rem;">Trực tuyến</span>
+                        </span>
+                    </div>
+                    <small class="text-secondary">Cổng thông tin hỗ trợ học vụ &amp; quản lý đề tài Khoa CNTT</small>
+                </div>
+            </div>
+
+            <div class="d-flex align-items-center gap-2">
+                <button type="button" class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1.5 px-3 py-1.5 rounded-2" 
+                        onclick="clearChatHistory()" title="Xóa toàn bộ lịch sử đoạn chat của bạn">
+                    <i class="fa-regular fa-trash-can"></i>
+                    <span>Xóa đoạn chat</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- 2. Message Stream -->
+        <div class="chat-messages" id="chatMessages">
+
+            <!-- Welcome Message (Always first) -->
+            <div class="message-row bot">
+                <div class="message-avatar bot">
+                    <span>FIT</span>
+                </div>
+                <div style="flex: 1;">
+                    <div class="message-bubble" id="welcomeBubble">
+                        <p class="fw-semibold text-dark mb-1" th:text="${welcomeGreeting}">Kính chào Quý Thầy/Cô, hệ thống sẵn sàng hỗ trợ tra cứu thông tin học vụ.</p>
+                        <p class="mb-2 text-secondary small">
+                            Hệ thống trợ lý hỗ trợ tổng hợp nhanh số liệu đợt đăng ký, tiến độ các nhóm hướng dẫn, tình trạng duyệt báo cáo tuần và danh sách hội đồng bảo vệ.
+                        </p>
+
+                        <!-- Primary 4 Quick Action Cards (Balanced 2x2 Grid - Pure Academic Typography) -->
+                        <div class="quick-action-grid">
+                            <div class="quick-card card-sapphire" onclick="sendPrompt('Hiện tại đang có những đợt đăng ký nào diễn ra?')">
+                                <div class="quick-card-title">Đợt đăng ký hiện tại</div>
+                                <div class="quick-card-desc">Thời hạn &amp; tiến độ các giai đoạn đăng ký</div>
+                            </div>
+                            <div class="quick-card card-emerald" onclick="sendPrompt('Hiện tại tôi đang là giảng viên hướng dẫn của những nhóm nào?')">
+                                <div class="quick-card-title">Nhóm đang hướng dẫn</div>
+                                <div class="quick-card-desc">Danh sách nhóm, đề tài &amp; sinh viên thực hiện</div>
+                            </div>
+                            <div class="quick-card card-amber" onclick="sendPrompt('Cho tôi biết nhóm nào đang chờ duyệt báo cáo tuần.')">
+                                <div class="quick-card-title">Báo cáo chờ duyệt</div>
+                                <div class="quick-card-desc">Nhật ký tiến độ tuần cần phản hồi xác nhận</div>
+                            </div>
+                            <div class="quick-card card-indigo" onclick="sendPrompt('Tôi đang làm giảng viên phản biện/chủ tịch/thư ký/ủy viên cho những hội đồng nào?')">
+                                <div class="quick-card-title">Hội đồng tham gia</div>
+                                <div class="quick-card-desc">Lịch chấm, phân công phản biện &amp; bảo vệ</div>
+                            </div>
+                        </div>
+
+                        <!-- Secondary Discoverability Links (Touch-friendly >= 36px) -->
+                        <div class="quick-secondary-area">
+                            <span class="secondary-label">Chủ đề tra cứu khác:</span>
+                            <button type="button" class="secondary-link-btn" onclick="sendPrompt('Có những đề tài nào chưa có nhóm đăng ký?')">
+                                Đề tài còn trống
+                            </button>
+                            <button type="button" class="secondary-link-btn" onclick="sendPrompt('Có bao nhiêu đề tài trong đợt này?')">
+                                Thống kê đề tài đợt
+                            </button>
+                            <button type="button" class="secondary-link-btn" onclick="sendPrompt('Có những đề tài nào trong đợt này?')">
+                                Đề tài trong đợt
+                            </button>
+                            <button type="button" class="secondary-link-btn" onclick="sendPrompt('Nhóm nào đã nộp báo cáo hoàn chỉnh.')">
+                                Báo cáo hoàn chỉnh
+                            </button>
+                        </div>
+                    </div>
+                    <div class="message-time">Trợ lý Học vụ FIT • Hôm nay</div>
+                </div>
+            </div>
+
+            <!-- Existing Chat History (If any) -->
+            <th:block th:each="entry : ${chatHistory}">
+                <!-- User Question -->
+                <div class="message-row user">
+                    <div class="message-avatar user" th:text="${currentUser.initials}">GV</div>
+                    <div>
+                        <div class="message-bubble" th:text="${entry.inputContent}">Câu hỏi người dùng</div>
+                        <div class="message-time" th:text="${#temporals.format(entry.createdAt, 'HH:mm')}">14:00</div>
+                    </div>
+                </div>
+
+                <!-- Bot Response -->
+                <div class="message-row bot">
+                    <div class="message-avatar bot">
+                        <span>FIT</span>
+                    </div>
+                    <div>
+                        <div class="message-bubble chat-markdown-content" th:attr="data-raw=${entry.aiResponse}">
+                            <!-- Content will be parsed by JS -->
+                        </div>
+                        <div class="message-time" th:text="${#temporals.format(entry.createdAt, 'HH:mm')}">14:00</div>
+                    </div>
+                </div>
+            </th:block>
+
+            <!-- Typing indicator element (Hidden by default) -->
+            <div class="message-row bot" id="typingRow" style="display: none;">
+                <div class="message-avatar bot">
+                    <span>FIT</span>
+                </div>
+                <div>
+                    <div class="typing-dots">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- 3. Input Area -->
+        <div class="chat-input-area">
+            <div class="chat-input-box">
+                <textarea id="chatInput" 
+                          class="chat-textarea" 
+                          rows="1" 
+                          placeholder="Nhập câu hỏi hoặc yêu cầu tra cứu... (Nhấn Enter để gửi, Shift+Enter xuống dòng)"
+                          onkeydown="handleInputKeyDown(event)"
+                          oninput="autoResizeTextarea(this)"></textarea>
+
+                <button type="button" id="btnSend" class="btn-send" onclick="submitUserMessage()" title="Gửi tin nhắn (Enter)">
+                    <i class="fa-solid fa-paper-plane"></i>
+                </button>
+            </div>
+            <div class="d-flex justify-content-end align-items-center mt-2 px-1">
+                <span class="small text-muted" style="font-size: 0.775rem;">
+                    Nhấn <strong>Enter</strong> để gửi, <strong>Shift + Enter</strong> để xuống dòng
+                </span>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Scripts for Chat UI (Preserving 100% Core Logic) -->
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        const CURRENT_USER_INITIALS = /*[[${currentUser.initials}]]*/ 'GV';
+
+        /**
+         * Escape HTML để ngăn ngừa XSS
+         */
+        function escapeHtml(text) {
+            if (!text) return '';
+            return String(text)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        /**
+         * Format Markdown đơn giản cho tin nhắn bot
+         */
+        function parseMarkdown(text) {
+            if (!text) return '';
+            let safe = escapeHtml(text);
+
+            // 1. Heading h4 / h3
+            safe = safe.replace(/^#### (.*$)/gim, '<h4 class="mt-2 mb-1.5 font-bold text-dark fs-6">$1</h4>');
+            safe = safe.replace(/^### (.*$)/gim, '<h3 class="mt-2 mb-2 font-bold text-dark fs-6 pb-1 border-bottom">$1</h3>');
+
+            // 2. Bold text **text**
+            safe = safe.replace(/\*\*(.*?)\*\*/gim, '<strong>$1</strong>');
+
+            // 3. Italic *text*
+            safe = safe.replace(/\*(.*?)\*/gim, '<em>$1</em>');
+
+            // 4. Inline code `code`
+            safe = safe.replace(/`([^`]+)`/gim, '<code>$1</code>');
+
+            // 5. Links [text](url)
+            safe = safe.replace(/\[(.*?)\]\((.*?)\)/gim, '<a href="$2" target="_blank" rel="noopener">$1</a>');
+
+            // 6. Bullet lists - item
+            safe = safe.replace(/^- (.*$)/gim, '<div class="ps-2 py-0.5">• $1</div>');
+
+            // 7. Line breaks
+            safe = safe.replace(/\n/gim, '<br>');
+
+            return safe;
+        }
+
+        /**
+         * Render markdown cho toàn bộ lịch sử ban đầu
+         */
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('.chat-markdown-content').forEach(el => {
+                const raw = el.getAttribute('data-raw');
+                if (raw) {
+                    el.innerHTML = parseMarkdown(raw);
+                }
+            });
+            scrollToBottom();
+        });
+
+        function scrollToBottom() {
+            const container = document.getElementById('chatMessages');
+            if (container) {
+                container.scrollTop = container.scrollHeight;
+            }
+        }
+
+        function autoResizeTextarea(el) {
+            el.style.height = 'auto';
+            el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+        }
+
+        function handleInputKeyDown(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                submitUserMessage();
+            }
+        }
+
+        function sendPrompt(promptText) {
+            const input = document.getElementById('chatInput');
+            if (input) {
+                input.value = promptText;
+                submitUserMessage();
+            }
+        }
+
+        function submitUserMessage() {
+            const input = document.getElementById('chatInput');
+            const btnSend = document.getElementById('btnSend');
+            const messagesContainer = document.getElementById('chatMessages');
+            const typingRow = document.getElementById('typingRow');
+
+            if (!input) return;
+            const message = input.value.trim();
+            if (!message) return;
+
+            // Lấy thời gian hiện tại
+            const now = new Date();
+            const timeStr = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
+
+            // Append user message to UI
+            const userHtml = `
+                <div class="message-row user">
+                    <div class="message-avatar user">${escapeHtml(CURRENT_USER_INITIALS)}</div>
+                    <div>
+                        <div class="message-bubble">${escapeHtml(message)}</div>
+                        <div class="message-time">${timeStr}</div>
+                    </div>
+                </div>
+            `;
+            typingRow.insertAdjacentHTML('beforebegin', userHtml);
+
+            // Clear input
+            input.value = '';
+            input.style.height = 'auto';
+            btnSend.disabled = true;
+
+            // Show typing indicator
+            typingRow.style.display = 'flex';
+            scrollToBottom();
+
+            // Send to server
+            fetch('/ai/chat', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json; charset=utf-8'
+                },
+                body: JSON.stringify({ message: message })
+            })
+            .then(res => {
+                if (!res.ok) throw new Error('Mã phản hồi lỗi: ' + res.status);
+                return res.json();
+            })
+            .then(data => {
+                typingRow.style.display = 'none';
+
+                const botTime = data.timestamp || timeStr;
+                const botContent = parseMarkdown(data.reply);
+
+                const botHtml = `
+                    <div class="message-row bot">
+                        <div class="message-avatar bot">
+                            <span>FIT</span>
+                        </div>
+                        <div>
+                            <div class="message-bubble">${botContent}</div>
+                            <div class="message-time">${botTime}</div>
+                        </div>
+                    </div>
+                `;
+                typingRow.insertAdjacentHTML('beforebegin', botHtml);
+                scrollToBottom();
+            })
+            .catch(err => {
+                typingRow.style.display = 'none';
+                const errorHtml = `
+                    <div class="message-row bot">
+                        <div class="message-avatar bot" style="background:#DC2626;">
+                            <span>FIT</span>
+                        </div>
+                        <div>
+                            <div class="message-bubble text-danger border-danger-subtle bg-danger-subtle">
+                                <strong>Lỗi kết nối:</strong> Không thể nhận phản hồi từ hệ thống trợ lý. Vui lòng thử lại sau giây lát. (${escapeHtml(err.message)})
+                            </div>
+                            <div class="message-time">${timeStr}</div>
+                        </div>
+                    </div>
+                `;
+                typingRow.insertAdjacentHTML('beforebegin', errorHtml);
+                scrollToBottom();
+            })
+            .finally(() => {
+                btnSend.disabled = false;
+                input.focus();
+            });
+        }
+
+        function clearChatHistory() {
+            if (!confirm('Thầy/Cô có chắc chắn muốn xóa toàn bộ lịch sử đoạn chat này không?')) {
+                return;
+            }
+
+            fetch('/ai/clear-chat', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json; charset=utf-8'
+                }
+            })
+            .then(res => res.json())
+            .then(() => {
+                window.location.reload();
+            })
+            .catch(err => {
+                alert('Không thể xóa lịch sử chat: ' + err.message);
+            });
+        }
+        /*]]>*/
+    </script>
+</div>
+</body>
+</html>
