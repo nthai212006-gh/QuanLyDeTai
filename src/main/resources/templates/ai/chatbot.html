@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
-      th:replace="~{layout/main :: html(content=~{::#main-content}, pageTitle='AI Chatbot')}">
+      th:replace="~{layout/main :: html(content=~{::#main-content}, pageTitle='Trợ Lý Học Vụ FIT')}">
 <body>
 <div id="main-content">
 
@@ -11,105 +11,54 @@
             height: calc(100vh - 165px);
             min-height: 580px;
             background: #FFFFFF;
-            border: 1px solid var(--color-border, #E2E8F0);
-            border-radius: 16px;
-            box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.06);
+            border: 1px solid var(--color-border, #CBD5E1);
+            border-radius: 12px;
+            box-shadow: 0 4px 16px -2px rgba(15, 23, 42, 0.05);
             overflow: hidden;
         }
 
-        /* Chat Header */
+        /* 1. Academic Chat Header */
         .chat-header {
-            padding: 16px 24px;
+            padding: 14px 24px;
             background: #F8FAFC;
-            border-bottom: 1px solid var(--color-border, #E2E8F0);
+            border-bottom: 1px solid var(--color-border, #CBD5E1);
             display: flex;
             align-items: center;
             justify-content: space-between;
         }
 
         .chat-bot-avatar {
-            width: 44px;
-            height: 44px;
-            border-radius: 12px;
-            background: linear-gradient(135deg, #1E40AF 0%, #3B82F6 100%);
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            background: #1E3A5F;
+            border: 1px solid #0F2847;
             display: flex;
             align-items: center;
             justify-content: center;
             color: #FFFFFF;
-            font-size: 1.25rem;
-            position: relative;
-            box-shadow: 0 4px 12px rgba(30, 64, 175, 0.25);
-        }
-
-        .chat-online-dot {
-            width: 11px;
-            height: 11px;
-            background: #10B981;
-            border: 2px solid #FFFFFF;
-            border-radius: 50%;
-            position: absolute;
-            bottom: -1px;
-            right: -1px;
-        }
-
-        /* Suggested Chips Bar */
-        .chat-chips-bar {
-            padding: 10px 20px;
-            background: #F8FAFC;
-            border-bottom: 1px solid #F1F5F9;
-            overflow-x: auto;
-            white-space: nowrap;
-            display: flex;
-            gap: 8px;
-            scrollbar-width: thin;
-        }
-
-        .chat-chips-bar::-webkit-scrollbar {
-            height: 4px;
-        }
-        .chat-chips-bar::-webkit-scrollbar-thumb {
-            background: #CBD5E1;
-            border-radius: 4px;
-        }
-
-        .chip-btn {
-            background: #FFFFFF;
-            border: 1px solid #E2E8F0;
-            border-radius: 20px;
-            padding: 6px 14px;
-            font-size: 0.8125rem;
-            font-weight: 500;
-            color: #334155;
-            cursor: pointer;
-            transition: all 0.15s ease-in-out;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            flex-shrink: 0;
             user-select: none;
         }
 
-        .chip-btn:hover {
-            background: #EFF6FF;
-            border-color: #BFDBFE;
-            color: #1D4ED8;
-            transform: translateY(-1px);
-        }
-
-        /* Messages Body */
+        /* 2. Messages Stream */
         .chat-messages {
             flex: 1;
             padding: 24px;
             overflow-y: auto;
             display: flex;
             flex-direction: column;
-            gap: 18px;
+            gap: 16px;
             background: #FAFBFD;
         }
 
         .message-row {
             display: flex;
             gap: 12px;
-            max-width: 85%;
+            max-width: 88%;
         }
 
         .message-row.bot {
@@ -124,94 +73,166 @@
         .message-avatar {
             width: 34px;
             height: 34px;
-            border-radius: 50%;
+            border-radius: 8px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             font-weight: 700;
             flex-shrink: 0;
             margin-top: 2px;
+            user-select: none;
         }
 
         .message-avatar.bot {
-            background: #1E40AF;
+            background: #1E3A5F;
             color: #FFFFFF;
+            border: 1px solid #0F2847;
         }
 
         .message-avatar.user {
             background: #E2E8F0;
-            color: #334155;
+            color: #1E293B;
+            border: 1px solid #CBD5E1;
         }
 
         .message-bubble {
             padding: 14px 18px;
-            border-radius: 16px;
+            border-radius: 10px;
             font-size: 0.925rem;
             line-height: 1.6;
             word-break: break-word;
-            position: relative;
         }
 
         .message-row.bot .message-bubble {
             background: #FFFFFF;
             color: #1E293B;
             border: 1px solid #E2E8F0;
-            border-top-left-radius: 4px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
         }
 
         .message-row.user .message-bubble {
-            background: #1E40AF;
+            background: #1E3A5F;
             color: #FFFFFF;
-            border-top-right-radius: 4px;
-            box-shadow: 0 2px 8px rgba(30, 64, 175, 0.2);
+            border: 1px solid #162C47;
         }
 
         .message-time {
-            font-size: 0.725rem;
-            margin-top: 4px;
+            font-size: 0.75rem;
             color: #94A3B8;
+            margin-top: 4px;
+            padding: 0 4px;
         }
 
         .message-row.user .message-time {
             text-align: right;
-            color: #94A3B8;
         }
 
-        /* Formatted Content inside Bot Bubble */
-        .message-bubble h3, .message-bubble h4 {
+        /* 3. Welcome Action Cards (Academic 2x2 Grid) */
+        .quick-action-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+            gap: 10px;
+            margin-top: 14px;
+        }
+
+        .quick-card {
+            background: #F8FAFC;
+            border: 1px solid #E2E8F0;
+            border-radius: 8px;
+            padding: 12px 14px;
+            cursor: pointer;
+            transition: all 0.15s ease-in-out;
+            text-align: left;
+            user-select: none;
+        }
+
+        .quick-card:hover {
+            border-color: #1E3A5F;
+            background: #FFFFFF;
+            box-shadow: 0 2px 8px rgba(30, 58, 95, 0.08);
+            transform: translateY(-1px);
+        }
+
+        .quick-card-title {
+            font-weight: 600;
+            font-size: 0.875rem;
+            color: #1E3A5F;
+            margin-bottom: 2px;
+        }
+
+        .quick-card-desc {
+            font-size: 0.775rem;
+            color: #64748B;
+            line-height: 1.35;
+        }
+
+        /* 4. Secondary Discoverability Links (Touch-friendly >= 36px) */
+        .quick-secondary-area {
+            margin-top: 14px;
+            padding-top: 10px;
+            border-top: 1px dashed #E2E8F0;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .secondary-label {
+            font-size: 0.775rem;
+            color: #64748B;
+            font-weight: 600;
+            margin-right: 4px;
+        }
+
+        .secondary-link-btn {
+            background: #F1F5F9;
+            border: 1px solid #E2E8F0;
+            border-radius: 6px;
+            padding: 6px 12px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: #334155;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            min-height: 36px;
+            display: inline-flex;
+            align-items: center;
+            user-select: none;
+        }
+
+        .secondary-link-btn:hover {
+            background: #E2E8F0;
+            border-color: #CBD5E1;
+            color: #1E3A5F;
+        }
+
+        /* 5. Markdown formatting inside bot bubble */
+        .message-bubble h3 {
             font-size: 1rem;
             font-weight: 700;
-            margin-top: 6px;
-            margin-bottom: 10px;
+            color: #1E3A5F;
+            margin-top: 10px;
+            margin-bottom: 6px;
+            padding-bottom: 4px;
+            border-bottom: 1px solid #E2E8F0;
+        }
+
+        .message-bubble h4 {
+            font-size: 0.925rem;
+            font-weight: 600;
             color: #0F172A;
-            border-bottom: 1px solid #F1F5F9;
-            padding-bottom: 6px;
-        }
-
-        .message-bubble p {
-            margin-bottom: 8px;
-        }
-
-        .message-bubble p:last-child {
-            margin-bottom: 0;
-        }
-
-        .message-bubble strong {
-            color: #0F172A;
-        }
-
-        .message-row.user .message-bubble strong {
-            color: #FFFFFF;
+            margin-top: 8px;
+            margin-bottom: 4px;
         }
 
         .message-bubble code {
             background: #F1F5F9;
-            color: #0369A1;
+            color: #0F172A;
             padding: 2px 6px;
             border-radius: 4px;
             font-size: 0.85em;
+            font-family: monospace;
         }
 
         .message-bubble a {
@@ -219,22 +240,22 @@
             text-decoration: underline;
         }
 
-        /* Typing indicator animation */
+        /* 6. Typing indicator */
         .typing-dots {
             display: inline-flex;
             align-items: center;
             gap: 4px;
-            padding: 6px 12px;
+            padding: 8px 14px;
             background: #FFFFFF;
             border: 1px solid #E2E8F0;
-            border-radius: 16px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+            border-radius: 10px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.03);
         }
 
         .typing-dots span {
-            width: 7px;
-            height: 7px;
-            background: #94A3B8;
+            width: 6px;
+            height: 6px;
+            background: #64748B;
             border-radius: 50%;
             animation: bounce 1.4s infinite ease-in-out both;
         }
@@ -243,15 +264,15 @@
         .typing-dots span:nth-child(2) { animation-delay: -0.16s; }
 
         @keyframes bounce {
-            0%, 80%, 100% { transform: scale(0); opacity: 0.4; }
+            0%, 80%, 100% { transform: scale(0); opacity: 0.3; }
             40% { transform: scale(1); opacity: 1; }
         }
 
-        /* Chat Input Bar */
+        /* 7. Chat Input Area */
         .chat-input-area {
-            padding: 16px 24px;
+            padding: 14px 24px;
             background: #FFFFFF;
-            border-top: 1px solid var(--color-border, #E2E8F0);
+            border-top: 1px solid var(--color-border, #CBD5E1);
         }
 
         .chat-input-box {
@@ -260,15 +281,15 @@
             gap: 10px;
             background: #F8FAFC;
             border: 1px solid #CBD5E1;
-            border-radius: 14px;
-            padding: 6px 10px 6px 16px;
+            border-radius: 10px;
+            padding: 6px 10px 6px 14px;
             transition: all 0.2s;
         }
 
         .chat-input-box:focus-within {
-            border-color: #2563EB;
+            border-color: #1E3A5F;
             background: #FFFFFF;
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+            box-shadow: 0 0 0 3px rgba(30, 58, 95, 0.08);
         }
 
         .chat-textarea {
@@ -282,14 +303,14 @@
             max-height: 120px;
             min-height: 24px;
             padding: 6px 0;
-            color: #1E293B;
+            color: #0F172A;
         }
 
         .btn-send {
-            width: 40px;
-            height: 40px;
-            border-radius: 10px;
-            background: #1E40AF;
+            width: 38px;
+            height: 38px;
+            border-radius: 8px;
+            background: #1E3A5F;
             border: none;
             color: #FFFFFF;
             display: flex;
@@ -301,121 +322,99 @@
         }
 
         .btn-send:hover:not(:disabled) {
-            background: #1D4ED8;
-            transform: scale(1.05);
+            background: #162C47;
+            transform: scale(1.02);
         }
 
         .btn-send:disabled {
-            background: #94A3B8;
+            background: #CBD5E1;
             cursor: not-allowed;
-            opacity: 0.6;
+            opacity: 0.7;
         }
     </style>
 
     <!-- Main Chatbot Card -->
     <div class="chat-container">
 
-        <!-- 1. Header -->
+        <!-- 1. Academic Header -->
         <div class="chat-header">
             <div class="d-flex align-items-center gap-3">
                 <div class="chat-bot-avatar">
-                    <i class="fa-solid fa-robot"></i>
-                    <span class="chat-online-dot"></span>
+                    <span>FIT</span>
                 </div>
                 <div>
                     <div class="d-flex align-items-center gap-2">
-                        <h6 class="fw-bold mb-0 text-dark">AI Chatbot • FIT Assistant</h6>
-                        <span class="badge bg-success-subtle text-success border border-success-subtle small px-2 py-0.5 rounded-pill fw-medium">
-                            Trực tuyến
+                        <h6 class="fw-bold mb-0 text-dark" style="color: #1E3A5F !important;">Trợ Lý Học Vụ FIT</h6>
+                        <span class="badge bg-secondary-subtle text-secondary small px-2 py-0.5 rounded-pill fw-medium">
+                            Hệ thống
                         </span>
                     </div>
-                    <small class="text-secondary">Trợ lý hỗ trợ tổng hợp thông tin học vụ &amp; quản lý đề tài Khoa CNTT</small>
+                    <small class="text-secondary">Cổng thông tin hỗ trợ học vụ &amp; quản lý đề tài Khoa CNTT</small>
                 </div>
             </div>
 
             <div class="d-flex align-items-center gap-2">
-                <button type="button" class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1.5 px-3 py-1.5 rounded-3" 
-                        onclick="clearChatHistory()" title="Xóa toàn bộ lịch sử tin nhắn của bạn">
+                <button type="button" class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1.5 px-3 py-1.5 rounded-2" 
+                        onclick="clearChatHistory()" title="Xóa toàn bộ lịch sử đoạn chat của bạn">
                     <i class="fa-regular fa-trash-can"></i>
                     <span>Xóa đoạn chat</span>
                 </button>
             </div>
         </div>
 
-        <!-- 2. Suggestion Prompt Chips Bar -->
-        <div class="chat-chips-bar">
-            <button type="button" class="chip-btn" onclick="sendPrompt('Hiện tại đang có những đợt đăng ký nào diễn ra?')">
-                📅 Đợt đăng ký đang diễn ra?
-            </button>
-            <button type="button" class="chip-btn" onclick="sendPrompt('Hiện tại tôi đang là giảng viên hướng dẫn của những nhóm nào?')">
-                👥 Nhóm tôi đang hướng dẫn?
-            </button>
-            <button type="button" class="chip-btn" onclick="sendPrompt('Hiện tại tôi đang là giảng viên hướng dẫn của bao nhiêu nhóm?')">
-                📊 Tôi hướng dẫn bao nhiêu nhóm?
-            </button>
-            <button type="button" class="chip-btn" onclick="sendPrompt('Cho tôi biết những nhóm nào đã nộp báo cáo tuần.')">
-                📝 Nhóm đã nộp báo cáo tuần?
-            </button>
-            <button type="button" class="chip-btn" onclick="sendPrompt('Cho tôi biết nhóm nào đang chờ duyệt báo cáo tuần.')">
-                ⏳ Nhóm chờ duyệt báo cáo tuần?
-            </button>
-            <button type="button" class="chip-btn" onclick="sendPrompt('Nhóm nào đã nộp báo cáo hoàn chỉnh.')">
-                📑 Nhóm đã nộp báo cáo hoàn chỉnh?
-            </button>
-            <button type="button" class="chip-btn" onclick="sendPrompt('Tôi đang làm giảng viên phản biện/chủ tịch/thư ký/ủy viên cho những hội đồng nào?')">
-                🏛️ Hội đồng tôi tham gia?
-            </button>
-            <button type="button" class="chip-btn" onclick="sendPrompt('Tôi đang tham gia vào bao nhiêu hội đồng?')">
-                🔢 Tôi tham gia bao nhiêu hội đồng?
-            </button>
-        </div>
-
-        <!-- 3. Message Stream -->
+        <!-- 2. Message Stream -->
         <div class="chat-messages" id="chatMessages">
 
             <!-- Welcome Message (Always first) -->
             <div class="message-row bot">
                 <div class="message-avatar bot">
-                    <i class="fa-solid fa-robot"></i>
+                    <span>FIT</span>
                 </div>
-                <div>
+                <div style="flex: 1;">
                     <div class="message-bubble" id="welcomeBubble">
-                        <p class="fw-semibold text-dark mb-2" th:text="${welcomeGreeting}">Xin chào, tôi có thể giúp gì được cho bạn?</p>
-                        <p class="mb-2 text-secondary">
-                            Tôi có thể giúp bạn tổng hợp nhanh thông tin đợt đăng ký, tiến độ các nhóm hướng dẫn, tình trạng nộp báo cáo tuần/hoàn chỉnh và danh sách hội đồng bảo vệ.
+                        <p class="fw-semibold text-dark mb-1" th:text="${welcomeGreeting}">Kính chào Quý Thầy/Cô, hệ thống sẵn sàng hỗ trợ tra cứu thông tin học vụ.</p>
+                        <p class="mb-2 text-secondary small">
+                            Hệ thống trợ lý hỗ trợ tổng hợp nhanh số liệu đợt đăng ký, tiến độ các nhóm hướng dẫn, tình trạng duyệt báo cáo tuần và danh sách hội đồng bảo vệ.
                         </p>
-                        <div class="small fw-semibold text-primary mb-2">💡 Gợi ý câu hỏi phổ biến:</div>
-                        <div class="d-flex flex-wrap gap-1.5">
-                            <span class="chip-btn" onclick="sendPrompt('Hiện tại đang có những đợt đăng ký nào diễn ra?')">
-                                📅 Đợt đăng ký hiện tại
-                            </span>
-                            <span class="chip-btn" onclick="sendPrompt('Hội đồng sắp tới cần tham gia là khi nào?')">
-                                ⚖️ Hội đồng sắp tới
-                            </span>
-                            <span class="chip-btn" onclick="sendPrompt('Danh sách Nhóm & đề tài trong hội đồng sắp tới')">
-                                📋 Nhóm & đề tài HĐ
-                            </span>
-                            <span class="chip-btn" onclick="sendPrompt('Có những đề tài nào trong đợt này?')">
-                                📚 Đề tài trong đợt
-                            </span>
-                            <span class="chip-btn" onclick="sendPrompt('Có bao nhiêu đề tài trong đợt này?')">
-                                📊 Thống kê đề tài đợt
-                            </span>
-                            <span class="chip-btn" onclick="sendPrompt('Có những đề tài nào chưa có nhóm đăng ký?')">
-                                🌟 Đề tài còn trống
-                            </span>
-                            <span class="chip-btn" onclick="sendPrompt('Hiện tại tôi đang là giảng viên hướng dẫn của những nhóm nào?')">
-                                👥 Nhóm tôi hướng dẫn
-                            </span>
-                            <span class="chip-btn" onclick="sendPrompt('Cho tôi biết nhóm nào đang chờ duyệt báo cáo tuần.')">
-                                ⏳ Báo cáo chờ duyệt
-                            </span>
-                            <span class="chip-btn" onclick="sendPrompt('Tôi đang làm giảng viên phản biện/chủ tịch/thư ký/ủy viên cho những hội đồng nào?')">
-                                🏛️ Hội đồng của tôi
-                            </span>
+
+                        <!-- Primary 4 Quick Action Cards (Grid 2x2) -->
+                        <div class="quick-action-grid">
+                            <div class="quick-card" onclick="sendPrompt('Hiện tại đang có những đợt đăng ký nào diễn ra?')">
+                                <div class="quick-card-title">Đợt đăng ký hiện tại</div>
+                                <div class="quick-card-desc">Thời hạn &amp; tiến độ các giai đoạn đăng ký</div>
+                            </div>
+                            <div class="quick-card" onclick="sendPrompt('Hiện tại tôi đang là giảng viên hướng dẫn của những nhóm nào?')">
+                                <div class="quick-card-title">Nhóm đang hướng dẫn</div>
+                                <div class="quick-card-desc">Danh sách nhóm, đề tài &amp; sinh viên thực hiện</div>
+                            </div>
+                            <div class="quick-card" onclick="sendPrompt('Cho tôi biết nhóm nào đang chờ duyệt báo cáo tuần.')">
+                                <div class="quick-card-title">Báo cáo chờ duyệt</div>
+                                <div class="quick-card-desc">Nhật ký tiến độ tuần cần phản hồi xác nhận</div>
+                            </div>
+                            <div class="quick-card" onclick="sendPrompt('Tôi đang làm giảng viên phản biện/chủ tịch/thư ký/ủy viên cho những hội đồng nào?')">
+                                <div class="quick-card-title">Hội đồng tham gia</div>
+                                <div class="quick-card-desc">Lịch chấm, phân công phản biện &amp; bảo vệ</div>
+                            </div>
+                        </div>
+
+                        <!-- Secondary Discoverability Links (Touch-friendly >= 36px) -->
+                        <div class="quick-secondary-area">
+                            <span class="secondary-label">Chủ đề tra cứu khác:</span>
+                            <button type="button" class="secondary-link-btn" onclick="sendPrompt('Có những đề tài nào chưa có nhóm đăng ký?')">
+                                Đề tài còn trống
+                            </button>
+                            <button type="button" class="secondary-link-btn" onclick="sendPrompt('Có bao nhiêu đề tài trong đợt này?')">
+                                Thống kê đề tài đợt
+                            </button>
+                            <button type="button" class="secondary-link-btn" onclick="sendPrompt('Có những đề tài nào trong đợt này?')">
+                                Đề tài trong đợt
+                            </button>
+                            <button type="button" class="secondary-link-btn" onclick="sendPrompt('Nhóm nào đã nộp báo cáo hoàn chỉnh.')">
+                                Báo cáo hoàn chỉnh
+                            </button>
                         </div>
                     </div>
-                    <div class="message-time">Trợ lý AI • Hôm nay</div>
+                    <div class="message-time">Trợ lý Học vụ FIT • Hôm nay</div>
                 </div>
             </div>
 
@@ -433,7 +432,7 @@
                 <!-- Bot Response -->
                 <div class="message-row bot">
                     <div class="message-avatar bot">
-                        <i class="fa-solid fa-robot"></i>
+                        <span>FIT</span>
                     </div>
                     <div>
                         <div class="message-bubble chat-markdown-content" th:attr="data-raw=${entry.aiResponse}">
@@ -447,7 +446,7 @@
             <!-- Typing indicator element (Hidden by default) -->
             <div class="message-row bot" id="typingRow" style="display: none;">
                 <div class="message-avatar bot">
-                    <i class="fa-solid fa-robot"></i>
+                    <span>FIT</span>
                 </div>
                 <div>
                     <div class="typing-dots">
@@ -460,13 +459,13 @@
 
         </div>
 
-        <!-- 4. Input Area -->
+        <!-- 3. Input Area -->
         <div class="chat-input-area">
             <div class="chat-input-box">
                 <textarea id="chatInput" 
                           class="chat-textarea" 
                           rows="1" 
-                          placeholder="Nhập câu hỏi của bạn tại đây... (Nhấn Enter để gửi, Shift+Enter xuống dòng)"
+                          placeholder="Nhập câu hỏi hoặc yêu cầu tra cứu... (Nhấn Enter để gửi, Shift+Enter xuống dòng)"
                           onkeydown="handleInputKeyDown(event)"
                           oninput="autoResizeTextarea(this)"></textarea>
 
@@ -476,7 +475,7 @@
             </div>
             <div class="d-flex justify-content-between align-items-center mt-2 px-1">
                 <span class="small text-muted" style="font-size: 0.775rem;">
-                    <i class="fa-solid fa-circle-info me-1"></i> AI Chatbot tổng hợp dữ liệu thời gian thực từ cơ sở dữ liệu Khoa CNTT.
+                    <i class="fa-solid fa-shield-halved me-1 text-secondary"></i> Trợ lý Học vụ FIT • Dữ liệu kết xuất thời gian thực từ CSDL Khoa CNTT.
                 </span>
                 <span class="small text-muted" style="font-size: 0.775rem;">
                     Nhấn <strong>Enter</strong> để gửi
@@ -486,7 +485,7 @@
 
     </div>
 
-    <!-- Scripts for Chat UI -->
+    <!-- Scripts for Chat UI (Preserving 100% Core Logic) -->
     <script th:inline="javascript">
         /*<![CDATA[*/
         const CURRENT_USER_INITIALS = /*[[${currentUser.initials}]]*/ 'GV';
@@ -632,7 +631,7 @@
                 const botHtml = `
                     <div class="message-row bot">
                         <div class="message-avatar bot">
-                            <i class="fa-solid fa-robot"></i>
+                            <span>FIT</span>
                         </div>
                         <div>
                             <div class="message-bubble">${botContent}</div>
@@ -647,12 +646,12 @@
                 typingRow.style.display = 'none';
                 const errorHtml = `
                     <div class="message-row bot">
-                        <div class="message-avatar bot" style="background:#EF4444;">
-                            <i class="fa-solid fa-triangle-exclamation"></i>
+                        <div class="message-avatar bot" style="background:#DC2626;">
+                            <span>FIT</span>
                         </div>
                         <div>
                             <div class="message-bubble text-danger border-danger-subtle bg-danger-subtle">
-                                <strong>Lỗi kết nối:</strong> Không thể nhận phản hồi từ AI Chatbot. Vui lòng thử lại sau giây lát. (${escapeHtml(err.message)})
+                                <strong>Lỗi kết nối:</strong> Không thể nhận phản hồi từ hệ thống trợ lý. Vui lòng thử lại sau giây lát. (${escapeHtml(err.message)})
                             </div>
                             <div class="message-time">${timeStr}</div>
                         </div>
@@ -680,7 +679,6 @@
             })
             .then(res => res.json())
             .then(() => {
-                // Tải lại trang hoặc xóa các message rows
                 window.location.reload();
             })
             .catch(err => {

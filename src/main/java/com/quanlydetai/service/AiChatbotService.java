@@ -208,17 +208,17 @@ public class AiChatbotService {
     private String handleTopicsInPeriod(String query) {
         RegistrationPeriod period = findPeriodFromQuery(query);
         if (period == null) {
-            return "### 📚 Danh Sách Đề Tài\n\nHiện tại hệ thống **chưa ghi nhận đợt đăng ký nào**.";
+            return "### Danh Sách Đề Tài\n\nHiện tại hệ thống **chưa ghi nhận đợt đăng ký nào**.";
         }
 
         List<Topic> topics = topicRepository.findByPeriodId(period.getId());
         if (topics.isEmpty()) {
-            return "### 📚 Danh Sách Đề Tài - " + period.getPeriodName() + "\n\n" +
+            return "### Danh Sách Đề Tài - " + period.getPeriodName() + "\n\n" +
                    "Hiện tại trong đợt này **chưa có đề tài nào** được tạo.";
         }
 
         StringBuilder sb = new StringBuilder();
-        sb.append("### 📚 Danh Sách Đề Tài Trong Đợt: **").append(period.getPeriodName()).append("**\n\n");
+        sb.append("### Danh Sách Đề Tài Trong Đợt: **").append(period.getPeriodName()).append("**\n\n");
         sb.append("Tổng số đề tài: **").append(topics.size()).append("** đề tài\n\n");
 
         int index = 1;
@@ -234,7 +234,7 @@ public class AiChatbotService {
             sb.append("- **Trạng thái**: ").append(statusBadge).append("\n\n");
         }
 
-        sb.append("💡 *Thầy/Cô có thể hỏi: \"Thông tin về đề tài [Mã đề tài]\" để xem mục tiêu & yêu cầu chi tiết.*");
+        sb.append(" *Thầy/Cô có thể hỏi: \"Thông tin về đề tài [Mã đề tài]\" để xem mục tiêu & yêu cầu chi tiết.*");
         return sb.toString();
     }
 
@@ -244,7 +244,7 @@ public class AiChatbotService {
     private String handleTopicsCountInPeriod(String query) {
         RegistrationPeriod period = findPeriodFromQuery(query);
         if (period == null) {
-            return "### 📊 Thống Kê Số Lượng Đề Tài\n\nHiện tại hệ thống **chưa ghi nhận đợt đăng ký nào**.";
+            return "### Thống Kê Số Lượng Đề Tài\n\nHiện tại hệ thống **chưa ghi nhận đợt đăng ký nào**.";
         }
 
         List<Topic> topics = topicRepository.findByPeriodId(period.getId());
@@ -257,18 +257,18 @@ public class AiChatbotService {
         List<Topic> availableTopics = topicRepository.findAvailableTopicsForRegistration(period.getId());
 
         StringBuilder sb = new StringBuilder();
-        sb.append("### 📊 Thống Kê Số Lượng Đề Tài Trong Đợt: **").append(period.getPeriodName()).append("**\n\n");
-        sb.append("- 🎯 **Tổng số đề tài đã đề xuất**: **").append(topics.size()).append("** đề tài\n");
-        sb.append("- 🟢 **Đã được phê duyệt (APPROVED)**: **").append(approvedCount).append("** đề tài\n");
-        sb.append("- 🟡 **Đang chờ bộ môn duyệt (PENDING)**: **").append(pendingCount).append("** đề tài\n");
-        sb.append("- 🔵 **Đã có nhóm nhận (ASSIGNED)**: **").append(assignedCount).append("** đề tài\n");
+        sb.append("### Thống Kê Số Lượng Đề Tài Trong Đợt: **").append(period.getPeriodName()).append("**\n\n");
+        sb.append("-  **Tổng số đề tài đã đề xuất**: **").append(topics.size()).append("** đề tài\n");
+        sb.append("-  **Đã được phê duyệt (APPROVED)**: **").append(approvedCount).append("** đề tài\n");
+        sb.append("-  **Đang chờ bộ môn duyệt (PENDING)**: **").append(pendingCount).append("** đề tài\n");
+        sb.append("-  **Đã có nhóm nhận (ASSIGNED)**: **").append(assignedCount).append("** đề tài\n");
         if (completedCount > 0) {
-            sb.append("- 🏆 **Đã hoàn tất bảo vệ (COMPLETED)**: **").append(completedCount).append("** đề tài\n");
+            sb.append("-  **Đã hoàn tất bảo vệ (COMPLETED)**: **").append(completedCount).append("** đề tài\n");
         }
         if (rejectedCount > 0) {
-            sb.append("- 🔴 **Bị từ chối duyệt (REJECTED)**: **").append(rejectedCount).append("** đề tài\n");
+            sb.append("-  **Bị từ chối duyệt (REJECTED)**: **").append(rejectedCount).append("** đề tài\n");
         }
-        sb.append("- 🌟 **Đề tài còn trống sinh viên có thể đăng ký**: **").append(availableTopics.size()).append("** đề tài\n");
+        sb.append("-  **Đề tài còn trống sinh viên có thể đăng ký**: **").append(availableTopics.size()).append("** đề tài\n");
 
         return sb.toString();
     }
@@ -279,17 +279,17 @@ public class AiChatbotService {
     private String handleAvailableTopicsInPeriod(String query) {
         RegistrationPeriod period = findPeriodFromQuery(query);
         if (period == null) {
-            return "### 🌟 Đề Tài Còn Trống\n\nHiện tại hệ thống **chưa ghi nhận đợt đăng ký nào**.";
+            return "### Đề Tài Còn Trống\n\nHiện tại hệ thống **chưa ghi nhận đợt đăng ký nào**.";
         }
 
         List<Topic> availableTopics = topicRepository.findAvailableTopicsForRegistration(period.getId());
         if (availableTopics.isEmpty()) {
-            return "### 🌟 Đề Tài Còn Trống - " + period.getPeriodName() + "\n\n" +
+            return "### Đề Tài Còn Trống - " + period.getPeriodName() + "\n\n" +
                    "Hiện tại **không còn đề tài nào trống** trong đợt này (Tất cả đề tài đã được các nhóm đăng ký hoặc chưa được duyệt).";
         }
 
         StringBuilder sb = new StringBuilder();
-        sb.append("### 🌟 Danh Sách Đề Tài Còn Trống Trong Đợt: **").append(period.getPeriodName()).append("**\n\n");
+        sb.append("### Danh Sách Đề Tài Còn Trống Trong Đợt: **").append(period.getPeriodName()).append("**\n\n");
         sb.append("Có **").append(availableTopics.size()).append("** đề tài đã được duyệt và chưa có nhóm đăng ký:\n\n");
 
         int index = 1;
@@ -324,7 +324,7 @@ public class AiChatbotService {
         }
 
         if (roleMap.isEmpty()) {
-            return "### 🏛️ Lịch Hội Đồng Sắp Tới\n\nHiện tại Thầy/Cô **chưa được phân công vào hội đồng nào** trong hệ thống.";
+            return "### ️ Lịch Hội Đồng Sắp Tới\n\nHiện tại Thầy/Cô **chưa được phân công vào hội đồng nào** trong hệ thống.";
         }
 
         List<Council> allCouncils = councilRepository.findAllById(roleMap.keySet());
@@ -341,7 +341,7 @@ public class AiChatbotService {
                 .collect(Collectors.toList());
 
         if (upcomingCouncils.isEmpty()) {
-            return "### 🏛️ Lịch Hội Đồng Sắp Tới\n\n" +
+            return "### ️ Lịch Hội Đồng Sắp Tới\n\n" +
                    "Hiện tại Thầy/Cô **không có hội đồng nào sắp tới** (Các hội đồng được phân công trước đây đều đã hoàn tất bảo vệ).";
         }
 
@@ -357,17 +357,17 @@ public class AiChatbotService {
         int topicCount = (nextCouncil.getAssignedTopics() != null) ? nextCouncil.getAssignedTopics().size() : 0;
 
         StringBuilder sb = new StringBuilder();
-        sb.append("### 🏛️ Hội Đồng Sắp Tới Thầy/Cô Cần Tham Gia\n\n");
+        sb.append("### ️ Hội Đồng Sắp Tới Thầy/Cô Cần Tham Gia\n\n");
         sb.append("Hội đồng gần nhất của Thầy/Cô là: **").append(nextCouncil.getCouncilName()).append("**\n\n");
         sb.append("- **Mã hội đồng**: `").append(nextCouncil.getCouncilCode()).append("`\n");
         sb.append("- **Vai trò của Thầy/Cô**: **").append(posName).append("**\n");
         sb.append("- ⏰ **Thời gian bảo vệ**: `").append(defenseTime).append("`\n");
-        sb.append("- 📍 **Địa điểm / Phòng**: **").append(location).append("**\n");
-        sb.append("- 👥 **Số nhóm đề tài báo cáo**: **").append(topicCount).append(" nhóm**\n");
-        sb.append("- 📌 **Trạng thái**: `").append(nextCouncil.getStatus()).append("`\n\n");
+        sb.append("-  **Địa điểm / Phòng**: **").append(location).append("**\n");
+        sb.append("-  **Số nhóm đề tài báo cáo**: **").append(topicCount).append(" nhóm**\n");
+        sb.append("-  **Trạng thái**: `").append(nextCouncil.getStatus()).append("`\n\n");
 
         if (upcomingCouncils.size() > 1) {
-            sb.append("#### 📋 Các Hội Đồng Khác Cần Tham Gia Tiếp Theo:\n");
+            sb.append("#### Các Hội Đồng Khác Cần Tham Gia Tiếp Theo:\n");
             for (int i = 1; i < upcomingCouncils.size(); i++) {
                 Council oc = upcomingCouncils.get(i);
                 String dt = (oc.getDefenseDate() != null) ? oc.getDefenseDate().format(DATE_TIME_FORMATTER) : "Chưa có lịch";
@@ -378,7 +378,7 @@ public class AiChatbotService {
             sb.append("\n");
         }
 
-        sb.append("💡 *Thầy/Cô có thể hỏi: \"Danh sách nhóm và đề tài trong hội đồng sắp tới\" để xem chi tiết.*");
+        sb.append(" *Thầy/Cô có thể hỏi: \"Danh sách nhóm và đề tài trong hội đồng sắp tới\" để xem chi tiết.*");
         return sb.toString();
     }
 
@@ -427,19 +427,19 @@ public class AiChatbotService {
         }
 
         if (targetCouncil == null) {
-            return "### 🏛️ Danh Sách Nhóm & Đề Tài Trong Hội Đồng\n\nHiện tại hệ thống **chưa có hội đồng nào** được tạo.";
+            return "### ️ Danh Sách Nhóm & Đề Tài Trong Hội Đồng\n\nHiện tại hệ thống **chưa có hội đồng nào** được tạo.";
         }
 
         List<CouncilTopic> assignedTopics = councilTopicRepository.findByCouncilId(targetCouncil.getId());
         if (assignedTopics.isEmpty()) {
-            return "### 🏛️ Danh Sách Nhóm & Đề Tài - " + targetCouncil.getCouncilName() + "\n\n" +
+            return "### ️ Danh Sách Nhóm & Đề Tài - " + targetCouncil.getCouncilName() + "\n\n" +
                    "Hội đồng này hiện tại **chưa được phân công nhóm đề tài nào**.";
         }
 
         assignedTopics.sort(Comparator.comparing(ct -> ct.getDefenseOrder() != null ? ct.getDefenseOrder() : 999));
 
         StringBuilder sb = new StringBuilder();
-        sb.append("### 🏛️ Danh Sách Nhóm & Đề Tài Thuộc Hội Đồng: **").append(targetCouncil.getCouncilName()).append("**\n\n");
+        sb.append("### ️ Danh Sách Nhóm & Đề Tài Thuộc Hội Đồng: **").append(targetCouncil.getCouncilName()).append("**\n\n");
         sb.append("- **Mã hội đồng**: `").append(targetCouncil.getCouncilCode()).append("`\n");
         sb.append("- **Thời gian bảo vệ**: `").append(targetCouncil.getDefenseDate() != null ? targetCouncil.getDefenseDate().format(DATE_TIME_FORMATTER) : "Chưa có lịch").append("`\n");
         sb.append("- **Địa điểm**: ").append(targetCouncil.getLocation() != null ? targetCouncil.getLocation() : "Chưa xếp phòng").append("\n");
@@ -475,26 +475,26 @@ public class AiChatbotService {
     private String handlePeriodDetail(String query) {
         RegistrationPeriod p = findPeriodFromQuery(query);
         if (p == null) {
-            return "### 📅 Chi Tiết Đợt Đăng Ký\n\nKhông tìm thấy đợt đăng ký nào theo yêu cầu của bạn.";
+            return "### Chi Tiết Đợt Đăng Ký\n\nKhông tìm thấy đợt đăng ký nào theo yêu cầu của bạn.";
         }
 
         String typeName = getPeriodTypeName(p.getPeriodType());
         boolean isActive = Boolean.TRUE.equals(p.getIsActive());
 
         StringBuilder sb = new StringBuilder();
-        sb.append("### 📅 Thông Tin Chi Tiết Đợt Đăng Ký: **").append(p.getPeriodName()).append("**\n\n");
+        sb.append("### Thông Tin Chi Tiết Đợt Đăng Ký: **").append(p.getPeriodName()).append("**\n\n");
         sb.append("- **Mã đợt / ID**: `#").append(p.getId()).append("`\n");
         sb.append("- **Loại hình**: ").append(typeName).append("\n");
         sb.append("- **Năm học**: **").append(p.getAcademicYear()).append("**, Học kỳ: **").append(p.getSemester()).append("**\n");
-        sb.append("- **Trạng thái**: ").append(isActive ? "`🟢 Đang kích hoạt (Active)`" : "`⚪ Đã đóng (Inactive)`").append("\n\n");
+        sb.append("- **Trạng thái**: ").append(isActive ? "` Đang kích hoạt (Active)`" : "`⚪ Đã đóng (Inactive)`").append("\n\n");
 
         sb.append("#### ⏰ Mốc Thời Gian & Tiến Độ Chi Tiết:\n");
-        sb.append("- 📝 **Giảng viên đề xuất / nộp đề tài**: Từ `")
+        sb.append("-  **Giảng viên đề xuất / nộp đề tài**: Từ `")
           .append(p.getTopicSubmissionStart() != null ? p.getTopicSubmissionStart().format(DATE_TIME_FORMATTER) : "N/A")
           .append("` đến `")
           .append(p.getTopicSubmissionEnd() != null ? p.getTopicSubmissionEnd().format(DATE_TIME_FORMATTER) : "N/A").append("`\n");
 
-        sb.append("- 🎓 **Sinh viên chọn & đăng ký đề tài**: Từ `")
+        sb.append("-  **Sinh viên chọn & đăng ký đề tài**: Từ `")
           .append(p.getStudentRegistrationStart() != null ? p.getStudentRegistrationStart().format(DATE_TIME_FORMATTER) : "N/A")
           .append("` đến `")
           .append(p.getStudentRegistrationEnd() != null ? p.getStudentRegistrationEnd().format(DATE_TIME_FORMATTER) : "N/A").append("`\n");
@@ -502,10 +502,10 @@ public class AiChatbotService {
         sb.append("- ⏳ **Hạn chót nộp báo cáo / Phản biện**: `")
           .append(p.getReviewDeadline() != null ? p.getReviewDeadline().format(DATE_TIME_FORMATTER) : "Chưa có").append("`\n");
 
-        sb.append("- 🏛️ **Ngày dự kiến tổ chức Hội đồng bảo vệ**: `")
+        sb.append("- ️ **Ngày dự kiến tổ chức Hội đồng bảo vệ**: `")
           .append(p.getDefenseDate() != null ? p.getDefenseDate().format(DATE_FORMATTER) : "Chưa ấn định").append("`\n\n");
 
-        sb.append("#### 📌 Quy Định Chung:\n");
+        sb.append("#### Quy Định Chung:\n");
         sb.append("- **Số sinh viên mỗi nhóm**: Tối đa 3 SV/nhóm theo quy định đào tạo.\n");
         sb.append("- **Đề tài mỗi giảng viên**: Tối đa 5 đề tài theo phân công bộ môn.\n");
 
@@ -549,10 +549,10 @@ public class AiChatbotService {
 
         if (matchedTopic == null) {
             if (allTopics.isEmpty()) {
-                return "### 📚 Thông Tin Đề Tài\n\nHiện tại hệ thống **chưa có đề tài nào**.";
+                return "### Thông Tin Đề Tài\n\nHiện tại hệ thống **chưa có đề tài nào**.";
             }
             StringBuilder sb = new StringBuilder();
-            sb.append("### 📚 Thông Tin Đề Tài\n\n");
+            sb.append("### Thông Tin Đề Tài\n\n");
             sb.append("Không tìm thấy đề tài tương ứng với từ khóa `\"").append(cleaned).append("\"`. Bạn vui lòng cung cấp mã đề tài hoặc tên đề tài cụ thể.\n\n");
             sb.append("**Một số đề tài mẫu trong hệ thống:**\n");
             int count = 0;
@@ -564,7 +564,7 @@ public class AiChatbotService {
         }
 
         StringBuilder sb = new StringBuilder();
-        sb.append("### 📚 Thông Tin Chi Tiết Đề Tài: **").append(matchedTopic.getTitle()).append("**\n\n");
+        sb.append("### Thông Tin Chi Tiết Đề Tài: **").append(matchedTopic.getTitle()).append("**\n\n");
         sb.append("- **Mã đề tài**: `").append(matchedTopic.getTopicCode()).append("`\n");
         sb.append("- **Đợt đăng ký**: ").append(matchedTopic.getPeriod() != null ? matchedTopic.getPeriod().getPeriodName() : "N/A").append("\n");
         sb.append("- **Bộ môn phụ trách**: ").append(matchedTopic.getDepartment() != null ? matchedTopic.getDepartment().getDeptName() : "N/A").append("\n");
@@ -572,7 +572,7 @@ public class AiChatbotService {
         sb.append("- **Trạng thái duyệt**: ").append(translateTopicStatusBadge(matchedTopic.getStatus())).append("\n");
         sb.append("- **Số nhóm tối đa**: ").append(matchedTopic.getMaxGroups() != null ? matchedTopic.getMaxGroups() : 1).append(" nhóm\n\n");
 
-        sb.append("#### 📝 Mô Tả & Mục Tiêu Nghiên Cứu:\n");
+        sb.append("#### Mô Tả & Mục Tiêu Nghiên Cứu:\n");
         sb.append(matchedTopic.getDescription() != null && !matchedTopic.getDescription().trim().isEmpty() ? matchedTopic.getDescription() : "Chưa có mô tả chi tiết.").append("\n\n");
 
         if (matchedTopic.getRequirements() != null && !matchedTopic.getRequirements().trim().isEmpty()) {
@@ -586,9 +586,9 @@ public class AiChatbotService {
                 .filter(g -> g.getTopic() != null && g.getTopic().getId().equals(targetTopicId))
                 .collect(Collectors.toList());
 
-        sb.append("#### 👥 Tình Trạng Nhóm Đăng Ký:\n");
+        sb.append("#### Tình Trạng Nhóm Đăng Ký:\n");
         if (assignedGroups.isEmpty()) {
-            sb.append("🟢 **Đề tài hiện đang còn trống**, chưa có nhóm sinh viên nào đăng ký.\n");
+            sb.append(" **Đề tài hiện đang còn trống**, chưa có nhóm sinh viên nào đăng ký.\n");
         } else {
             for (StudentGroup g : assignedGroups) {
                 String leaderName = g.getLeader() != null ? g.getLeader().getFullName() : "N/A";
@@ -626,7 +626,7 @@ public class AiChatbotService {
         }
 
         if (matchedGroup == null) {
-            return "### 👥 Thông Tin Nhóm Sinh Viên\n\n" +
+            return "### Thông Tin Nhóm Sinh Viên\n\n" +
                    "Không tìm thấy nhóm sinh viên tương ứng với câu hỏi của Thầy/Cô. " +
                    "Vui lòng chỉ định rõ tên nhóm hoặc mã nhóm (Ví dụ: *\"Thông tin nhóm Nhóm 1\"*).";
         }
@@ -635,7 +635,7 @@ public class AiChatbotService {
         Topic topic = matchedGroup.getTopic();
 
         StringBuilder sb = new StringBuilder();
-        sb.append("### 👥 Thông Tin Chi Tiết: **").append(matchedGroup.getGroupName()).append("**\n\n");
+        sb.append("### Thông Tin Chi Tiết: **").append(matchedGroup.getGroupName()).append("**\n\n");
         sb.append("- **Mã nhóm**: `").append(matchedGroup.getGroupCode()).append("`\n");
         sb.append("- **Đợt đăng ký**: ").append(matchedGroup.getPeriod() != null ? matchedGroup.getPeriod().getPeriodName() : "N/A").append("\n");
         sb.append("- **Trạng thái thực hiện**: `").append(translateGroupStatus(matchedGroup.getStatus())).append("`\n");
@@ -645,7 +645,7 @@ public class AiChatbotService {
         }
         sb.append("\n");
 
-        sb.append("#### 👨‍🎓 Danh Sách Thành Viên (").append(members.size()).append(" SV):\n");
+        sb.append("#### ‍ Danh Sách Thành Viên (").append(members.size()).append(" SV):\n");
         int idx = 1;
         for (GroupMember gm : members) {
             User s = gm.getStudent();
@@ -658,7 +658,7 @@ public class AiChatbotService {
         }
 
         List<WeeklyProgressReport> reports = weeklyReportRepository.findByGroupIdOrderByWeekNumberAsc(matchedGroup.getId());
-        sb.append("\n#### 📊 Tình Hình Báo Cáo Tiến Độ Tuần:\n");
+        sb.append("\n#### Tình Hình Báo Cáo Tiến Độ Tuần:\n");
         if (reports.isEmpty()) {
             sb.append("Nhóm chưa nộp báo cáo tuần nào.\n");
         } else {
@@ -682,11 +682,11 @@ public class AiChatbotService {
         LocalDateTime now = LocalDateTime.now();
 
         if (periods.isEmpty()) {
-            return "### 📅 Thông Báo Đợt Đăng Ký\n\nHiện tại hệ thống **chưa ghi nhận đợt đăng ký nào** được kích hoạt.";
+            return "### Thông Báo Đợt Đăng Ký\n\nHiện tại hệ thống **chưa ghi nhận đợt đăng ký nào** được kích hoạt.";
         }
 
         StringBuilder sb = new StringBuilder();
-        sb.append("### 📅 Danh Sách Các Đợt Đăng Ký Hiện Tại\n\n");
+        sb.append("### Danh Sách Các Đợt Đăng Ký Hiện Tại\n\n");
         sb.append("Dưới đây là các đợt đăng ký trong hệ thống cùng mốc thời gian chi tiết:\n\n");
 
         int activeCount = 0;
@@ -701,22 +701,22 @@ public class AiChatbotService {
                 phaseBadge = "⚪ Đã kết thúc";
             } else if (p.getTopicSubmissionStart() != null && now.isBefore(p.getTopicSubmissionStart())) {
                 currentPhase = "Sắp bắt đầu mở nộp đề tài";
-                phaseBadge = "🟡 Sắp diễn ra";
+                phaseBadge = " Sắp diễn ra";
             } else if (p.isTopicSubmissionOpen()) {
                 currentPhase = "Giảng viên đang trong thời gian đề xuất đề tài";
-                phaseBadge = "🟢 Đang mở cho Giảng viên";
+                phaseBadge = " Đang mở cho Giảng viên";
             } else if (p.isStudentRegistrationOpen()) {
                 currentPhase = "Sinh viên đang trong thời gian chọn đề tài";
-                phaseBadge = "🟢 Đang mở cho Sinh viên";
+                phaseBadge = " Đang mở cho Sinh viên";
             } else if (p.getReviewDeadline() != null && now.isBefore(p.getReviewDeadline())) {
                 currentPhase = "Các nhóm đang thực hiện đề tài & tiến hành phản biện";
-                phaseBadge = "🔵 Đang thực hiện & Phản biện";
+                phaseBadge = " Đang thực hiện & Phản biện";
             } else if (p.getDefenseDate() != null) {
                 currentPhase = "Giai đoạn tổ chức hội đồng bảo vệ khóa luận";
-                phaseBadge = "🟣 Bảo vệ hội đồng";
+                phaseBadge = " Bảo vệ hội đồng";
             } else {
                 currentPhase = "Đang diễn ra";
-                phaseBadge = "🟢 Đang hoạt động";
+                phaseBadge = " Đang hoạt động";
             }
 
             if (isActive) activeCount++;
@@ -752,7 +752,7 @@ public class AiChatbotService {
         int count = supervisedGroups.size();
 
         if (count == 0) {
-            return "### 👥 Thống Kê Nhóm Hướng Dẫn\n\n" +
+            return "### Thống Kê Nhóm Hướng Dẫn\n\n" +
                    "Hiện tại Thầy/Cô **chưa là giảng viên hướng dẫn của nhóm sinh viên nào** trong hệ thống.";
         }
 
@@ -760,7 +760,7 @@ public class AiChatbotService {
                 .collect(Collectors.groupingBy(StudentGroup::getStatus, Collectors.counting()));
 
         StringBuilder sb = new StringBuilder();
-        sb.append("### 👥 Thống Kê Nhóm Hướng Dẫn\n\n");
+        sb.append("### Thống Kê Nhóm Hướng Dẫn\n\n");
         sb.append("Hiện tại Thầy/Cô đang là Giảng viên hướng dẫn của **").append(count).append(" nhóm sinh viên**:\n\n");
 
         for (Map.Entry<StudentGroup.GroupStatus, Long> entry : statusCounts.entrySet()) {
@@ -768,7 +768,7 @@ public class AiChatbotService {
               .append(entry.getValue()).append(" nhóm**\n");
         }
 
-        sb.append("\n💡 *Thầy/Cô có thể hỏi tiếp: \"Hiện tại tôi đang là giảng viên hướng dẫn của những nhóm nào?\" để xem danh sách chi tiết.*");
+        sb.append("\n *Thầy/Cô có thể hỏi tiếp: \"Hiện tại tôi đang là giảng viên hướng dẫn của những nhóm nào?\" để xem danh sách chi tiết.*");
         return sb.toString();
     }
 
@@ -779,12 +779,12 @@ public class AiChatbotService {
         List<StudentGroup> supervisedGroups = groupRepository.findSupervisedGroupsByLecturerId(user.getId());
 
         if (supervisedGroups.isEmpty()) {
-            return "### 👥 Danh Sách Nhóm Hướng Dẫn\n\n" +
+            return "### Danh Sách Nhóm Hướng Dẫn\n\n" +
                    "Hiện tại Thầy/Cô **chưa có nhóm sinh viên nào** được phân công hướng dẫn.";
         }
 
         StringBuilder sb = new StringBuilder();
-        sb.append("### 👥 Danh Sách Các Nhóm Thầy/Cô Đang Hướng Dẫn\n\n");
+        sb.append("### Danh Sách Các Nhóm Thầy/Cô Đang Hướng Dẫn\n\n");
         sb.append("Thầy/Cô đang hướng dẫn tổng cộng **").append(supervisedGroups.size()).append(" nhóm**:\n\n");
 
         int index = 1;
@@ -822,7 +822,7 @@ public class AiChatbotService {
 
         if (pendingReports.isEmpty()) {
             return "### ⏳ Báo Cáo Tuần Chờ Duyệt\n\n" +
-                   "🎉 Hiện tại **không có báo cáo tuần nào đang chờ duyệt**! Tất cả các báo cáo của nhóm Thầy/Cô hướng dẫn đã được phản hồi.";
+                   " Hiện tại **không có báo cáo tuần nào đang chờ duyệt**! Tất cả các báo cáo của nhóm Thầy/Cô hướng dẫn đã được phản hồi.";
         }
 
         StringBuilder sb = new StringBuilder();
@@ -841,10 +841,10 @@ public class AiChatbotService {
             sb.append("**").append(index++).append(". ").append(groupName).append(" - Tuần ").append(r.getWeekNumber()).append("**\n");
             sb.append("- **Thời gian nộp**: `").append(submittedTime).append("`\n");
             sb.append("- **Công việc đã làm**: ").append(tasksDone).append("\n");
-            sb.append("- **Trạng thái**: `🟡 Đang chờ GVHD duyệt`\n\n");
+            sb.append("- **Trạng thái**: ` Đang chờ GVHD duyệt`\n\n");
         }
 
-        sb.append("👉 Thầy/Cô có thể vào mục **Tiến độ đề tài ➜ Duyệt báo cáo tuần** để gửi phản hồi cho sinh viên.");
+        sb.append(" Thầy/Cô có thể vào mục **Tiến độ đề tài ➜ Duyệt báo cáo tuần** để gửi phản hồi cho sinh viên.");
         return sb.toString();
     }
 
@@ -854,19 +854,19 @@ public class AiChatbotService {
     private String handleSubmittedWeeklyReports(User user) {
         List<StudentGroup> supervisedGroups = groupRepository.findSupervisedGroupsByLecturerId(user.getId());
         if (supervisedGroups.isEmpty()) {
-            return "### 📝 Danh Sách Báo Cáo Tuần\n\nThầy/Cô hiện không hướng dẫn nhóm nào.";
+            return "### Danh Sách Báo Cáo Tuần\n\nThầy/Cô hiện không hướng dẫn nhóm nào.";
         }
 
         List<Long> groupIds = supervisedGroups.stream().map(StudentGroup::getId).collect(Collectors.toList());
         List<WeeklyProgressReport> reports = weeklyReportRepository.findByGroupIdInOrderBySubmittedAtDesc(groupIds);
 
         if (reports.isEmpty()) {
-            return "### 📝 Danh Sách Báo Cáo Tuần\n\n" +
+            return "### Danh Sách Báo Cáo Tuần\n\n" +
                    "Hiện tại **chưa có nhóm nào nộp báo cáo tuần** trong số các nhóm Thầy/Cô hướng dẫn.";
         }
 
         StringBuilder sb = new StringBuilder();
-        sb.append("### 📝 Tình Hình Báo Cáo Tiến Độ Tuần\n\n");
+        sb.append("### Tình Hình Báo Cáo Tiến Độ Tuần\n\n");
         sb.append("Tổng số báo cáo tuần đã nộp từ các nhóm hướng dẫn: **").append(reports.size()).append(" báo cáo**.\n\n");
 
         Map<Long, List<WeeklyProgressReport>> reportsByGroup = reports.stream()
@@ -897,7 +897,7 @@ public class AiChatbotService {
     private String handleFinalThesisSubmissions(User user) {
         List<StudentGroup> supervisedGroups = groupRepository.findSupervisedGroupsByLecturerId(user.getId());
         if (supervisedGroups.isEmpty()) {
-            return "### 📑 Báo Cáo Khóa Luận Hoàn Chỉnh\n\nThầy/Cô hiện không hướng dẫn nhóm nào.";
+            return "### Báo Cáo Khóa Luận Hoàn Chỉnh\n\nThầy/Cô hiện không hướng dẫn nhóm nào.";
         }
 
         List<Long> groupIds = supervisedGroups.stream().map(StudentGroup::getId).collect(Collectors.toList());
@@ -905,12 +905,12 @@ public class AiChatbotService {
                 groupIds, TopicSubmission.SubmissionType.FINAL_THESIS);
 
         if (finalSubmissions.isEmpty()) {
-            return "### 📑 Báo Cáo Khóa Luận Hoàn Chỉnh\n\n" +
+            return "### Báo Cáo Khóa Luận Hoàn Chỉnh\n\n" +
                    "Hiện tại **chưa có nhóm nào nộp báo cáo hoàn chỉnh (FINAL_THESIS)** trong số các nhóm Thầy/Cô hướng dẫn.";
         }
 
         StringBuilder sb = new StringBuilder();
-        sb.append("### 📑 Tình Hình Nộp Báo Cáo Hoàn Chỉnh (Toàn Văn Khóa Luận)\n\n");
+        sb.append("### Tình Hình Nộp Báo Cáo Hoàn Chỉnh (Toàn Văn Khóa Luận)\n\n");
         sb.append("Đã có **").append(finalSubmissions.size()).append(" lượt nộp báo cáo hoàn chỉnh**:\n\n");
 
         int index = 1;
@@ -949,12 +949,12 @@ public class AiChatbotService {
         boolean isSpecificRole = askChair || askSecretary || askReviewer || askMember;
 
         if (memberships.isEmpty() && reviewerAssignments.isEmpty()) {
-            return "### 🏛️ Thông Tin Hội Đồng\n\n" +
+            return "### ️ Thông Tin Hội Đồng\n\n" +
                    "Hiện tại Thầy/Cô **chưa được phân công tham gia hội đồng nào** trong hệ thống.";
         }
 
         StringBuilder sb = new StringBuilder();
-        sb.append("### 🏛️ Danh Sách Hội Đồng Thầy/Cô Đang Tham Gia\n\n");
+        sb.append("### ️ Danh Sách Hội Đồng Thầy/Cô Đang Tham Gia\n\n");
 
         int count = 0;
         for (CouncilMember cm : memberships) {
@@ -986,7 +986,7 @@ public class AiChatbotService {
         }
 
         if ((askReviewer || !isSpecificRole) && !reviewerAssignments.isEmpty()) {
-            sb.append("#### 📑 Các Nhóm Đề Tài Được Phân Công Chấm Phản Biện Riêng:\n");
+            sb.append("#### Các Nhóm Đề Tài Được Phân Công Chấm Phản Biện Riêng:\n");
             for (CouncilTopic ct : reviewerAssignments) {
                 String groupName = (ct.getGroup() != null) ? ct.getGroup().getGroupName() : "Nhóm #" + ct.getId();
                 String topicTitle = (ct.getGroup() != null && ct.getGroup().getTopic() != null) ? ct.getGroup().getTopic().getTitle() : "N/A";
@@ -999,7 +999,7 @@ public class AiChatbotService {
         }
 
         if (count == 0 && reviewerAssignments.isEmpty()) {
-            return "### 🏛️ Thông Tin Hội Đồng\n\n" +
+            return "### ️ Thông Tin Hội Đồng\n\n" +
                    "Không tìm thấy hội đồng nào phù hợp với chức vụ Thầy/Cô vừa hỏi.";
         }
 
@@ -1025,12 +1025,12 @@ public class AiChatbotService {
         int count = uniqueCouncilIds.size();
 
         if (count == 0) {
-            return "### 🏛️ Thống Kê Hội Đồng Tham Gia\n\n" +
+            return "### ️ Thống Kê Hội Đồng Tham Gia\n\n" +
                    "Hiện tại Thầy/Cô **chưa tham gia vào hội đồng nào** trong hệ thống.";
         }
 
         StringBuilder sb = new StringBuilder();
-        sb.append("### 🏛️ Thống Kê Hội Đồng Tham Gia\n\n");
+        sb.append("### ️ Thống Kê Hội Đồng Tham Gia\n\n");
         sb.append("Hiện tại Thầy/Cô đang tham gia vào **").append(count).append(" hội đồng** đánh giá & bảo vệ khóa luận:\n\n");
 
         int index = 1;
@@ -1049,53 +1049,110 @@ public class AiChatbotService {
      * 9. Lời chào hỏi
      */
     private String handleGreeting(User user) {
-        String titlePrefix = (user.getAcademicRank() != null && !user.getAcademicRank().trim().isEmpty()) 
-                ? user.getAcademicRank() + " " 
-                : "Thầy/Cô ";
+        String salutation = getNormalizedSalutation(user);
+        boolean isStaff = isLecturerOrStaff(user);
+        String greetingPrefix = isStaff ? "Kính chào **" : "Xin chào **";
 
-        return "Xin chào **" + titlePrefix + user.getFullName() + "**! 🤖\n\n" +
-               "Tôi là **AI Chatbot** hỗ trợ công tác học vụ và quản lý đề tài tốt nghiệp Khoa CNTT.\n\n" +
-               "Tôi có thể giúp gì được cho bạn hôm nay? Thầy/Cô có thể chọn nhanh các câu hỏi mẫu bên dưới hoặc gõ câu hỏi trực tiếp:";
+        return greetingPrefix + salutation + "**.\n\n" +
+               "Tôi là Trợ lý AI hỗ trợ công tác học vụ và quản lý đề tài tốt nghiệp Khoa CNTT.\n\n" +
+               "Hệ thống sẵn sàng hỗ trợ tra cứu các thông tin sau:\n" +
+               "- Tra cứu tiến độ và hạn nộp các đợt đăng ký đề tài\n" +
+               "- Danh mục đề tài theo chuyên ngành và tình trạng phân công\n" +
+               "- Tình trạng nộp và duyệt báo cáo tiến độ tuần\n" +
+               "- Lịch và danh sách hội đồng đánh giá khóa luận";
     }
 
     /**
      * 10. Trợ giúp & Giới thiệu tính năng
      */
     private String handleHelp(User user) {
-        return "### 🤖 Trợ Lý AI Chatbot - Khoa CNTT\n\n" +
-               "Tôi được thiết kế để hỗ trợ Thầy/Cô tra cứu thông tin học vụ nhanh chóng. Một số câu hỏi mẫu Thầy/Cô có thể hỏi:\n\n" +
-               "1. 📅 **\"Hiện tại đang có những đợt đăng ký nào diễn ra?\"**\n" +
-               "2. ℹ️ **\"Thông tin về đợt đăng ký [Tên đợt]\"**\n" +
-               "3. 📚 **\"Có những đề tài nào trong đợt này?\"**\n" +
-               "4. 📊 **\"Có bao nhiêu đề tài trong đợt 1?\"**\n" +
-               "5. 🌟 **\"Có những đề tài nào chưa có nhóm đăng ký?\"**\n" +
-               "6. 🔍 **\"Thông tin về đề tài DT001\"**\n" +
-               "7. 👥 **\"Hiện tại tôi đang là giảng viên hướng dẫn của những nhóm nào?\"**\n" +
-               "8. 📝 **\"Cho tôi biết những nhóm nào đã nộp báo cáo tuần\"**\n" +
-               "9. ⏳ **\"Cho tôi biết nhóm nào đang chờ duyệt báo cáo tuần\"**\n" +
-               "10. 📑 **\"Nhóm nào đã nộp báo cáo hoàn chỉnh\"**\n" +
-               "11. ⚖️ **\"Hội đồng sắp tới cần tham gia là khi nào?\"**\n" +
-               "12. 📋 **\"Danh sách Nhóm & đề tài trong hội đồng sắp tới\"**\n" +
-               "13. 🏛️ **\"Tôi đang tham gia vào bao nhiêu hội đồng?\"**\n" +
-               "14. 👨‍🎓 **\"Thông tin nhóm sinh viên Nhóm 1\"**\n\n" +
-               "Thầy/Cô chỉ cần gõ nội dung hoặc bấm vào các nút gợi ý bên dưới!";
+        return "### Trợ Lý Tra Cứu Học Vụ - Khoa CNTT\n\n" +
+               "Tôi được thiết kế để hỗ trợ tra cứu thông tin học vụ nhanh chóng. Một số câu hỏi mẫu có thể tra cứu:\n\n" +
+               "1. **\"Hiện tại đang có những đợt đăng ký nào diễn ra?\"**\n" +
+               "2. **\"Thông tin về đợt đăng ký [Tên đợt]\"**\n" +
+               "3. **\"Có những đề tài nào trong đợt này?\"**\n" +
+               "4. **\"Có bao nhiêu đề tài trong đợt 1?\"**\n" +
+               "5. **\"Có những đề tài nào chưa có nhóm đăng ký?\"**\n" +
+               "6. **\"Thông tin về đề tài DT001\"**\n" +
+               "7. **\"Hiện tại tôi đang là giảng viên hướng dẫn của những nhóm nào?\"**\n" +
+               "8. **\"Cho tôi biết những nhóm nào đã nộp báo cáo tuần\"**\n" +
+               "9. **\"Cho tôi biết nhóm nào đang chờ duyệt báo cáo tuần\"**\n" +
+               "10. **\"Nhóm nào đã nộp báo cáo hoàn chỉnh\"**\n" +
+               "11. **\"Hội đồng sắp tới cần tham gia là khi nào?\"**\n" +
+               "12. **\"Danh sách Nhóm và đề tài trong hội đồng sắp tới\"**\n" +
+               "13. **\"Tôi đang tham gia vào bao nhiêu hội đồng?\"**\n" +
+               "14. **\"Thông tin nhóm sinh viên Nhóm 1\"**\n\n" +
+               "Bạn có thể nhập trực tiếp câu hỏi hoặc lựa chọn các chủ đề gợi ý trên giao diện.";
     }
 
     /**
      * 11. Xử lý câu hỏi không thuộc mẫu cố định (Fallback)
      */
     private String handleFallback(String rawQuery, User user) {
-        return "Xin lỗi Thầy/Cô, tôi chưa nhận diện được yêu cầu này hoặc thông tin cần truy vấn nằm ngoài phạm vi quản lý đề tài.\n\n" +
-               "💡 **Gợi ý các câu hỏi Thầy/Cô có thể hỏi tôi:**\n" +
+        boolean isStaff = isLecturerOrStaff(user);
+        String salutation = isStaff ? "Thầy/Cô" : "bạn";
+        return "Xin lỗi " + salutation + ", tôi chưa nhận diện được yêu cầu này hoặc thông tin cần truy vấn nằm ngoài phạm vi quản lý đề tài.\n\n" +
+               "**Gợi ý các câu hỏi phù hợp:**\n" +
                "- *Hiện tại đang có những đợt đăng ký nào diễn ra?*\n" +
                "- *Có những đề tài nào trong đợt này?*\n" +
                "- *Có bao nhiêu đề tài trong đợt 1?*\n" +
                "- *Có những đề tài nào chưa có nhóm đăng ký?*\n" +
                "- *Thông tin về đề tài DT001*\n" +
                "- *Hội đồng sắp tới cần tham gia là khi nào?*\n" +
-               "- *Danh sách Nhóm & đề tài trong hội đồng sắp tới*\n" +
+               "- *Danh sách Nhóm và đề tài trong hội đồng sắp tới*\n" +
                "- *Hiện tại tôi đang là giảng viên hướng dẫn của những nhóm nào?*\n" +
                "- *Cho tôi biết nhóm nào đang chờ duyệt báo cáo tuần.*";
+    }
+
+    /**
+     * Chuẩn hóa danh xưng người dùng bằng Regex 2 chiều chống NPE và tránh lặp học vị.
+     */
+    public String getNormalizedSalutation(User user) {
+        if (user == null) {
+            return "bạn";
+        }
+        String fullName = user.getFullName() != null ? user.getFullName().trim() : "";
+        String rank = user.getAcademicRank() != null ? user.getAcademicRank().trim() : "";
+
+        // Bóc sạch tiền tố học vị nếu fullName đã chứa sẵn (vd: "TS. Lê Anh Tuấn" -> "Lê Anh Tuấn")
+        String cleanName = fullName.replaceAll("^(?i)(GS\\.?\\s*TS\\.?|PGS\\.?\\s*TS\\.?|TS\\.?|ThS\\.?|KS\\.?|CN\\.?|Ths\\.?)\\s*", "").trim();
+        if (cleanName.isEmpty()) {
+            cleanName = fullName;
+        }
+
+        boolean isStaff = isLecturerOrStaff(user);
+
+        if (!rank.isEmpty()) {
+            // Chuẩn hóa định dạng học vị
+            String cleanRank = rank.replaceAll("^(?i)(Ths\\.?|ThS\\.?)$", "ThS.")
+                                   .replaceAll("^(?i)(Ts\\.?|TS\\.?)$", "TS.")
+                                   .replaceAll("^(?i)(PGS\\.?\\s*TS\\.?|PGS\\.?\\s*TS)$", "PGS. TS.")
+                                   .replaceAll("^(?i)(GS\\.?\\s*TS\\.?|GS\\.?\\s*TS)$", "GS. TS.");
+            return cleanRank + " " + cleanName;
+        } else if (isStaff) {
+            String prefix = "Thầy/Cô";
+            if (user.getGender() != null) {
+                if (user.getGender() == User.Gender.MALE) {
+                    prefix = "Thầy";
+                } else if (user.getGender() == User.Gender.FEMALE) {
+                    prefix = "Cô";
+                }
+            }
+            return prefix + " " + cleanName;
+        } else {
+            return cleanName;
+        }
+    }
+
+    /**
+     * Kiểm tra người dùng có phải là giảng viên hoặc cán bộ khoa hay không
+     */
+    public boolean isLecturerOrStaff(User user) {
+        if (user == null || user.getRoles() == null) {
+            return false;
+        }
+        return user.getRoles().stream().anyMatch(r -> 
+            r.getRoleName() != null && !"ROLE_STUDENT".equalsIgnoreCase(r.getRoleName()));
     }
 
     // =========================================================================
@@ -1188,30 +1245,30 @@ public class AiChatbotService {
     private String translateTopicStatusBadge(Topic.TopicStatus status) {
         if (status == null) return "`Chưa xác định`";
         return switch (status) {
-            case APPROVED -> "`🟢 Đã phê duyệt (APPROVED)`";
-            case PENDING_APPROVAL -> "`🟡 Chờ bộ môn duyệt (PENDING)`";
-            case ASSIGNED -> "`🔵 Đã có nhóm nhận (ASSIGNED)`";
-            case REJECTED -> "`🔴 Bị từ chối (REJECTED)`";
-            case COMPLETED -> "`🏆 Đã hoàn thành (COMPLETED)`";
+            case APPROVED -> "` Đã phê duyệt (APPROVED)`";
+            case PENDING_APPROVAL -> "` Chờ bộ môn duyệt (PENDING)`";
+            case ASSIGNED -> "` Đã có nhóm nhận (ASSIGNED)`";
+            case REJECTED -> "` Bị từ chối (REJECTED)`";
+            case COMPLETED -> "` Đã hoàn thành (COMPLETED)`";
         };
     }
 
     private String translateFeedbackStatus(WeeklyProgressReport.FeedbackStatus status) {
-        if (status == null) return "`🟡 Đang chờ duyệt`";
+        if (status == null) return "` Đang chờ duyệt`";
         return switch (status) {
-            case PENDING -> "`🟡 Đang chờ duyệt`";
-            case ACCEPTED -> "`🟢 Đã duyệt & Đồng ý`";
-            case NEEDS_REVISION -> "`🔴 Yêu cầu chỉnh sửa lại`";
+            case PENDING -> "` Đang chờ duyệt`";
+            case ACCEPTED -> "` Đã duyệt & Đồng ý`";
+            case NEEDS_REVISION -> "` Yêu cầu chỉnh sửa lại`";
         };
     }
 
     private String translateCouncilPosition(CouncilMember.CouncilPosition pos) {
         if (pos == null) return "Thành viên hội đồng";
         return switch (pos) {
-            case CHAIR -> "👑 Chủ tịch Hội đồng";
+            case CHAIR -> " Chủ tịch Hội đồng";
             case SECRETARY -> "✍️ Thư ký Hội đồng";
-            case REVIEWER -> "🔍 Giảng viên Phản biện";
-            case MEMBER -> "📋 Ủy viên Hội đồng";
+            case REVIEWER -> " Giảng viên Phản biện";
+            case MEMBER -> " Ủy viên Hội đồng";
         };
     }
 }
