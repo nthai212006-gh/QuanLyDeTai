@@ -38,6 +38,7 @@ KT/
 scratch/
 .env
 .env.*
+!.env.example
 application-local.properties
 
 
