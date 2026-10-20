@@ -1,5 +1,8 @@
 package com.quanlydetai.service;
 
+import com.quanlydetai.service.gemini.GeminiApiClient;
+import com.quanlydetai.service.gemini.GeminiContextBuilder;
+
 import com.quanlydetai.entity.*;
 import com.quanlydetai.repository.*;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +29,8 @@ public class AiChatbotService {
     private final TopicRepository topicRepository;
     private final CouncilRepository councilRepository;
     private final GroupMemberRepository groupMemberRepository;
+    private final GeminiApiClient geminiApiClient;
+    private final GeminiContextBuilder geminiContextBuilder;
 
     public AiChatbotService(
             RegistrationPeriodRepository periodRepository,
@@ -37,7 +42,9 @@ public class AiChatbotService {
             AiAnalysisLogRepository aiAnalysisLogRepository,
             TopicRepository topicRepository,
             CouncilRepository councilRepository,
-            GroupMemberRepository groupMemberRepository) {
+            GroupMemberRepository groupMemberRepository,
+            GeminiApiClient geminiApiClient,
+            GeminiContextBuilder geminiContextBuilder) {
         this.periodRepository = periodRepository;
         this.groupRepository = groupRepository;
         this.weeklyReportRepository = weeklyReportRepository;
@@ -48,6 +55,8 @@ public class AiChatbotService {
         this.topicRepository = topicRepository;
         this.councilRepository = councilRepository;
         this.groupMemberRepository = groupMemberRepository;
+        this.geminiApiClient = geminiApiClient;
+        this.geminiContextBuilder = geminiContextBuilder;
     }
 
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
@@ -63,8 +72,53 @@ public class AiChatbotService {
         }
 
         String rawQuery = message.trim();
-        String lower = rawQuery.toLowerCase();
 
+        // 1. ƯU TIÊN 1: Gọi Google Gemini Generative AI Engine nếu khả dụng
+        if (geminiApiClient != null && geminiApiClient.isAvailable()) {
+            try {
+                String scopedPrompt = geminiContextBuilder.buildScopedContext(rawQuery, user);
+                Optional<String> geminiResponse = geminiApiClient.chat(scopedPrompt, rawQuery);
+
+                if (geminiResponse.isPresent() && !geminiResponse.get().isBlank()) {
+                    String cleanReply = sanitizeAcademicReply(geminiResponse.get());
+                    saveChatLog(user, rawQuery, cleanReply, "CHAT_GEMINI");
+                    return cleanReply;
+                }
+            } catch (Exception e) {
+                log.warn("Gemini Engine không phản hồi, tự động chuyển sang Fallback: {}", e.getMessage());
+            }
+        }
+
+        // 2. ƯU TIÊN 2 (FALLBACK): Chạy Rule-based 18 Intent sẵn có
+        String fallbackReply = processRuleBasedChat(rawQuery, user);
+        saveChatLog(user, rawQuery, fallbackReply, "CHAT_FALLBACK");
+        return fallbackReply;
+    }
+
+    private void saveChatLog(User user, String query, String reply, String actionType) {
+        try {
+            AiAnalysisLog logEntry = AiAnalysisLog.builder()
+                    .user(user)
+                    .actionType(actionType)
+                    .queryInput(query)
+                    .aiOutput(reply)
+                    .build();
+            aiAnalysisLogRepository.save(logEntry);
+        } catch (Exception e) {
+            log.error("Không thể lưu nhật ký chat AI ({}): {}", actionType, e.getMessage());
+        }
+    }
+
+    private String sanitizeAcademicReply(String text) {
+        if (text == null) return "";
+        return text.replaceAll("[\ud800\udc00-\udbff\udfff\u2600-\u26ff\u2700-\u27bf]", "").trim();
+    }
+
+    /**
+     * Engine xử lý 18 Intent Rule-based dự phòng (Zero-Downtime Fallback)
+     */
+    public String processRuleBasedChat(String rawQuery, User user) {
+        String lower = rawQuery.toLowerCase();
         String response;
 
         // 1. Chi tiết đề tài cụ thể / Thông tin về đề tài
@@ -167,35 +221,24 @@ public class AiChatbotService {
             response = handleFallback(rawQuery, user);
         }
 
-        // Lưu lịch sử chat vào DB
-        try {
-            AiAnalysisLog logEntry = AiAnalysisLog.builder()
-                    .user(user)
-                    .actionType("CHAT_MESSAGE")
-                    .queryInput(rawQuery)
-                    .aiOutput(response)
-                    .build();
-            aiAnalysisLogRepository.save(logEntry);
-        } catch (Exception e) {
-            log.error("Không thể lưu nhật ký chat AI: {}", e.getMessage());
-        }
-
         return response;
     }
 
     /**
-     * Lấy lịch sử hội thoại gần nhất của người dùng
+     * Lấy lịch sử hội thoại gần nhất của người dùng (Bao gồm cả tin nhắn cũ, Gemini và Fallback)
      */
     public List<AiAnalysisLog> getChatHistory(Long userId) {
-        return aiAnalysisLogRepository.findTop30ByUserIdAndActionTypeOrderByCreatedAtAsc(userId, "CHAT_MESSAGE");
+        return aiAnalysisLogRepository.findTop30ByUserIdAndActionTypeInOrderByCreatedAtAsc(
+                userId, Arrays.asList("CHAT_MESSAGE", "CHAT_GEMINI", "CHAT_FALLBACK"));
     }
 
     /**
-     * Xóa lịch sử chat của người dùng
+     * Xóa toàn bộ lịch sử chat của người dùng
      */
     @Transactional
     public void clearChatHistory(Long userId) {
-        aiAnalysisLogRepository.deleteByUserIdAndActionType(userId, "CHAT_MESSAGE");
+        aiAnalysisLogRepository.deleteByUserIdAndActionTypeIn(
+                userId, Arrays.asList("CHAT_MESSAGE", "CHAT_GEMINI", "CHAT_FALLBACK"));
     }
 
     // =========================================================================

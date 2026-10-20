@@ -22,6 +22,8 @@ public interface AiAnalysisLogRepository extends JpaRepository<AiAnalysisLog, Lo
     /**
      * Lấy lịch sử hội thoại gần nhất của người dùng.
      */
+    List<AiAnalysisLog> findTop30ByUserIdAndActionTypeInOrderByCreatedAtAsc(Long userId, java.util.Collection<String> actionTypes);
+
     List<AiAnalysisLog> findTop30ByUserIdAndActionTypeOrderByCreatedAtAsc(Long userId, String actionType);
 
     default List<AiAnalysisLog> findTop30ByUserIdAndAnalysisTypeOrderByCreatedAtAsc(Long userId, String analysisType) {
@@ -33,6 +35,8 @@ public interface AiAnalysisLogRepository extends JpaRepository<AiAnalysisLog, Lo
      */
     @Modifying
     @Transactional
+    void deleteByUserIdAndActionTypeIn(Long userId, java.util.Collection<String> actionTypes);
+
     void deleteByUserIdAndActionType(Long userId, String actionType);
 
     default void deleteByUserIdAndAnalysisType(Long userId, String analysisType) {
