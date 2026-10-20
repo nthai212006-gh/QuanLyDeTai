@@ -65,6 +65,10 @@ public class AiAnalysisLog {
         this.aiOutput = aiResponse;
     }
 
+    public enum AnalysisType {
+        TOPIC_RECOMMENDATION, TOPIC_SIMILARITY, REPORT_SUMMARY
+    }
+
     public static AiAnalysisLogBuilder builder() {
         return new AiAnalysisLogBuilder();
     }
@@ -93,6 +97,11 @@ public class AiAnalysisLog {
 
         public AiAnalysisLogBuilder actionType(String actionType) {
             this.actionType = actionType;
+            return this;
+        }
+
+        public AiAnalysisLogBuilder analysisType(AnalysisType type) {
+            this.actionType = type != null ? type.name() : null;
             return this;
         }
 
