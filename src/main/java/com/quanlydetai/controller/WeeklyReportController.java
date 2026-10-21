@@ -5,12 +5,14 @@ import com.quanlydetai.entity.StudentGroup;
 import com.quanlydetai.entity.WeeklyProgressReport;
 import com.quanlydetai.service.GroupService;
 import com.quanlydetai.service.WeeklyReportService;
+import com.quanlydetai.util.SqlErrorUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -26,7 +28,7 @@ public class WeeklyReportController {
     @GetMapping("/my")
     @PreAuthorize("hasRole('STUDENT')")
     public String myReports(@AuthenticationPrincipal CustomUserDetails userDetails,
-                            org.springframework.web.servlet.mvc.support.RedirectAttributes redirectAttributes) {
+                            RedirectAttributes redirectAttributes) {
         Long studentId = userDetails.getId();
         java.util.Optional<Long> activePeriodId = groupService.findActivePeriodIdByStudent(studentId);
         if (activePeriodId.isEmpty()) {
@@ -64,13 +66,16 @@ public class WeeklyReportController {
                                      @RequestParam(value = "difficulties", required = false) String difficulties,
                                      @RequestParam("nextWeekPlan") String nextPlan,
                                      @RequestParam(value = "attachmentUrl", required = false) String attachmentUrl,
-                                     @AuthenticationPrincipal CustomUserDetails userDetails) {
+                                     @AuthenticationPrincipal CustomUserDetails userDetails,
+                                     RedirectAttributes redirectAttributes) {
         try {
             reportService.submitReport(groupId, weekNumber, LocalDate.parse(startDate), LocalDate.parse(endDate),
                     tasks, difficulties, nextPlan, attachmentUrl, userDetails.getUser());
+            redirectAttributes.addFlashAttribute("successMessage", "Nộp báo cáo tiến độ tuần " + weekNumber + " thành công!");
             return "redirect:/weekly-reports/group/" + groupId + "?submitted=true";
         } catch (Exception e) {
-            return "redirect:/weekly-reports/group/" + groupId + "?error=" + e.getMessage();
+            redirectAttributes.addFlashAttribute("errorMessage", SqlErrorUtils.extractFriendlyMessage(e));
+            return "redirect:/weekly-reports/group/" + groupId;
         }
     }
 
@@ -80,12 +85,15 @@ public class WeeklyReportController {
                                @RequestParam("groupId") Long groupId,
                                @RequestParam("feedback") String feedback,
                                @RequestParam("status") WeeklyProgressReport.ReportStatus status,
-                               @AuthenticationPrincipal CustomUserDetails userDetails) {
+                               @AuthenticationPrincipal CustomUserDetails userDetails,
+                               RedirectAttributes redirectAttributes) {
         try {
             reportService.reviewReport(reportId, feedback, status, userDetails.getUser());
+            redirectAttributes.addFlashAttribute("successMessage", "Đánh giá nhận xét báo cáo thành công!");
             return "redirect:/weekly-reports/group/" + groupId + "?reviewed=true";
         } catch (Exception e) {
-            return "redirect:/weekly-reports/group/" + groupId + "?error=" + e.getMessage();
+            redirectAttributes.addFlashAttribute("errorMessage", SqlErrorUtils.extractFriendlyMessage(e));
+            return "redirect:/weekly-reports/group/" + groupId;
         }
     }
 }

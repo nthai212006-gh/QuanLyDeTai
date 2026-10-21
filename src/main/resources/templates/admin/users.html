@@ -31,8 +31,8 @@
                 <div class="col-md-3">
                     <select name="roleId" class="form-select">
                         <option value="">-- Tất cả vai trò --</option>
-                        <option th:each="r : ${roles}" th:value="${r.id}" th:text="${r.roleName}"
-                                th:selected="${selectedRoleId != null and selectedRoleId == r.id}">ROLE_LECTURER</option>
+                        <option th:each="r : ${roles}" th:value="${r.id}" th:text="${r.displayName}"
+                                th:selected="${selectedRoleId != null and selectedRoleId == r.id}">Giảng viên</option>
                     </select>
                 </div>
                 <div class="col-md-3">
@@ -83,9 +83,9 @@
                         </td>
                         <td>
                             <div class="d-flex flex-wrap gap-1">
-                                <span th:each="r : ${u.roles}" class="badge rounded-pill px-2.5 py-1 small fw-semibold"
-                                      th:classappend="${r.roleName == 'ROLE_ADMIN' ? 'bg-danger text-white' : (r.roleName == 'ROLE_DEAN' ? 'bg-warning text-dark' : (r.roleName == 'ROLE_HEAD_OF_DEPT' ? 'bg-info text-dark' : (r.roleName == 'ROLE_LECTURER' ? 'bg-primary text-white' : 'bg-secondary text-white')))}"
-                                      th:text="${r.roleName}">ROLE_STUDENT</span>
+                                <span th:each="r : ${u.roles}" class="badge rounded-pill px-2 py-1 small fw-semibold"
+                                      th:classappend="${r.badgeCssClass}"
+                                      th:text="${r.displayName}">Sinh viên</span>
                             </div>
                         </td>
                         <td>
@@ -119,6 +119,28 @@
                     </tr>
                 </tbody>
             </table>
+        </div>
+        <!-- Pagination Controls -->
+        <div th:if="${users != null and users.totalPages > 1}" class="card-footer bg-white border-top py-3 d-flex flex-wrap justify-content-between align-items-center">
+            <div class="small text-muted">
+                Hiển thị trang <span class="fw-bold" th:text="${users.number + 1}">1</span> / <span th:text="${users.totalPages}">5</span> (Tổng số <span class="fw-bold" th:text="${users.totalElements}">50</span> người dùng)
+            </div>
+            <nav aria-label="Page navigation">
+                <ul class="pagination pagination-sm mb-0">
+                    <li class="page-item" th:classappend="${users.first} ? 'disabled'">
+                        <a class="page-link" th:href="@{/admin/users(page=${users.number - 1}, keyword=${keyword}, roleId=${selectedRoleId}, departmentId=${selectedDeptId})}">&laquo; Trước</a>
+                    </li>
+                    <li class="page-item" th:each="p : ${#numbers.sequence(0, users.totalPages - 1)}"
+                        th:if="${p >= users.number - 2 and p <= users.number + 2}"
+                        th:classappend="${p == users.number} ? 'active'">
+                        <a class="page-link" th:href="@{/admin/users(page=${p}, keyword=${keyword}, roleId=${selectedRoleId}, departmentId=${selectedDeptId})}"
+                           th:text="${p + 1}">1</a>
+                    </li>
+                    <li class="page-item" th:classappend="${users.last} ? 'disabled'">
+                        <a class="page-link" th:href="@{/admin/users(page=${users.number + 1}, keyword=${keyword}, roleId=${selectedRoleId}, departmentId=${selectedDeptId})}">Sau &raquo;</a>
+                    </li>
+                </ul>
+            </nav>
         </div>
     </div>
 
@@ -155,7 +177,7 @@
                                 <label class="form-label fw-bold small text-secondary">Vai Trò Hệ Thống <span class="text-danger">*</span></label>
                                 <select name="roleId" class="form-select" required>
                                     <option value="" disabled selected>-- Chọn vai trò --</option>
-                                    <option th:each="r : ${roles}" th:value="${r.id}" th:text="${r.roleName + ' (' + r.description + ')'}">ROLE_STUDENT</option>
+                                    <option th:each="r : ${roles}" th:value="${r.id}" th:text="${r.displayName + (r.description != null ? ' - ' + r.description : '')}">Sinh viên - Thành lập nhóm...</option>
                                 </select>
                             </div>
                             <div class="col-md-6">

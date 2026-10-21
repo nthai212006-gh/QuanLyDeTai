@@ -51,11 +51,11 @@ class SqlErrorUtilsTest {
     }
 
     @Test
-    @DisplayName("Should fallback gracefully when no specific trigger message found")
+    @DisplayName("Should fallback gracefully and securely when no specific trigger message found")
     void testFallbackMessage() {
-        RuntimeException ex = new RuntimeException("Dữ liệu nhập không hợp lệ");
+        RuntimeException ex = new RuntimeException("Syntax error in SQL statement near 'SELECT * FROM users'");
         String friendlyMessage = SqlErrorUtils.extractFriendlyMessage(ex);
-        assertThat(friendlyMessage).isEqualTo("Dữ liệu nhập không hợp lệ");
+        assertThat(friendlyMessage).isEqualTo("Đã xảy ra lỗi trong quá trình xử lý dữ liệu. Vui lòng liên hệ Quản trị viên để được hỗ trợ!");
     }
 
     @Test

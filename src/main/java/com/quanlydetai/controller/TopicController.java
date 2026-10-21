@@ -7,8 +7,9 @@ import com.quanlydetai.entity.Topic;
 import com.quanlydetai.entity.User;
 import com.quanlydetai.repository.DepartmentRepository;
 import com.quanlydetai.repository.RegistrationPeriodRepository;
-import com.quanlydetai.repository.UserRepository;
+import com.quanlydetai.service.PeriodService;
 import com.quanlydetai.service.TopicService;
+import com.quanlydetai.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -24,9 +25,10 @@ import java.util.List;
 public class TopicController {
 
     private final TopicService topicService;
+    private final PeriodService periodService;
+    private final UserService userService;
     private final DepartmentRepository departmentRepository;
     private final RegistrationPeriodRepository periodRepository;
-    private final UserRepository userRepository;
 
     @GetMapping
     public String listTopics(@RequestParam(value = "periodId", required = false) Long periodId,
@@ -53,20 +55,15 @@ public class TopicController {
             model.addAttribute("topic", new Topic());
         }
         List<RegistrationPeriod> periods = periodRepository.findAllByOrderByCreatedAtDesc();
-        Long firstOpenPeriodId = periods.stream()
-                .filter(RegistrationPeriod::isTopicSubmissionOpen)
-                .map(RegistrationPeriod::getId)
-                .findFirst()
-                .orElse(null);
+        Long firstOpenPeriodId = periodService.findFirstOpenTopicSubmissionPeriodId();
+
         model.addAttribute("firstOpenPeriodId", firstOpenPeriodId);
         model.addAttribute("hasOpenPeriod", firstOpenPeriodId != null);
         model.addAttribute("periods", periods);
         model.addAttribute("departments", departmentRepository.findAll());
         
-        // Danh sách giảng viên để chọn GVHD phụ
-        List<User> lecturers = userRepository.findAll().stream()
-                .filter(u -> u.hasRole("ROLE_LECTURER") && !u.getId().equals(userDetails.getId()))
-                .toList();
+        // Danh sách giảng viên để chọn GVHD phụ (Truy vấn tối ưu DB bằng JOIN FETCH, không load toàn bộ user lên RAM)
+        List<User> lecturers = userService.getActiveLecturers(userDetails.getId());
         model.addAttribute("lecturers", lecturers);
         model.addAttribute("currentUser", userDetails.getUser());
         return "topics/create";

@@ -290,18 +290,18 @@ public class AiChatbotService {
             return "### Thống Kê Số Lượng Đề Tài\n\nHiện tại hệ thống **chưa ghi nhận đợt đăng ký nào**.";
         }
 
-        List<Topic> topics = topicRepository.findByPeriodId(period.getId());
-        long approvedCount = topics.stream().filter(t -> t.getStatus() == Topic.TopicStatus.APPROVED).count();
-        long pendingCount = topics.stream().filter(t -> t.getStatus() == Topic.TopicStatus.PENDING_APPROVAL).count();
-        long assignedCount = topics.stream().filter(t -> t.getStatus() == Topic.TopicStatus.ASSIGNED).count();
-        long rejectedCount = topics.stream().filter(t -> t.getStatus() == Topic.TopicStatus.REJECTED).count();
-        long completedCount = topics.stream().filter(t -> t.getStatus() == Topic.TopicStatus.COMPLETED).count();
+        long totalCount = topicRepository.countByPeriodId(period.getId());
+        long approvedCount = topicRepository.countByPeriodIdAndStatus(period.getId(), Topic.TopicStatus.APPROVED);
+        long pendingCount = topicRepository.countByPeriodIdAndStatus(period.getId(), Topic.TopicStatus.PENDING_APPROVAL);
+        long assignedCount = topicRepository.countByPeriodIdAndStatus(period.getId(), Topic.TopicStatus.ASSIGNED);
+        long rejectedCount = topicRepository.countByPeriodIdAndStatus(period.getId(), Topic.TopicStatus.REJECTED);
+        long completedCount = topicRepository.countByPeriodIdAndStatus(period.getId(), Topic.TopicStatus.COMPLETED);
 
         List<Topic> availableTopics = topicRepository.findAvailableTopicsForRegistration(period.getId());
 
         StringBuilder sb = new StringBuilder();
         sb.append("### Thống Kê Số Lượng Đề Tài Trong Đợt: **").append(period.getPeriodName()).append("**\n\n");
-        sb.append("-  **Tổng số đề tài đã đề xuất**: **").append(topics.size()).append("** đề tài\n");
+        sb.append("-  **Tổng số đề tài đã đề xuất**: **").append(totalCount).append("** đề tài\n");
         sb.append("-  **Đã được phê duyệt (APPROVED)**: **").append(approvedCount).append("** đề tài\n");
         sb.append("-  **Đang chờ bộ môn duyệt (PENDING)**: **").append(pendingCount).append("** đề tài\n");
         sb.append("-  **Đã có nhóm nhận (ASSIGNED)**: **").append(assignedCount).append("** đề tài\n");

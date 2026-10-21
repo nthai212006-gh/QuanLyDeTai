@@ -1,5 +1,8 @@
 package com.quanlydetai.util;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public class SqlErrorUtils {
 
     private SqlErrorUtils() {
@@ -84,8 +87,10 @@ public class SqlErrorUtils {
                         || msg.contains("1205") 
                         || msg.contains("CannotAcquireLockException")
                         || msg.contains("LockAcquisitionException")
-                        || msg.contains("PessimisticLockException")) {
-                    return "Hệ thống đang bận xử lý yêu cầu song song của hội đồng, vui lòng thử lại sau giây lát!";
+                        || msg.contains("PessimisticLockException")
+                        || msg.contains("PessimisticLockingFailureException")
+                        || msg.contains("QueryTimeoutException")) {
+                    return "Hệ thống đang bận xử lý yêu cầu song song, vui lòng thử lại sau giây lát!";
                 }
 
                 // Extract SQLSTATE 45000 custom text if enclosed
@@ -100,6 +105,8 @@ public class SqlErrorUtils {
             current = current.getCause();
         }
 
-        return ex.getMessage() != null ? ex.getMessage() : "Đã xảy ra lỗi trong quá trình xử lý dữ liệu!";
+        // BẢO MẬT: Ghi log server-side cho các lỗi lạ ngoài Whitelist, không làm lộ tên bảng/cột SQL ra client
+        log.error("Unhandled Database / System Exception: ", ex);
+        return "Đã xảy ra lỗi trong quá trình xử lý dữ liệu. Vui lòng liên hệ Quản trị viên để được hỗ trợ!";
     }
 }

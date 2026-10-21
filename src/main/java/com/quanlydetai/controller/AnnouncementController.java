@@ -1,10 +1,7 @@
 package com.quanlydetai.controller;
 
 import com.quanlydetai.config.CustomUserDetails;
-import com.quanlydetai.entity.Announcement;
-import com.quanlydetai.entity.User;
-import com.quanlydetai.repository.AnnouncementRepository;
-import com.quanlydetai.repository.UserRepository;
+import com.quanlydetai.service.AnnouncementService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -19,8 +16,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 @RequiredArgsConstructor
 public class AnnouncementController {
 
-    private final AnnouncementRepository announcementRepository;
-    private final UserRepository userRepository;
+    private final AnnouncementService announcementService;
 
     @PostMapping("/create")
     @PreAuthorize("hasAnyRole('DEAN', 'ADMIN')")
@@ -31,22 +27,14 @@ public class AnnouncementController {
             @AuthenticationPrincipal CustomUserDetails userDetails,
             RedirectAttributes redirectAttributes) {
 
-        if (title == null || title.trim().isEmpty() || content == null || content.trim().isEmpty()) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Tiêu đề và nội dung thông báo không được để trống!");
-            return "redirect:/dashboard";
+        try {
+            announcementService.createAnnouncement(title, content, isPinned, userDetails.getUser());
+            redirectAttributes.addFlashAttribute("successMessage", "Đã đăng thông báo mới thành công!");
+        } catch (IllegalArgumentException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", com.quanlydetai.util.SqlErrorUtils.extractFriendlyMessage(e));
         }
-
-        User author = userRepository.findById(userDetails.getId()).orElse(userDetails.getUser());
-
-        Announcement announcement = Announcement.builder()
-                .title(title.trim())
-                .content(content.trim())
-                .author(author)
-                .isPinned(isPinned)
-                .build();
-
-        announcementRepository.save(announcement);
-        redirectAttributes.addFlashAttribute("successMessage", "Đã đăng thông báo mới thành công!");
         return "redirect:/dashboard";
     }
 }

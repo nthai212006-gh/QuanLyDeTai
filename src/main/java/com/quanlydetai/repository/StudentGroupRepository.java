@@ -57,4 +57,10 @@ public interface StudentGroupRepository extends JpaRepository<StudentGroup, Long
            "g.topic.createdByLecturer.id = :lecturerId OR " +
            "EXISTS (SELECT ts FROM TopicSupervisor ts WHERE ts.topic.id = g.topic.id AND ts.lecturer.id = :lecturerId))")
     List<StudentGroup> findSupervisedGroupsByLecturerId(@Param("lecturerId") Long lecturerId);
+
+    /**
+     * Đếm số lượng nhóm sinh viên đã được gắn với đề tài này.
+     */
+    @Query("SELECT COUNT(g) FROM StudentGroup g WHERE g.topic.id = :topicId")
+    long countByTopicId(@Param("topicId") Long topicId);
 }

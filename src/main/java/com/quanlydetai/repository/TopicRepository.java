@@ -1,8 +1,12 @@
 package com.quanlydetai.repository;
 
 import com.quanlydetai.entity.Topic;
+import jakarta.persistence.LockModeType;
+import jakarta.persistence.QueryHint;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.jpa.repository.QueryHints;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
@@ -36,6 +40,16 @@ public interface TopicRepository extends JpaRepository<Topic, Long> {
     List<Topic> findByPeriodIdAndStatus(Long periodId, Topic.TopicStatus status);
 
     /**
+     * Đếm số lượng đề tài trong một đợt theo trạng thái (chạy trực tiếp trên database index scan).
+     */
+    long countByPeriodIdAndStatus(Long periodId, Topic.TopicStatus status);
+
+    /**
+     * Đếm tổng số lượng đề tài trong một đợt (chạy trực tiếp trên database index scan).
+     */
+    long countByPeriodId(Long periodId);
+
+    /**
      * Lấy danh sách tất cả các đề tài do một giảng viên cụ thể đề xuất / tạo ra.
      */
     List<Topic> findByCreatedByLecturerId(Long lecturerId);
@@ -47,6 +61,15 @@ public interface TopicRepository extends JpaRepository<Topic, Long> {
     @Query("SELECT t FROM Topic t WHERE t.period.id = :periodId AND t.status = 'APPROVED' AND t.id NOT IN " +
            "(SELECT g.topic.id FROM StudentGroup g WHERE g.topic IS NOT NULL AND g.period.id = :periodId)")
     List<Topic> findAvailableTopicsForRegistration(@Param("periodId") Long periodId);
+
+    /**
+     * Khóa dòng đề tài bằng Pessimistic Write Lock (SELECT ... FOR UPDATE) kèm timeout 3000ms.
+     * Chống Race Condition khi nhiều nhóm cùng nhấn đăng ký một đề tài đồng thời.
+     */
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @QueryHints({@QueryHint(name = "jakarta.persistence.lock.timeout", value = "3000")})
+    @Query("SELECT t FROM Topic t WHERE t.id = :id")
+    Optional<Topic> findByIdForUpdate(@Param("id") Long id);
 
     /**
      * Truy vấn trực tiếp từ View v_topic_registration_status trong cơ sở dữ liệu.

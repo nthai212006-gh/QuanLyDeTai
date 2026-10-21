@@ -151,7 +151,11 @@ public class GroupService {
         memberRepository.save(newMember);
     }
 
-    @Transactional
+    // QUY TẮC THỨ BẬC TIMEOUT (TIMEOUT HIERARCHY):
+    // Lock-wait Timeout của Hibernate hint (3000ms = 3s) BẮT BUỘC NHỎ HƠN Transaction Timeout (5s).
+    // Điều này đảm bảo Lock Timeout kích hoạt trước để nhả khóa và ném thông báo thân thiện.
+    // Transaction Timeout (5s) là chốt chặn cuối cùng nếu toàn bộ transaction bị nghẽn mạng/IO.
+    @Transactional(timeout = 5)
     @AuditAction(action = "REGISTER_TOPIC", entityName = "StudentGroup")
     public void registerTopic(Long groupId, Long topicId, User requester) {
         StudentGroup group = getGroupById(groupId);
@@ -171,17 +175,36 @@ public class GroupService {
                     "Giai đoạn SV đăng ký đề tài chưa mở hoặc đã kết thúc. Vui lòng kiểm tra lịch đợt đăng ký.");
         }
 
-        Topic topic = topicRepository.findById(topicId)
-                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy đề tài"));
+        try {
+            // Sử dụng Pessimistic Write Lock (SELECT ... FOR UPDATE) kèm timeout 3000ms
+            Topic topic = topicRepository.findByIdForUpdate(topicId)
+                    .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy đề tài"));
 
-        if (topic.getStatus() != Topic.TopicStatus.APPROVED) {
-            throw new IllegalStateException("Đề tài này chưa được duyệt hoặc đã có nhóm khác nhận!");
+            if (topic.getStatus() != Topic.TopicStatus.APPROVED) {
+                throw new IllegalStateException("Đề tài này chưa được duyệt hoặc đã có nhóm khác nhận!");
+            }
+
+            int maxGroups = (topic.getMaxGroups() != null && topic.getMaxGroups() > 0) ? topic.getMaxGroups() : 1;
+            long currentAssigned = groupRepository.countByTopicId(topic.getId());
+            if (currentAssigned >= maxGroups) {
+                throw new IllegalStateException("Đề tài này đã đạt số lượng nhóm đăng ký tối đa (" + maxGroups + " nhóm)!");
+            }
+
+            if (currentAssigned + 1 >= maxGroups) {
+                topic.setStatus(Topic.TopicStatus.ASSIGNED);
+                topicRepository.save(topic);
+            }
+
+            group.setTopic(topic);
+            group.setRegistrationStatus(StudentGroup.RegistrationStatus.PENDING);
+            group.setStatus(StudentGroup.GroupStatus.REGISTERED);
+            groupRepository.save(group);
+        } catch (org.springframework.dao.PessimisticLockingFailureException | 
+                 org.springframework.dao.QueryTimeoutException e) {
+            // Spring Data JPA đã tự động dịch jakarta.persistence.* sang org.springframework.dao.*
+            // PessimisticLockingFailureException bao trùm cả CannotAcquireLockException.
+            throw new IllegalStateException("Đề tài này đang được xử lý đăng ký bởi nhóm khác. Vui lòng thử lại sau giây lát!", e);
         }
-
-        group.setTopic(topic);
-        group.setRegistrationStatus(StudentGroup.RegistrationStatus.PENDING);
-        group.setStatus(StudentGroup.GroupStatus.REGISTERED);
-        groupRepository.save(group);
     }
 
     @Transactional

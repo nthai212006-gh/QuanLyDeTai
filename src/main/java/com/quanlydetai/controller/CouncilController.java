@@ -30,7 +30,7 @@ public class CouncilController {
     private final CouncilService councilService;
     private final CouncilMemberRepository councilMemberRepository;
     private final RegistrationPeriodRepository periodRepository;
-    private final UserRepository userRepository;
+    private final com.quanlydetai.service.UserService userService;
     private final StudentGroupRepository groupRepository;
 
     @GetMapping
@@ -50,9 +50,7 @@ public class CouncilController {
     public String councilDetail(@PathVariable("id") Long id, Model model,
                                 @AuthenticationPrincipal CustomUserDetails userDetails) {
         Council council = councilService.getCouncilById(id);
-        List<User> lecturers = userRepository.findAll().stream()
-                .filter(u -> u.hasRole("ROLE_LECTURER"))
-                .toList();
+        List<User> lecturers = userService.getActiveLecturers(null);
 
         model.addAttribute("council", council);
         model.addAttribute("lecturers", lecturers);

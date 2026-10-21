@@ -26,6 +26,14 @@ public class PeriodService {
                 .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy đợt đăng ký ID: " + id));
     }
 
+    public Long findFirstOpenTopicSubmissionPeriodId() {
+        return periodRepository.findAllByOrderByCreatedAtDesc().stream()
+                .filter(RegistrationPeriod::isTopicSubmissionOpen)
+                .map(RegistrationPeriod::getId)
+                .findFirst()
+                .orElse(null);
+    }
+
     @Transactional
     @AuditAction(action = "CREATE_PERIOD", entityName = "RegistrationPeriod")
     public RegistrationPeriod createPeriod(RegistrationPeriod period, User creator) {
