@@ -18,7 +18,7 @@ import org.springframework.security.web.session.HttpSessionEventPublisher;
 @EnableWebSecurity
 @EnableMethodSecurity
 public class SecurityConfig {
-
+// mã hoá mật khẩu một chiều bằng thuật toán BCrypt
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
